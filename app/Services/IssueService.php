@@ -21,7 +21,7 @@ class IssueService
     public function createIssue(array $data): Issue
     {
         try {
-            $guestIssuer = $this->getOrCreateGuestIssuer($data['email'], $data['name']);
+            $guestIssuer = $this->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
 
             $issueData = $this->prepareIssueData($data);
             $issueData['guest_issuer_id'] = $guestIssuer->id;
@@ -151,12 +151,15 @@ class IssueService
         return $preparedData;
     }
     
-    protected function getOrCreateGuestIssuer(string $email, string $name): GuestIssuer
+    protected function getOrCreateGuestIssuer(string $email, string $name, string $ip): GuestIssuer
     {
         // Check if the guest issuer with this email already exists
         $guestIssuer = GuestIssuer::firstOrCreate(
             ['email' => $email], // Check by email
-            ['name' => $name]    // If not found, create with provided name
+            [
+                'name' => $name,
+                'ip_address' => $ip
+            ]   
         );
 
         return $guestIssuer;

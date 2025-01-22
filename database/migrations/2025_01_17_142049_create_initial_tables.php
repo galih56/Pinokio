@@ -22,7 +22,8 @@ return new class extends Migration
             $table->bigIncrements('id');
             $table->string('name');
             $table->string('email');
-            $table->timestamps(0); // Using 0 for current_timestamp
+            $table->string('ip_address')->nullable();
+            $table->timestamps(0); 
         });
 
         // Create issues table

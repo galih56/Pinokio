@@ -16,18 +16,13 @@ class BaseRequest extends FormRequest
         return false;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
-    public function rules(): array
+    protected function prepareForValidation(): void
     {
-        return [
-            //
-        ];
+        // Merge IP address into the request data
+        $this->merge([
+            'ip_address' => $this->ip(),
+        ]);
     }
-
     
     public function failedValidation(Validator $validator)
     {
