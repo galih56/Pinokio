@@ -30,6 +30,9 @@ class IssueController extends Controller
 
     public function getPublicIssues(Request $request){
         $search = $request->query('search');
+        $email = $request->query('email');
+
+
         $prepare_search = [];
         if ($search) {
             $prepare_search[] = [
