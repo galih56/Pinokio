@@ -8,6 +8,14 @@ export const paths : Paths = {
     path: '',
     getHref: () => '/',
   },
+  issues: {
+    path: 'issues',
+    getHref: () => '/issues',
+  },
+  issue: {
+    path: 'issues/:id',
+    getHref: (id?: string) => `/issues/${id}`,
+  },
   tags: {
     path: 'tags',
     getHref: () => '/tags',

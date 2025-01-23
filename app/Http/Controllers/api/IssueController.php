@@ -28,16 +28,64 @@ class IssueController extends Controller
         return ApiResponse::sendResponse(IssueResource::collection($issues), null, 'success', 200);
     }
 
+    public function getPublicIssues(Request $request){
+        $search = $request->query('search');
+        $prepare_search = [];
+        if ($search) {
+            $prepare_search[] = [
+                'issues.title:like' => $search,
+                'issues.description:like' => $search,
+                'with:tags.name:like' => $search,
+                'with:guestIssuer.email:like' => ($email ?? $search),
+                'with:guestIssuer.name:like' => $search,
+            ];
+        }
+
+        $per_page = $request->query('per_page') ?? 0;
+
+        $data = $this->issueService->getPublicIssues($prepare_search, $per_page);
+
+        if ($per_page) {
+            $issues = [
+                'data' => IssueResource::collection($data->items()),  // The actual resource data
+                'meta' => [
+                    'current_page' => $data->currentPage(),
+                    'per_page' => $data->perPage(),
+                    'total_count' => $data->total(),
+                    'total_pages' => $data->lastPage(),
+                ],
+            ];
+            return response()->json($issues, 200);
+        } else {
+            $issues = IssueResource::collection($data);
+            return ApiResponse::sendResponse($issues, '', 'success', 200);
+        }
+    }
+
     /**
      * Display a listing of the resource.
      */
     public function index(Request $request)
     {
-        $perPage = $request->query('per_page') ?? 0;
+        $search = $request->query('search');
 
-        $data = $this->issueService->getIssues($perPage);
 
-        if ($perPage) {
+        $prepare_search = [];
+        if ($search) {
+            $prepare_search[] = [
+                'issues.title:like' => $search,
+                'issues.description:like' => $search,
+                'with:tags.name:like' => $search,
+                'with:guestIssuer.email:like' => $search,
+                'with:guestIssuer.name:like' => $search,
+            ];
+        }
+
+        $per_page = $request->query('per_page') ?? 0;
+
+        $data = $this->issueService->getIssues($prepare_search, $per_page);
+
+        if ($per_page) {
             $issues = [
                 'data' => IssueResource::collection($data->items()),  // The actual resource data
                 'meta' => [

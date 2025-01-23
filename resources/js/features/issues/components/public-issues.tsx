@@ -1,7 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { useIssues } from '../api/get-issues';
 import {  DataTable } from '@/components/ui/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 
@@ -13,25 +12,24 @@ import { getIssueQueryOptions } from "../api/get-issue"
 import { Link } from '@/components/ui/link';
 import { paths } from '@/apps/dashboard/paths';
 import { Skeleton } from '@/components/ui/skeleton';
-import { capitalizeFirstChar } from '@/lib/common';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useEffect, useState } from 'react';
 import { formatDate } from '@/lib/datetime';
+import { usePublicIssues } from '../api/get-public-issues';
 
-export type IssuesListProps = {
+export type PublicIssuesProps = {
   onIssuePrefetch?: (id: string) => void;
 };
 
-export const IssuesList = ({
+export const PublicIssues = ({
   onIssuePrefetch,
-}: IssuesListProps) => {
+}: PublicIssuesProps) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = +(searchParams.get("page") || 1);
   const search = searchParams.get('search') || '';
 
-  const issuesQuery = useIssues({
+  const issuesQuery = usePublicIssues({
     page: currentPage,
     search,
   });

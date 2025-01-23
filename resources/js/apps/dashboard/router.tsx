@@ -26,6 +26,32 @@ export const createAppRouter = (queryClient: QueryClient) => {
       ErrorBoundary: AppRootErrorBoundary,
       children: [
         {
+          path: paths.issues.path,
+          lazy: async () => {
+            const { IssuesRoute, issuesLoader } = await import(
+              '@/pages/app/issues/issues'
+            );
+            return {
+              Component: IssuesRoute,
+              loader: issuesLoader(queryClient),
+            };
+          },
+          ErrorBoundary: AppRootErrorBoundary,
+        },
+        {
+          path: paths.issue.path,
+          lazy: async () => {
+            const { IssueRoute, issueLoader } = await import(
+              '@/pages/app/issues/issue'
+            );
+            return {
+              Component: IssueRoute,
+              loader: issueLoader(queryClient),
+            };
+          },
+          ErrorBoundary: AppRootErrorBoundary,
+        },
+        {
           path: paths.tags.path,
           lazy: async () => {
             const { TagsRoute, tagsLoader } = await import(

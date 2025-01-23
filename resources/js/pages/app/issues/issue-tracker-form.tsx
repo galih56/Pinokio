@@ -9,6 +9,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
+import { PublicIssues } from "@/features/issues/components/public-issues";
 
 export const IssueTrackerFormRoute = () => {
   const params = useParams();
@@ -32,8 +33,7 @@ export const IssueTrackerFormRoute = () => {
             </div>
           </TabsContent>
           <TabsContent value="History">
-            {/* <IssueHistory/> */}
-
+            <PublicIssues/>
           </TabsContent>
         </Tabs>
       </Card>

@@ -18,7 +18,8 @@ class IssueRepository extends BaseRepository implements IssueRepositoryInterface
     public function getRelatedData()
     {
         return [
-            'tags' 
+            'tags' ,
+            'guestIssuer'
         ];
     }
 
@@ -52,6 +53,11 @@ class IssueRepository extends BaseRepository implements IssueRepositoryInterface
     }
 
     public function getAll(array $filters = [], int $perPage = 0, array $sorts = [], array $relations = []): Collection | LengthAwarePaginator
+    {
+        return parent::get($filters, $perPage, $sorts, $this->getRelatedData());
+    }
+
+    public function getPublicIssues(array $filters = [], int $perPage = 0, array $sorts = [], array $relations = []): Collection | LengthAwarePaginator
     {
         return parent::get($filters, $perPage, $sorts, $this->getRelatedData());
     }

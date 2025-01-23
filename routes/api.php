@@ -41,11 +41,12 @@ Route::group([
     });
 });
 
+Route::get('/public-issues', [IssueController::class, 'getPublicIssues']);
+
 Route::group([
     "prefix" => "issues",
 ], function () {
     Route::post('/', [IssueController::class, 'store']);
-    
     Route::group([
         'middleware' => ['role:ADMIN,HR','decode_id', 'auth:sanctum']
     ], function () {

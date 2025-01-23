@@ -8,6 +8,8 @@ use App\Models\File;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use App\Models\GuestIssuer;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class IssueService
 {
@@ -94,9 +96,14 @@ class IssueService
         }
     }
 
-    public function getAllIssues(array $filters = [], int $perPage = 0, array $sorts = []): LengthAwarePaginator
+    public function getAllIssues(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
     {
         return $this->issueRepository->getAll($filters, $perPage, $sorts);
+    }
+
+    public function getPublicIssues(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
+    {
+        return $this->issueRepository->getPublicIssues($filters, $perPage, $sorts);
     }
 
     public function getIssueById(int $id): ?Issue
