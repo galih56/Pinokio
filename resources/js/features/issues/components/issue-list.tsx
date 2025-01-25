@@ -18,6 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useEffect, useState } from 'react';
 import { formatDate } from '@/lib/datetime';
+import { VariantType } from '@/types/ui';
 
 export type IssuesListProps = {
   onIssuePrefetch?: (id: string) => void;
@@ -101,6 +102,44 @@ export const IssuesList = ({
     {
       accessorKey: "description",
       header : 'Description',
+    },
+    {
+      accessorKey: "dueDate",
+      header : 'Due Date',
+      cell : ({row}) => {
+        const issue = row.original;
+        if(!issue.dueDate) return '-';
+        
+        return formatDate(issue.dueDate)
+      }
+    },
+    {
+      accessorKey: "status",
+      header : 'Status',
+      cell : ({row}) => {
+        const issue = row.original;
+        let badgeVariant : VariantType = 'outline';
+        switch (issue.status) {
+          case 'open':
+            badgeVariant = 'destructive';
+            break;
+          case 'idle':
+            badgeVariant = 'destructive';
+            break;
+          case 'resolved':
+            badgeVariant = 'info';
+            break;
+          case 'in progress':
+            badgeVariant = 'warning';
+            break;
+          case 'closed':
+            badgeVariant = 'success';
+            break;
+          default:
+            break;
+        }
+        return <Badge variant={badgeVariant}>{  capitalizeFirstChar(issue.status)}</Badge>
+      }
     },
   ]
   const onPageChange = (newPage: number) => {

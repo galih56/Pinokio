@@ -70,4 +70,9 @@ class User extends Authenticatable
     {
         return $this->morphMany(File::class, 'uploader');
     }
+
+    public function assignments()
+    {
+        return $this->morphMany(Assignment::class, 'assignee');
+    }
 }

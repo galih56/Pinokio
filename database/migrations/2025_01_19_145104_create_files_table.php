@@ -17,10 +17,10 @@ return new class extends Migration
         // Create the 'files' table
         Schema::create('files', function (Blueprint $table) {
             $table->id(); 
-            $table->string('file_name'); 
-            $table->text('file_path'); 
+            $table->string('name'); 
+            $table->text('path'); 
             $table->string('mime_type'); // MIME type (e.g., application/pdf)
-            $table->unsignedBigInteger('file_size'); // File size in bytes
+            $table->unsignedBigInteger('size'); // File size in bytes
             $table->timestamp('uploaded_at')->default(DB::raw('CURRENT_TIMESTAMP')); // Upload timestamp
         });
 
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->id(); 
             $table->unsignedBigInteger('file_id'); 
             $table->unsignedBigInteger('related_id'); 
-            $table->string('related_type'); // Model name or type
+            $table->string('related_type');
 
             $table->foreign('file_id')->references('id')->on('files')->onDelete('cascade');
         });

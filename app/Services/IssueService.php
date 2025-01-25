@@ -6,7 +6,6 @@ use App\Interfaces\IssueRepositoryInterface;
 use App\Models\Issue;
 use App\Models\File;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Storage;
 use App\Models\GuestIssuer;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -14,10 +13,12 @@ use Illuminate\Pagination\LengthAwarePaginator;
 class IssueService
 {
     protected $issueRepository;
+    protected $fileService;
 
-    public function __construct(IssueRepositoryInterface $issueRepository)
+    public function __construct(IssueRepositoryInterface $issueRepository, FileService $fileService)
     {
         $this->issueRepository = $issueRepository;
+        $this->fileService = $fileService;
     }
 
     public function createIssue(array $data): Issue
@@ -30,23 +31,21 @@ class IssueService
 
             $issue = $this->issueRepository->create($issueData);
 
-            $fileIds = $this->uploadFiles($guestIssuer,$data['files'] ?? []);
-            if (!empty($fileIds)) {
-                $this->issueRepository->attachFiles($issue, $fileIds);
+            // Use FileService to upload files and get an array of File models
+            $uploadedFiles = $this->fileService->upload($data['files'] ?? []); 
+
+            // Attach files to issue if any files are uploaded
+            if (!empty($uploadedFiles)) {
+                $this->attachFilesToIssue($issue, $uploadedFiles);
             }
 
             $tagIds = $data['tag_ids'] ?? ($data['tag_id'] ? [$data['tag_id']] : []);
-
             if (!empty($tagIds)) {
                 $this->issueRepository->attachTags($issue, $tagIds);
             }
 
-            if (!empty($fileIds)) {
-                $this->attachFilesToIssue($issue, $fileIds);
-            }
-            
-            $issue->refresh(); 
-            $issue->load(['tags', 'files', 'guestIssuer']); 
+            $issue->refresh();
+            $issue->load(['tags', 'files', 'guestIssuer']);
 
             return $issue;
         } catch (\Exception $e) {
@@ -58,26 +57,16 @@ class IssueService
     public function updateIssue(int $id, array $data): Issue
     {
         try {
-            $fileIds = $this->uploadFiles($data['files'] ?? []);
-
             $issueData = $this->prepareIssueData($data);
             $issue = $this->issueRepository->update($id, $issueData);
-
-            if (!empty($fileIds)) {
-                $this->issueRepository->attachFiles($issue, $fileIds);
-            }
 
             $tagIds = $data['tag_ids'] ?? ($data['tag_id'] ? [$data['tag_id']] : []);
             if (!empty($tagIds)) {
                 $this->issueRepository->attachTags($issue, $tagIds);
             }
 
-            if (!empty($fileIds)) {
-                $this->attachFilesToIssue($issue, $fileIds);
-            }
-            
-            $issue->refresh(); 
-            $issue->load(['tags', 'files', 'guestIssuer']); 
+            $issue->refresh();
+            $issue->load(['tags', 'files', 'guestIssuer']);
 
             return $issue;
         } catch (\Exception $e) {
@@ -112,35 +101,6 @@ class IssueService
     }
 
     /**
-     * Upload files and return their IDs.
-     *
-     * @param array $files
-     * @return array
-     */
-    protected function uploadFiles(GuestIssuer $guest, array $files): array
-    {
-        $fileIds = [];
-
-        foreach ($files as $file) {
-            if ($file->isValid()) {
-                $filePath = $file->store('issues'); // Store file in the 'issues' directory
-                $uploadedFile = File::create([
-                    'path' => $filePath,
-                    'name' => $file->getClientOriginalName(),
-                    'mime_type' => $file->getMimeType(),
-                    'size' => $file->getSize(),
-                    'uploaded_at' => now(),
-                    'uploader_id' => $guest->id,
-                    'uploader_type' => get_class($guest),
-                ]);
-                $fileIds[] = $uploadedFile->id;
-            }
-        }
-
-        return $fileIds;
-    }
-
-    /**
      * Prepares issue data before creation or update.
      *
      * @param array $data
@@ -172,16 +132,18 @@ class IssueService
         return $guestIssuer;
     }
 
-
-    protected function attachFilesToIssue(Issue $issue, array $fileIds): void
+    public function attachFilesToIssue(Issue $issue, $files): void
     {
-        foreach ($fileIds as $fileId) {
-            // Use the file_associations table to associate files with the issue
-            $issue->files()->create([
-                'file_id' => $fileId,
-                'related_id' => $issue->id,
-                'related_type' => Issue::class, // Related type is the Issue model
-            ]);
+        // If a single file is passed, convert it to an array
+        if (!is_array($files)) {
+            $files = [$files];
+        }
+    
+        foreach ($files as $file) {
+            // Ensure $file is a File model, and attach the file ID to the issue
+            if ($file instanceof File) {
+                $issue->files()->attach($file->id); // Attach the file's ID
+            }
         }
     }
 }

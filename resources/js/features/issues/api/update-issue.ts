@@ -19,7 +19,7 @@ export const updateIssueInputSchema = z.object({
   assigneeType: z.string(),
   title: z.string().min(1, { message: "Title is required." }),
   description: z.string().optional(),
-  status: z.enum(['open', 'in_progress', 'resolved', 'closed']),
+  status: z.enum(['open', 'idle', 'in progress', 'resolved', 'closed']),
   priority: z.enum(['low', 'medium', 'high', 'critical']),
   dueDate: z.date().optional(),
   comments: z.array(z.object({})).optional(),

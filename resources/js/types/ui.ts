@@ -1,5 +1,5 @@
 
-export type VariantType = "default" | "destructive" | "success" | "warning" | "info";
+export type VariantType = "default" | "destructive" | "success" | "warning" | "info" | 'outline';
 export type AlertType = {
     title: string;
     message: string;

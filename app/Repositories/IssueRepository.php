@@ -5,6 +5,7 @@ namespace App\Repositories;
 use App\Interfaces\IssueRepositoryInterface;
 use App\Models\Issue;
 use App\Models\Tag;
+use App\Models\File;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -19,6 +20,7 @@ class IssueRepository extends BaseRepository implements IssueRepositoryInterface
     {
         return [
             'tags' ,
+            'files' ,
             'guestIssuer'
         ];
     }
@@ -71,11 +73,5 @@ class IssueRepository extends BaseRepository implements IssueRepositoryInterface
     {
         $tags = Tag::find($tagIds);
         $issue->tags()->attach($tags);
-    }
-    
-    public function attachFiles(Issue $issue, array $fileIds): void
-    {
-        $files = File::find($fileIds);
-        $issue->files()->attach($files);
     }
 }

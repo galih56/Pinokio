@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\Validator;
@@ -16,20 +15,20 @@ class BaseRequest extends FormRequest
         return false;
     }
 
-    protected function prepareForValidation(): void
+    /**
+     * Get the common validation rules that apply to the request.
+     */
+    public function rules(): array
     {
-        // Merge IP address into the request data
-        $this->merge([
-            'ip_address' => $this->ip(),
-        ]);
+        return [];
     }
     
     public function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
             'status'   => 'error',
-            'message'   => 'Kesalahan input',
-            'data' => $validator->errors()
+            'message'  => 'Kesalahan input',
+            'data'     => $validator->errors()
         ], 422));
     }
 }

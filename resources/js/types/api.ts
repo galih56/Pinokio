@@ -77,7 +77,7 @@ export interface Issue {
     assigneeType: string;
     title: string;
     description?: string;
-    status: 'open' | 'in_progress' | 'resolved' | 'closed';
+    status: 'open' | 'idle' | 'in progress' | 'resolved' | 'closed';
     priority: 'low' | 'medium' | 'high' | 'critical';
     dueDate?: Date;
     comments?: Comment[];

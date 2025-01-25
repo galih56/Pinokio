@@ -4,8 +4,9 @@ namespace App\Http\Requests\Issue;
 
 use Illuminate\Foundation\Http\FormRequest;
 use App\Services\HashidService;
+use App\Http\Requests\BaseRequest;
 
-class StoreIssueRequest extends FormRequest
+class StoreIssueRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,7 +23,8 @@ class StoreIssueRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
+         return  [
+            'ip_address' => 'nullable|ip',
             'project_id' => 'nullable|string', 
             'reporter_id' => 'nullable|string', 
             'name' => 'required|string|min:1|max:255', 
@@ -70,6 +72,10 @@ class StoreIssueRequest extends FormRequest
                 'reporter_id' => $hashidService->decode($this->input('reporter_id')),
             ]);
         }
+
+        $this->merge([
+            'ip_address' => $this->ip(),
+        ]);
     }
 
     /**

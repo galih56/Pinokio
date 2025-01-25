@@ -12,7 +12,6 @@ return new class extends Migration
     public function up()
     {
         Schema::table('files', function (Blueprint $table) {
-            // Add polymorphic columns for the uploader
             $table->unsignedBigInteger('uploader_id')->nullable()->after('id');
             $table->string('uploader_type')->nullable()->after('uploader_id');
         });

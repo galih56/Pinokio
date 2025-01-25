@@ -20,12 +20,10 @@ class IssueResource extends JsonResource
 
         $data = [
             'id' => $hashid->encode($this->id), 
-            'code' => $this->code,
-            'name' => $this->name,
+            'title' => $this->title,
+            'status' => $this->status,
             'description' => $this->description,
-            'start' => $this->start,
-            'end' => $this->end,
-            'is_flexible' => $this->is_flexible,
+            'due_date' => $this->due_date,
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at,
         ];

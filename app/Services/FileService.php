@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\File;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -14,21 +15,49 @@ class FileService
     {
         $this->disk = $disk;
     }
-
+    
     /**
-     * Upload a file to the specified storage disk.
+     * Upload a file or an array of files to the specified storage disk and return an array of File models.
      *
-     * @param UploadedFile $file
+     * @param UploadedFile|array $files
      * @param string $directory
-     * @return string The path of the uploaded file
+     * @return File|array
      */
-    public function upload(UploadedFile $file, string $directory = 'uploads'): string
+    public function upload($files, string $directory = 'uploads')
     {
-        $filename = $this->generateUniqueFilename($file);
-        $path = $file->storeAs($directory, $filename, $this->disk);
-        return $path;
-    }
+        // If it's a single file, make it an array to unify the logic
+        if (!$files instanceof \Illuminate\Http\UploadedFile) {
+            $files = (array) $files; // Convert to array if it's not already an array
+        }
 
+        $uploadedFiles = [];
+
+        foreach ($files as $file) {
+            if ($file->isValid()) {
+                $filename = $this->generateUniqueFilename($file);
+                $path = $file->storeAs($directory, $filename, $this->disk);
+
+                // Create the File model
+                $newFile = File::create([
+                    'path' => $path,
+                    'name' => $file->getClientOriginalName(),
+                    'mime_type' => $file->getMimeType(),
+                    'size' => $file->getSize(),
+                    'uploaded_at' => now(),
+                ]);
+
+                // Store the file model in the result array
+                $uploadedFiles[] = $newFile;
+            }
+        }
+
+        // If only one file was uploaded, return the single File model
+        if (count($uploadedFiles) === 1) {
+            return $uploadedFiles[0];
+        }
+
+        return $uploadedFiles; // Return an array of File models
+    }
     /**
      * Generate a unique filename.
      *
@@ -39,62 +68,5 @@ class FileService
     {
         $extension = $file->getClientOriginalExtension();
         return Str::random(20) . '.' . $extension;
-    }
-
-    /**
-     * Get the URL of a file.
-     *
-     * @param string $path
-     * @return string
-     */
-    public function getUrl(string $path): string
-    {
-        if(Storage::disk($this->disk)->exists($path)){
-            return Storage::disk($this->disk)->url($path);
-        }else return '';
-    }
-
-    /**
-     * Delete a file from storage.
-     *
-     * @param string $path
-     * @return bool
-     */
-    public function delete(string $path): bool
-    {
-        return Storage::disk($this->disk)->delete($path);
-    }
-
-    /**
-     * List all files in a given directory.
-     *
-     * @param string $directory
-     * @return array
-     */
-    public function listFiles(string $directory = 'uploads'): array
-    {
-        return Storage::disk($this->disk)->files($directory);
-    }
-
-    /**
-     * Check if a file exists.
-     *
-     * @param string $path
-     * @return bool
-     */
-    public function exists(string $path): bool
-    {
-        return Storage::disk($this->disk)->exists($path);
-    }
-
-    /**
-     * Download a file.
-     *
-     * @param string $path
-     * @return \Symfony\Component\HttpFoundation\StreamedResponse
-     */
-    public function download(string $path)
-    {
-        return Storage::disk($this->disk)->download($path);
     }
 }

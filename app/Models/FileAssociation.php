@@ -27,14 +27,7 @@ class FileAssociation extends Model
      */
     public function file()
     {
-        return $this->belongsTo(File::class);
+        return $this->belongsTo(File::class, 'file_id');
     }
 
-    /**
-     * Get the related model.
-     */
-    public function related()
-    {
-        return $this->morphTo();
-    }
 }

@@ -16,6 +16,9 @@ import { Input } from '@/components/ui/input';
 import { useEffect, useState } from 'react';
 import { formatDate } from '@/lib/datetime';
 import { usePublicIssues } from '../api/get-public-issues';
+import { VariantType } from '@/types/ui';
+import { capitalizeFirstChar } from '@/lib/common';
+import { Badge } from '@/components/ui/badge';
 
 export type PublicIssuesProps = {
   onIssuePrefetch?: (id: string) => void;
@@ -92,6 +95,7 @@ export const PublicIssues = ({
         )
       },
     },
+
     {
       accessorKey: "title",
       header : 'Title',
@@ -99,6 +103,42 @@ export const PublicIssues = ({
     {
       accessorKey: "description",
       header : 'Description',
+    },
+    {
+      accessorKey: "dueDate",
+      header : 'Due Date',
+      cell : ({row}) => {
+        const issue = row.original;
+        if(!issue.dueDate) return '-';
+        
+        return formatDate(issue.dueDate)
+      }
+    },
+    {
+      accessorKey: "status",
+      header : 'Status',
+      cell : ({row}) => {
+        const issue = row.original;
+        let badgeVariant : VariantType = 'outline';
+        switch (issue.status) {
+          case 'open':
+            badgeVariant = 'destructive';
+            break;
+        
+          case 'resolved':
+            badgeVariant = 'info';
+            break;
+          case 'in progress':
+            badgeVariant = 'warning';
+            break;
+          case 'closed':
+            badgeVariant = 'success';
+            break;
+          default:
+            break;
+        }
+        return <Badge variant={badgeVariant}>{  capitalizeFirstChar(issue.status)}</Badge>
+      }
     },
   ]
   const onPageChange = (newPage: number) => {

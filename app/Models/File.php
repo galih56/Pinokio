@@ -18,10 +18,10 @@ class File extends Model
      * @var array<string>
      */
     protected $fillable = [
-        'file_name',
-        'file_path',
+        'name',
+        'path',
         'mime_type',
-        'file_size',
+        'size',
         'uploaded_at',
         'uploader_id',
         'uploader_type',
@@ -31,12 +31,15 @@ class File extends Model
     {
         return $this->morphTo();
     }
-    
-    /**
-     * Get all associations for the file.
-     */
-    public function associations()
+
+    public function related()
     {
-        return $this->hasMany(FileAssociation::class);
+        return $this->morphedByMany(
+            Issue::class, 
+            'related',   
+            'file_associations', 
+            'file_id',  
+            'related_id'  
+        )->withPivot('related_type');
     }
 }
