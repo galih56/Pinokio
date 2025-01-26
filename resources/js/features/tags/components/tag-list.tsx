@@ -133,7 +133,7 @@ export const TagsList = ({
           />
         </div>
 
-        {!tagsQuery.isPending || tags ? 
+        {!tagsQuery.isPending && tags ? 
         <DataTable
           data={tags}
           columns={columns}

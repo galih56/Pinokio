@@ -44,7 +44,7 @@ export default function IssueTrackerForm({
 } : CreateIssueType) { 
   const { addNotification } = useNotifications();
 
-  const { mutate: createIssueMutation } = useCreateIssue({
+  const { mutate: createIssueMutation, isPending } = useCreateIssue({
     mutationConfig: {
       onSuccess: () => {
         onSuccess?.();
@@ -78,7 +78,6 @@ export default function IssueTrackerForm({
     tagsQuery,
   ] = queries;
 
-  const isFetching = useIsFetching();
   const form = useForm<z.infer<typeof createIssueInputSchema>>({
     resolver: zodResolver(createIssueInputSchema)
   })
@@ -227,7 +226,7 @@ export default function IssueTrackerForm({
               )}
             />
           <DialogFooter className="my-4">
-            <Button type="submit" disabled={Boolean(isFetching) }>Submit</Button>
+            <Button type="submit" isLoading={isPending}>Submit</Button>
           </DialogFooter>
         </form>
       </Form>

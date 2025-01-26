@@ -65,6 +65,13 @@ class IssueController extends Controller
         }
     }
 
+    public function getPublicIssue($id)
+    {
+        $issue = $this->issueService->getIssueById($id);
+
+        return ApiResponse::sendResponse(new IssueResource($issue), '', 'success', 200);
+    }
+
     /**
      * Display a listing of the resource.
      */
@@ -86,7 +93,7 @@ class IssueController extends Controller
 
         $per_page = $request->query('per_page') ?? 0;
 
-        $data = $this->issueService->getIssues($prepare_search, $per_page);
+        $data = $this->issueService->getAllIssues($prepare_search, $per_page);
 
         if ($per_page) {
             $issues = [

@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowUpDown, MoreHorizontal } from "lucide-react"
 import { getIssueQueryOptions } from "../api/get-issue"
 import { Link } from '@/components/ui/link';
-import { paths } from '@/apps/dashboard/paths';
+import { paths } from '@/apps/issue-tracker/paths';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { useEffect, useState } from 'react';
@@ -19,6 +19,7 @@ import { usePublicIssues } from '../api/get-public-issues';
 import { VariantType } from '@/types/ui';
 import { capitalizeFirstChar } from '@/lib/common';
 import { Badge } from '@/components/ui/badge';
+import { StatusBadge } from './status-badge';
 
 export type PublicIssuesProps = {
   onIssuePrefetch?: (id: string) => void;
@@ -97,6 +98,26 @@ export const PublicIssues = ({
     },
 
     {
+      accessorKey: "name",
+      header : 'Name',
+      cell : ({row}) => {
+        const issue = row.original;
+        if(!issue.issuer) return '-';
+        
+        return issue.issuer.name
+      }
+    },
+    {
+      accessorKey: "email",
+      header : 'Email',
+      cell : ({row}) => {
+        const issue = row.original;
+        if(!issue.issuer) return '-';
+        
+        return issue.issuer.email
+      }
+    },
+    {
       accessorKey: "title",
       header : 'Title',
     },
@@ -119,25 +140,8 @@ export const PublicIssues = ({
       header : 'Status',
       cell : ({row}) => {
         const issue = row.original;
-        let badgeVariant : VariantType = 'outline';
-        switch (issue.status) {
-          case 'open':
-            badgeVariant = 'destructive';
-            break;
-        
-          case 'resolved':
-            badgeVariant = 'info';
-            break;
-          case 'in progress':
-            badgeVariant = 'warning';
-            break;
-          case 'closed':
-            badgeVariant = 'success';
-            break;
-          default:
-            break;
-        }
-        return <Badge variant={badgeVariant}>{  capitalizeFirstChar(issue.status)}</Badge>
+      
+        return <StatusBadge status={issue.status}/>
       }
     },
   ]
@@ -161,7 +165,7 @@ export const PublicIssues = ({
           />
         </div>
 
-        {!issuesQuery.isPending || issues ? <DataTable
+        {!issuesQuery.isPending && issues ? <DataTable
           data={issues}
           columns={columns}
           pagination={

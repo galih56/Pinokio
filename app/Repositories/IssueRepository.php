@@ -21,7 +21,7 @@ class IssueRepository extends BaseRepository implements IssueRepositoryInterface
         return [
             'tags' ,
             'files' ,
-            'guestIssuer'
+            'issuer'
         ];
     }
 

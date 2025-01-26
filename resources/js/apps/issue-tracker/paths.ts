@@ -1,15 +1,11 @@
 
 export const paths : Paths = {
   home: {
-    path: '/issue-tracker',
+    path: '/request-tracker',
     getHref: () => '/',
   },
-  issues: {
-    path: 'issues',
-    getHref: () => '/issues',
-  },
   issue: {
-    path: 'issues/:id',
-    getHref: (id?: string) => `/issues/${id}`,
+    path: 'request-tracker/:id',
+    getHref: (id?: string) => `/request-tracker/${id}`,
   },
 } as const;

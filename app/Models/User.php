@@ -66,6 +66,11 @@ class User extends Authenticatable
         return in_array($this->role->code, $roles);
     }
 
+    public function issues()
+    {
+        return $this->morphMany(Issue::class, 'issuer');
+    }
+    
     public function files()
     {
         return $this->morphMany(File::class, 'uploader');
@@ -74,5 +79,17 @@ class User extends Authenticatable
     public function assignments()
     {
         return $this->morphMany(Assignment::class, 'assignee');
+    }
+
+    public function comments()
+    {
+        return $this->morphMany(Comment::class, 'commenter');
+    }
+    
+    public function readComments()
+    {
+        return $this->belongsToMany(Comment::class, 'comment_user')
+                    ->withPivot('read_at')
+                    ->withTimestamps();
     }
 }

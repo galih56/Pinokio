@@ -15,7 +15,13 @@ class Project extends Model
         'status',
         'start',
         'end'
-    ];
+    ];    
+    
+    public function comments()
+    {
+        return $this->morphMany(Comment::class, 'commentable');
+    }
+    
     public function assignees()
     {
         return $this->morphToMany(User::class, 'assignee', 'assignments', 'issue_id', 'assignee_id')

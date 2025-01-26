@@ -37,13 +37,6 @@ export const IssueRoute = () => {
 
   return (
     <div className='mt-6'>
-        <DialogOrDrawer 
-          title={"Edit Issue"}
-          description={"Pastikan data yang anda masukan sudah benar sesuai!"}
-          trigger={ <Button variant="outline"> <Edit/> Edit Issue</Button>}
-          >
-            <UpdateIssue issueId={issueId}/>
-        </DialogOrDrawer>
         <IssueView issueId={issueId} />
         <div className="mt-8">
           <ErrorBoundary

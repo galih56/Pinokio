@@ -23,7 +23,7 @@ class FileService
      * @param string $directory
      * @return File|array
      */
-    public function upload($files, string $directory = 'uploads')
+    public function upload($files, string $directory = 'uploads', $uploader=null)
     {
         // If it's a single file, make it an array to unify the logic
         if (!$files instanceof \Illuminate\Http\UploadedFile) {
@@ -38,13 +38,20 @@ class FileService
                 $path = $file->storeAs($directory, $filename, $this->disk);
 
                 // Create the File model
-                $newFile = File::create([
+                $newFile = [
                     'path' => $path,
                     'name' => $file->getClientOriginalName(),
                     'mime_type' => $file->getMimeType(),
                     'size' => $file->getSize(),
                     'uploaded_at' => now(),
-                ]);
+                ];
+
+                if($uploader){
+                    $newFile['uploader_id'] = $uploader->id;
+                    $newFile['uploader_type'] = get_class($uploader);
+                }
+                
+                $newFile = File::create($newFile);
 
                 // Store the file model in the result array
                 $uploadedFiles[] = $newFile;

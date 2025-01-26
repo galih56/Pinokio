@@ -24,29 +24,46 @@ class IssueService
     public function createIssue(array $data): Issue
     {
         try {
-            $guestIssuer = $this->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
-
+            $issuer = null;
+            if (auth()->check()) {
+                // If the user is authenticated, set the issuer as the User
+                $issuer = auth()->user();
+                $issuerType = User::class;
+            } else {
+                // If the user is a guest, create or fetch the GuestIssuer
+                $issuer = $this->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
+                $issuerType = GuestIssuer::class;
+            }
+    
+            // Prepare issue data
             $issueData = $this->prepareIssueData($data);
-            $issueData['guest_issuer_id'] = $guestIssuer->id;
-
+    
+            // Set the polymorphic issuer relationship
+            $issueData['issuer_id'] = $issuer->id;
+            $issueData['issuer_type'] = $issuerType;
+            $issueData['status'] = 'idle';
+            
+            // Create the issue
             $issue = $this->issueRepository->create($issueData);
-
+    
             // Use FileService to upload files and get an array of File models
-            $uploadedFiles = $this->fileService->upload($data['files'] ?? []); 
-
-            // Attach files to issue if any files are uploaded
+            $uploadedFiles = $this->fileService->upload($data['files'] ?? [], 'issue_files' ,$issuer);
+    
+            // Attach files to the issue if any files are uploaded
             if (!empty($uploadedFiles)) {
                 $this->attachFilesToIssue($issue, $uploadedFiles);
             }
-
+    
+            // Attach tags to the issue if any tag IDs are provided
             $tagIds = $data['tag_ids'] ?? ($data['tag_id'] ? [$data['tag_id']] : []);
             if (!empty($tagIds)) {
                 $this->issueRepository->attachTags($issue, $tagIds);
             }
-
+    
+            // Refresh and load relationships
             $issue->refresh();
-            $issue->load(['tags', 'files', 'guestIssuer']);
-
+            $issue->load(['tags', 'files', 'issuer']);
+    
             return $issue;
         } catch (\Exception $e) {
             Log::error('Error creating issue: ' . $e->getMessage());

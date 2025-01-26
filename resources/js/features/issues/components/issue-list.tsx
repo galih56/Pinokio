@@ -19,6 +19,7 @@ import { Input } from '@/components/ui/input';
 import { useEffect, useState } from 'react';
 import { formatDate } from '@/lib/datetime';
 import { VariantType } from '@/types/ui';
+import { StatusBadge } from './status-badge';
 
 export type IssuesListProps = {
   onIssuePrefetch?: (id: string) => void;
@@ -96,6 +97,26 @@ export const IssuesList = ({
       },
     },
     {
+      accessorKey: "name",
+      header : 'Name',
+      cell : ({row}) => {
+        const issue = row.original;
+        if(!issue.issuer) return '-';
+        
+        return issue.issuer.name
+      }
+    },
+    {
+      accessorKey: "email",
+      header : 'Email',
+      cell : ({row}) => {
+        const issue = row.original;
+        if(!issue.issuer) return '-';
+        
+        return issue.issuer.email
+      }
+    },
+    {
       accessorKey: "title",
       header : 'Title',
     },
@@ -118,27 +139,7 @@ export const IssuesList = ({
       header : 'Status',
       cell : ({row}) => {
         const issue = row.original;
-        let badgeVariant : VariantType = 'outline';
-        switch (issue.status) {
-          case 'open':
-            badgeVariant = 'destructive';
-            break;
-          case 'idle':
-            badgeVariant = 'destructive';
-            break;
-          case 'resolved':
-            badgeVariant = 'info';
-            break;
-          case 'in progress':
-            badgeVariant = 'warning';
-            break;
-          case 'closed':
-            badgeVariant = 'success';
-            break;
-          default:
-            break;
-        }
-        return <Badge variant={badgeVariant}>{  capitalizeFirstChar(issue.status)}</Badge>
+        return <StatusBadge status={issue.status}/>
       }
     },
   ]
@@ -162,7 +163,7 @@ export const IssuesList = ({
           />
         </div>
 
-        {!issuesQuery.isPending || issues ? <DataTable
+        {!issuesQuery.isPending && issues ? <DataTable
           data={issues}
           columns={columns}
           pagination={

@@ -8,11 +8,12 @@ class Issue extends Model
 {
     public $timestamps = true;
     protected $fillable = [
-        'title', 'description', 'due_date', 'project_id', 'reporter_id', 
+        'title', 'description', 'due_date', 'project_id', 'issuer_id', 'issuer_type' 
     ];
 
-    public function guestIssuer(){
-        return $this->belongsTo(GuestIssuer::class, 'guest_issuer_id');
+    public function issuer()
+    {
+        return $this->morphTo();
     }
 
     public function tags()
@@ -20,6 +21,11 @@ class Issue extends Model
         return $this->belongsToMany(Tag::class, 'issue_tag', 'issue_id', 'tag_id');
     }
 
+    public function comments()
+    {
+        return $this->morphMany(Comment::class, 'commentable');
+    }
+    
     public function files()
     {
         return $this->morphToMany(

@@ -27,16 +27,12 @@ export type AuthResponse = {
     data: User;
 };
 
-
-export interface User {
-    id?: string;
+export interface User extends BaseEntity {
     name: string;
-    username? : string;
+    username?: string;
     email: string;
     roleId?: string;
     role?: UserRole;
-    createdAt?: Date;
-    updatedAt?: Date;
 }
 
 export interface UserRole {
@@ -47,14 +43,12 @@ export interface UserRole {
     createdAt: Date;
 }
 
-export interface Project {
+export interface Project extends BaseEntity  {
     id: string;
     name: string;
     description?: string;
     status: 'active' | 'completed' | 'archived';
     issues?: Issue[];
-    createdAt: Date;
-    updatedAt: Date;
 }
 
 export interface GuestIssuer {
@@ -62,19 +56,26 @@ export interface GuestIssuer {
     name: string;
     email: string;
     issues?: Issue[];
-    createdAt: Date;
 }
 
-export interface Issue {
+export interface Team extends BaseEntity  {
+    id: string;
+    name: string;
+    email: string;
+    issues?: Issue[];
+}
+
+export interface Issue extends BaseEntity  {
     id: string;
     projectId: string;
     project?: Project;
     reporterId?: string;
     reporter?: User;
-    guestIssuerId?: string;
-    guestIssuer?: GuestIssuer;
+    issuer_id?: string;
+    issuer?: GuestIssuer | User;
     assigneeId: string;
     assigneeType: string;
+    assignee? : User | Team;
     title: string;
     description?: string;
     status: 'open' | 'idle' | 'in progress' | 'resolved' | 'closed';
@@ -83,19 +84,15 @@ export interface Issue {
     comments?: Comment[];
     tags?: Tag[];
     history?: IssueHistory[];
-    createdAt: Date;
-    updatedAt: Date;
 }
 
-export interface Comment {
+export interface Task { 
     id: string;
-    issueId: string;
-    issue?: Issue;
-    userId: string;
-    user?: User;
-    comment: string;
-    createdAt: Date;
+    title: string;
+    due_date: string;
+    type: 'task'; 
 }
+
 
 export interface Tag {
     id: string;
@@ -123,3 +120,22 @@ export interface IssueHistory {
     actionDetails?: string;
     createdAt: Date;
 }
+
+export interface Comment extends BaseEntity{
+    id: string;
+    comment: string;
+    commentableId: string;
+    commentableType: string;
+    commenterId: string;
+    commenterType: string;
+    commentable: Commentable;
+    commenter: Commenter; 
+}
+
+export interface Commenter {
+    id: string;
+    name: string; 
+    email?: string; 
+}
+
+export type Commentable = Issue | Project | Task; 

@@ -22,6 +22,11 @@ class IssueResource extends JsonResource
             'id' => $hashid->encode($this->id), 
             'title' => $this->title,
             'status' => $this->status,
+            'issuer' => $this->whenLoaded('issuer', fn() => ([
+                'id' => $hashid->encode($this->issuer->id), 
+                'email' => $this->issuer->email,
+                'name' => $this->issuer->name,
+            ])),    
             'description' => $this->description,
             'due_date' => $this->due_date,
             'updated_at' => $this->updated_at,

@@ -15,9 +15,14 @@ class GuestIssuer extends Model
 
     public function issues()
     {
-        return $this->hasMany(Issue::class, 'guest_issuer_id');
+        return $this->morphMany(Issue::class, 'issuer');
     }
 
+    public function comments()
+    {
+        return $this->morphMany(Comment::class, 'commenter');
+    }
+    
     public function files()
     {
         return $this->morphMany(File::class, 'uploader');

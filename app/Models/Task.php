@@ -18,6 +18,11 @@ class Task extends Model
                     ->using(Assignment::class)
                     ->withTimestamps();
     }
+    
+    public function comments()
+    {
+        return $this->morphMany(Comment::class, 'commentable');
+    }
 
     public function files()
     {
