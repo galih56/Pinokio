@@ -59,31 +59,32 @@ class CommentController extends Controller
             ],
         ]);
     }
+    
+    public function store(StoreCommentRequest $request)
+    {
+        $comment = Comment::create([
+            'comment' => $request->comment,
+            'commentable_id' => $request->commentable_id,
+            'commentable_type' => $request->commentable_type,
+            'commenter_id' => auth()->id(),
+            'commenter_type' => 'App\Models\User',
+        ]);
 
-    /**
-     * Mark a comment as read.
-     *
-     * @param Request $request
-     * @param Comment $comment
-     * @return \Illuminate\Http\JsonResponse
-     */
+        return response()->json($comment, 201);
+    }
+    
     public function markAsRead(Request $request, Comment $comment)
     {
-        $user = $request->user(); // Assuming the user is authenticated
+        $user = $request->user();
         $this->commentService->markAsRead($comment, $user);
 
         return response()->json(['message' => 'Comment marked as read.']);
     }
     
-    /**
-     * Get unread comments for the authenticated user.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
+    
     public function getUnreadComments(Request $request)
     {
-        $user = $request->user(); // Assuming the user is authenticated
+        $user = $request->user();
         $unreadComments = $this->commentService->getUnreadComments($user);
 
         return response()->json($unreadComments);

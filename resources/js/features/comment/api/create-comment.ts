@@ -15,29 +15,41 @@ export const createCommentInputSchema = z.object({
 
 export type CreateCommentInput = z.infer<typeof createCommentInputSchema>;
 
-export const createComment = (data : CreateCommentInput): Promise<Comment> => {
-  return api.post(`/comments`, data);
+export const createComment = (
+  comment: string, 
+  commentableId: string, 
+  commentableType: string 
+): Promise<Comment> => {
+  return api.post(`/comments`, {
+    comment,
+    commentable_id: commentableId,
+    commentable_type: commentableType,
+  });
 };
 
 type UseCreateCommentOptions = {
+  commentableId: string; // The ID of the commentable entity
+  commentableType: string; // The type of the commentable entity
   mutationConfig?: MutationConfig<typeof createComment>;
 };
 
 export const useCreateComment = ({
+  commentableId,
+  commentableType,
   mutationConfig,
-}: UseCreateCommentOptions = {}) => {
+}: UseCreateCommentOptions) => {
   const queryClient = useQueryClient();
 
   const { onSuccess, ...restConfig } = mutationConfig || {};
 
   return useMutation({
-    onSuccess: (...args : any) => {
+    onSuccess: (...args: any) => {
       queryClient.invalidateQueries({
         queryKey: getCommentsQueryOptions().queryKey,
       });
       onSuccess?.(args);
     },
     ...restConfig,
-    mutationFn: createComment,
+    mutationFn: (comment: string) => createComment(comment, commentableId, commentableType), // Pass commentableId and commentableType
   });
 };

@@ -1,39 +1,31 @@
-import { Button } from "@/components/ui/button";
-import {
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { CirclePicker } from "react-color"; // Import CirclePicker
-import { z } from "zod";
-
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { createCommentInputSchema, useCreateComment } from '../api/create-comment';
 import { useNotifications } from '@/components/ui/notifications';
 import { useIsFetching } from '@tanstack/react-query';
-import { ColorPickerPopover } from "@/components/ui/color-picker-popover";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Textarea } from '@/components/ui/textarea';
+import { Button } from '@/components/ui/button';
+import { DialogFooter } from '@/components/ui/dialog';
 
 type CreateCommentType = {
-  onSuccess? : Function;
-  onError? : Function;
-}
+  onSuccess?: Function;
+  onError?: Function;
+  commentableId: string; // Add commentableId as a prop
+  commentableType: string; // Add commentableType as a prop
+};
 
 export default function CreateComment({
   onSuccess,
-  onError
-} : CreateCommentType) { 
+  onError,
+  commentableId,
+  commentableType,
+}: CreateCommentType) {
   const { addNotification } = useNotifications();
   const createCommentMutation = useCreateComment({
+    commentableId, // Pass commentableId
+    commentableType, // Pass commentableType
     mutationConfig: {
       onSuccess: () => {
         onSuccess?.();
@@ -43,13 +35,10 @@ export default function CreateComment({
       },
     },
   });
-  
+
   const isFetching = useIsFetching();
   const form = useForm<z.infer<typeof createCommentInputSchema>>({
     resolver: zodResolver(createCommentInputSchema),
-    defaultValues: {
-      color: "#ffffff", // Default color value
-    },
   });
 
   async function onSubmit(values: z.infer<typeof createCommentInputSchema>) {
@@ -61,36 +50,37 @@ export default function CreateComment({
       });
       return;
     }
-    createCommentMutation.mutate(values);
+    createCommentMutation.mutate(values.comment); // Only pass the comment value
   }
 
-  return (  
-      <Form {...form} >
-        <form onSubmit={form.handleSubmit(onSubmit)}>
-          {/* Name Field */}
-          
-          <FormField
-              control={form.control}
-              name="comment"
-              render={({ field }) => (
-                <FormItem className="mt-2">
-                  <FormLabel>Comment</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="Comment..."
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+  return (
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)}>
+        {/* Comment Field */}
+        <FormField
+          control={form.control}
+          name="comment"
+          render={({ field }) => (
+            <FormItem className="mt-2">
+              <FormLabel>Comment</FormLabel>
+              <FormControl>
+                <Textarea
+                  placeholder="Comment..."
+                  className="resize-none"
+                  {...field}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
-          <DialogFooter className="my-4">
-            <Button type="submit" disabled={Boolean(isFetching)}>Submit</Button>
-          </DialogFooter>
-        </form>
-      </Form>
+        <DialogFooter className="my-4">
+          <Button type="submit" disabled={Boolean(isFetching)}>
+            Submit
+          </Button>
+        </DialogFooter>
+      </form>
+    </Form>
   );
 }
