@@ -3,9 +3,45 @@ namespace App\Services;
 
 use App\Models\Comment;
 use App\Models\User;
+use Illuminate\Support\Facades\Log;
 
 class CommentService
 {    
+
+    public function createComment(array $data): Comment
+    {
+        try {
+            $user = null;
+            if (auth()->check()) {
+                // If the user is authenticated, set the user as the User
+                $user = auth()->user();
+                $userType = User::class;
+            } else {
+                // If the user is a guest, create or fetch the GuestIssuer
+                $user = $this->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
+                $userType = GuestIssuer::class;
+            }
+    
+            $comment = [
+                'comment' => $data['comment'],
+                'commentable_id' => $data['commentable_id'],
+                'commentable_type' => $this->commentableTypes[$data['commentable_type']] ?? $data['commentable_type'],
+            ];
+
+            if($user){
+                $comment['commenter_id'] = $user->id;
+                $comment['commenter_type'] = $userType;
+            }
+
+            $comment = Comment::create($comment);
+
+            return $comment;
+        } catch (\Exception $e) {
+            Log::error('Error creating comment: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
     /**
     * Get unread comments for a user.
     *

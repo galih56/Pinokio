@@ -40,7 +40,7 @@ export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
             <CardTitle className='flex flex-row justify-between'> <span>{issue.title}</span>  <StatusBadge status={issue.status}/> </CardTitle>
             <CardDescription>{issue.description}</CardDescription>
           </CardHeader>
-          <CardContent> 
+          <CardContent className='p-4'> 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-2">
             <div className="space-y-1">
               <p className="text-sm font-medium leading-none">Due Date</p>
@@ -50,13 +50,13 @@ export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
             </div>
           </div>
           </CardContent>
-          </Card>
+        </Card>
           
         <Card className="col-span-1 shadow-sm">
           <CardHeader>
             <CardTitle>Issuer</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className='p-4'>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-2 text-wrap">
               <div className="space-y-1">
                 <p className="text-sm font-medium leading-none">Name</p>

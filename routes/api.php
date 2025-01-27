@@ -5,6 +5,7 @@ use App\Http\Controllers\api\AuthController;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\api\TagController;
 use App\Http\Controllers\api\IssueController;
+use App\Http\Controllers\api\CommentController;
 
 Route::group([ 
     "prefix" => "auth", 
@@ -62,6 +63,19 @@ Route::group([
         Route::patch('/{id}', [IssueController::class, 'update']);
         Route::delete('/{id}', [IssueController::class, 'destroy']);
     });
+});
+
+Route::group([
+    "prefix" => "comments",
+    'middleware' => ['decode_id']
+], function () {
+    Route::post('/', [CommentController::class, 'store']);
+    Route::get('/{id}', [CommentController::class, 'show'])->middleware('decode_id');
+    
+    Route::get('/', [CommentController::class, 'index']);
+    Route::put('/{id}', [CommentController::class, 'update']);
+    Route::patch('/{id}', [CommentController::class, 'update']);
+    Route::delete('/{id}', [CommentController::class, 'destroy']);
 });
 
 Route::group([

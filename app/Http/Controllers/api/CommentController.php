@@ -3,10 +3,14 @@
 namespace App\Http\Controllers\api;
 
 use App\Models\Comment;
+use App\Helpers\ApiResponse;
 use App\Models\User;
 use App\Services\CommentService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Comment\StoreCommentRequest;
+use App\Http\Requests\Comment\UpdateCommentRequest;
+use App\Http\Requests\Comment\GetCommentRequest;
 
 class CommentController extends Controller
 {
@@ -27,12 +31,12 @@ class CommentController extends Controller
     ];
 
     /**
-     * Fetch comments with optional filters.
+     * Get a paginated list of comments.
      *
      * @param Request $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function index(Request $request)
+    public function index(GetCommentRequest $request)
     {
         $query = Comment::query();
 
@@ -48,7 +52,7 @@ class CommentController extends Controller
 
         // Paginate and return the results
         $comments = $query->with(['commentable', 'commenter'])->paginate($request->per_page ?? 15);
-
+        
         return response()->json([
             'data' => $comments->items(),
             'meta' => [
@@ -60,19 +64,52 @@ class CommentController extends Controller
         ]);
     }
     
+    /**
+     * Store a new comment.
+     *
+     * @param StoreCommentRequest $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function store(StoreCommentRequest $request)
     {
-        $comment = Comment::create([
-            'comment' => $request->comment,
-            'commentable_id' => $request->commentable_id,
-            'commentable_type' => $request->commentable_type,
-            'commenter_id' => auth()->id(),
-            'commenter_type' => 'App\Models\User',
-        ]);
 
-        return response()->json($comment, 201);
+        try {
+            $data = $request->validated();
+            $commentableType = $this->commentableTypes[$request->commentable_type] ?? null;
+
+            if(isset($data['commentable_id']) && $commentableType){
+                $data['commentable_type'] = $commentableType;
+            }
+
+            $comment = $this->commentService->createComment($data);
+
+            return ApiResponse::sendResponse($comment, 'Comment Create Successful', 'success', 201);
+        } catch (\Exception $ex) {
+            return ApiResponse::rollback($ex);
+        }
     }
     
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update($id, UpdateCommentRequest $request)
+    {
+        try {
+            $comment = $this->commentService->updateComment($id, $request->validated());
+
+            return ApiResponse::sendResponse($comment, 'Comment Update Successful', 'success', 201);
+        } catch (\Exception $ex) {
+            return ApiResponse::rollback($ex);
+        }
+    }
+
+    /**
+     * Mark a comment as read by the authenticated user.
+     *
+     * @param Request $request
+     * @param Comment $comment
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function markAsRead(Request $request, Comment $comment)
     {
         $user = $request->user();
@@ -81,12 +118,32 @@ class CommentController extends Controller
         return response()->json(['message' => 'Comment marked as read.']);
     }
     
-    
+    /**
+     * Get unread comments for the authenticated user.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function getUnreadComments(Request $request)
     {
         $user = $request->user();
         $unreadComments = $this->commentService->getUnreadComments($user);
 
         return response()->json($unreadComments);
+    }
+
+    /**
+     * Check if a comment has been read by the authenticated user.
+     *
+     * @param Request $request
+     * @param Comment $comment
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function isRead(Request $request, Comment $comment)
+    {
+        $user = $request->user();
+        $isRead = $this->commentService->isRead($comment, $user);
+
+        return response()->json(['is_read' => $isRead]);
     }
 }
