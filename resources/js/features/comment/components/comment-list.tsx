@@ -115,7 +115,6 @@ export const CommentList = ({
           </div>
         </div>
       ) : (
-        // Show "No comments found" message if comments are empty
         <div className="flex items-center justify-center w-full min-h-[60vh]">
           <p className="text-gray-500">No comments found.</p>
         </div>

@@ -59,7 +59,7 @@ export const IssuesList = ({
 
   const queryClient = useQueryClient();
 
-  const issues = issuesQuery.data?.data;
+  const issues = issuesQuery.data?.data || [];
   const meta = issuesQuery.data?.meta;
 
   
@@ -80,7 +80,6 @@ export const IssuesList = ({
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <Link
                     onMouseEnter={() => {
-                      // Prefetch the discussion data when the user hovers over the link
                       queryClient.prefetchQuery(getIssueQueryOptions(issue.id));
                       onIssuePrefetch?.(issue.id);
                     }}
@@ -163,20 +162,26 @@ export const IssuesList = ({
           />
         </div>
 
-        {!issuesQuery.isPending && issues ? <DataTable
-          data={issues}
-          columns={columns}
-          pagination={
-            meta && {
-              totalPages: meta.totalPages,
-              perPage: meta.perPage,
-              totalCount: meta.totalCount,
-              currentPage: meta.currentPage,
-              rootUrl: '',
-            }
-          } 
-          onPaginationChange={onPageChange}
-        /> :  <Skeleton className='w-full min-h-[60vh]'/>}
+        {issuesQuery.isPending ? 
+         <Skeleton className='w-full min-h-[60vh]'/> 
+         : issues.length > 0 ?
+          <DataTable
+            data={issues}
+            columns={columns}
+            pagination={
+              meta && {
+                totalPages: meta.totalPages,
+                perPage: meta.perPage,
+                totalCount: meta.totalCount,
+                currentPage: meta.currentPage,
+                rootUrl: '',
+              }
+            } 
+            onPaginationChange={onPageChange}
+          />: 
+          <div className="flex items-center justify-center w-full min-h-[60vh]">
+            <p className="text-gray-500">No issues found.</p>
+          </div>}
     </div>
   );
 };
