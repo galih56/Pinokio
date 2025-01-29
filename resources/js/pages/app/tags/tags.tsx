@@ -37,7 +37,9 @@ export const TagsRoute = () => {
           description={"Pastikan data yang anda masukan sudah benar sesuai!"}
           trigger={ <Button variant="outline">Create Tag</Button>}
           >
-            <CreateTag onSuccess={close} onError={close}/>
+            <div className='p-2'>
+              <CreateTag onSuccess={close} onError={close}/>
+            </div>
         </DialogOrDrawer>
         <div className='w-full my-2 p4'>
           <TagsList />          

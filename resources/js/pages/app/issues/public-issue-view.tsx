@@ -3,18 +3,16 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { useParams, LoaderFunctionArgs } from 'react-router-dom';
 
 import {
-  useIssue,
-  getIssueQueryOptions,
-} from '@/features/issues/api/get-issue';
-import { IssueView } from '@/features/issues/components/issue-view';
-import { NotFoundRoute } from '@/pages/not-found';
+  getPublicIssueQueryOptions,
+} from '@/features/issues/api/get-public-issue';
+import { PublicIssueView } from '@/features/issues/components/public-issue-view';
 
 export const issueLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {
     const issueId = params.id as string;
 
-    const issueQuery = getIssueQueryOptions(issueId);
+    const issueQuery = getPublicIssueQueryOptions(issueId);
     
     const promises = [
       queryClient.getQueryData(issueQuery.queryKey) ??
@@ -32,13 +30,9 @@ export const IssueRoute = () => {
   const params = useParams();
   const issueId = params.id;
 
-  if(!issueId) {
-    return <NotFoundRoute/>
-  }
-
   return (
     <div className='mt-6'>
-        <IssueView issueId={issueId} />
+        <PublicIssueView issueId={issueId} />
         <div className="mt-8">
           <ErrorBoundary
             fallback={

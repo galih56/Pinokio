@@ -214,7 +214,7 @@ export default function IssueTrackerForm({
                       className="relative max-w-xs space-y-1"
                     >
                       <FileInput className="border border-dashed border-gray-500">
-                        <Button className="w-full" variant={"outline"}>Upload a file</Button>
+                        <Button type="button" className="w-full" variant={"outline"}>Upload a file</Button>
                       </FileInput>
                       <FileUploaderContent className="max-h-48 ">
                         {(field.value || []).length > 0 && (field.value || []).map((file: File, index: number) => (<FileUploaderItem index={index}>{file.name}</FileUploaderItem>))}

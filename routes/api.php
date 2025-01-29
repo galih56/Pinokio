@@ -47,21 +47,24 @@ Route::group([
     'middleware' => ['decode_id']
 ], function () {
     Route::get('/', [IssueController::class, 'getPublicIssues']);
+    Route::post('/', [IssueController::class, 'storePublicIssue']);
+    Route::get('/{id}/files', [IssueController::class, 'getFiles']);
     Route::get('/{id}', [IssueController::class, 'getPublicIssue']);
 });
 
 Route::group([
     "prefix" => "issues",
 ], function () {
-    Route::post('/', [IssueController::class, 'store']);
-    Route::get('/{id}', [IssueController::class, 'show'])->middleware('decode_id');
     Route::group([
         'middleware' => ['role:ADMIN,HR','decode_id', 'auth:sanctum']
     ], function () {
+        Route::post('/', [IssueController::class, 'store']);
+        Route::get('/{id}', [IssueController::class, 'show'])->middleware('decode_id');
         Route::get('/', [IssueController::class, 'index']);
         Route::put('/{id}', [IssueController::class, 'update']);
         Route::patch('/{id}', [IssueController::class, 'update']);
         Route::delete('/{id}', [IssueController::class, 'destroy']);
+        Route::get('/{id}/files', [IssueController::class, 'getFiles']);
     });
 });
 

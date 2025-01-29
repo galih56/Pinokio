@@ -139,3 +139,12 @@ export interface Commenter {
 }
 
 export type Commentable = Issue | Project | Task; 
+
+export type File = {
+    id: string;
+    name : string;
+    url : string;
+    mimeType : string;
+    size : string;
+    uploadedAt : Date;
+}
