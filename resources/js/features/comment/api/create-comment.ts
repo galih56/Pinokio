@@ -28,8 +28,8 @@ export const createComment = (
 };
 
 type UseCreateCommentOptions = {
-  commentableId: string; // The ID of the commentable entity
-  commentableType: string; // The type of the commentable entity
+  commentableId: string; 
+  commentableType: string; 
   mutationConfig?: MutationConfig<typeof createComment>;
 };
 
@@ -45,7 +45,10 @@ export const useCreateComment = ({
   return useMutation({
     onSuccess: (...args: any) => {
       queryClient.invalidateQueries({
-        queryKey: getCommentsQueryOptions().queryKey,
+        queryKey: getCommentsQueryOptions({
+          commentableId,
+          commentableType
+        }).queryKey,
       });
       onSuccess?.(args);
     },

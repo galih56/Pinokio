@@ -64,7 +64,7 @@ export const TagsList = ({
 
   const queryClient = useQueryClient();
 
-  const tags = tagsQuery.data?.data;
+  const tags = tagsQuery.data?.data || [];
   const meta = tagsQuery.data?.meta;
 
   
@@ -133,21 +133,27 @@ export const TagsList = ({
           />
         </div>
 
-        {!tagsQuery.isPending && tags ? 
-        <DataTable
-          data={tags}
-          columns={columns}
-          pagination={
-            meta && {
-              totalPages: meta.totalPages,
-              perPage: meta.perPage,
-              totalCount: meta.totalCount,
-              currentPage: meta.currentPage,
-              rootUrl: '',
-            }
-          } 
-          onPaginationChange={onPageChange}
-        /> :  <Skeleton className='w-full min-h-[60vh]'/>}
+        {tagsQuery.isPending ?
+        <Skeleton className='w-full min-h-[60vh]'/> 
+        : 
+        tags.length > 0 ?
+          <DataTable
+            data={tags}
+            columns={columns}
+            pagination={
+              meta && {
+                totalPages: meta.totalPages,
+                perPage: meta.perPage,
+                totalCount: meta.totalCount,
+                currentPage: meta.currentPage,
+                rootUrl: '',
+              }
+            } 
+            onPaginationChange={onPageChange}
+          /> :  
+          <div className="flex items-center justify-center w-full min-h-[60vh]">
+            <p className="text-gray-500">No tags found.</p>
+          </div>}
         { choosenTag &&
           <DialogOrDrawer 
               open={isOpen}

@@ -28,6 +28,8 @@ class CommentController extends Controller
         'issue' => \App\Models\Issue::class,
         'project' => \App\Models\Project::class,
         'task' => \App\Models\Task::class,
+        'user' => \App\Models\Task::class,
+        'guest_user' => \App\Models\Task::class,
     ];
 
     /**

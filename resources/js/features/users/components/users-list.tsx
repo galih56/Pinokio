@@ -167,7 +167,9 @@ export const UsersList = ({
           />
         </div>
 
-        {!usersQuery.isPending && users?.length ? 
+        {!usersQuery.isPending ?
+         <Skeleton className='w-full min-h-[60vh]'/> 
+         : users?.length ? 
           <DataTable
             data={users}
             columns={columns}
@@ -181,7 +183,10 @@ export const UsersList = ({
               }
             } 
             onPaginationChange={onPageChange}
-          /> :  <Skeleton className='w-full min-h-[60vh]'/>}
+          /> : 
+          <div className="flex items-center justify-center w-full min-h-[60vh]">
+            <p className="text-gray-500">No users found.</p>
+          </div>}
     </div>
   );
 };

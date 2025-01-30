@@ -69,12 +69,11 @@ export const CommentList = ({
         // Virtualized comment list
         <div
           ref={parentRef}
-          className="relative h-[500px] overflow-auto border rounded-md shadow-sm"
+          className="relative h-[600px] overflow-auto rounded-md shadow-sm w-full"
         >
           <div
             style={{
               height: `${rowVirtualizer.getTotalSize()}px`,
-              position: "relative",
             }}
           >
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
@@ -82,32 +81,12 @@ export const CommentList = ({
               return (
                 <div
                   key={virtualRow.key}
-                  className="absolute top-0 left-0 w-full p-4 border-b"
-                  style={{
-                    transform: `translateY(${virtualRow.start}px)`,
-                  }}
+                  className="w-ful bg-white p-4 rounded-lg shadow-md my-4"
                 >
+                  <h3 className="text-lg font-bold">John Doe</h3>
+                  <p className="text-gray-700 text-sm mb-2">Posted on April 17, 2023</p>
                   <div className="flex justify-between items-center">
                     <p>{comment.comment}</p>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setChoosenComment(comment);
-                            open();
-                          }}
-                        >
-                          Edit
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
                   </div>
                 </div>
               );
