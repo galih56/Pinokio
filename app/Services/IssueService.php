@@ -4,11 +4,14 @@ namespace App\Services;
 
 use App\Interfaces\IssueRepositoryInterface;
 use App\Models\Issue;
+use App\Models\User;
+use App\Models\GestIssuer;
 use App\Models\File;
 use Illuminate\Support\Facades\Log;
 use App\Models\GuestIssuer;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Helpers\DatetimeHelper;
 
 class IssueService
 {
@@ -25,14 +28,14 @@ class IssueService
     {
         try {
             $issuer = null;
-            if (auth()->check()) {
-                // If the user is authenticated, set the issuer as the User
-                $issuer = auth()->user();
-                $issuerType = User::class;
-            } else {
+            if ($data['issuer_type'] == 'guest') {
                 // If the user is a guest, create or fetch the GuestIssuer
                 $issuer = $this->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
                 $issuerType = GuestIssuer::class;
+            } else {
+                // If the user is authenticated, set the issuer as the User
+                $issuer = auth()->user();
+                $issuerType = User::class;
             }
     
             // Prepare issue data
@@ -42,7 +45,7 @@ class IssueService
             $issueData['issuer_id'] = $issuer->id;
             $issueData['issuer_type'] = $issuerType;
             $issueData['status'] = 'idle';
-            
+
             // Create the issue
             $issue = $this->issueRepository->create($issueData);
     
@@ -117,6 +120,12 @@ class IssueService
         return $this->issueRepository->getById($id);
     }
 
+    public function getFiles(int $id) {
+        $issue = Issue::with('files')->find($id);
+
+        return $issue->files;
+    }
+
     /**
      * Prepares issue data before creation or update.
      *
@@ -131,6 +140,12 @@ class IssueService
         if(isset($preparedData['tag_id'])) unset($preparedData['tag_id']); 
         if(isset($preparedData['tag_ids'])) unset($preparedData['tag_ids']); 
         if(isset($preparedData['files'])) unset($preparedData['files']); 
+
+        if(isset($preparedData)){
+            $preparedData['due_date'] = DatetimeHelper::createDateTimeObject($preparedData['due_date']);
+            if($preparedData['due_date']) $preparedData['due_date'] = $preparedData['due_date']->format('Y-m-d H:i:s');
+            else unset($preparedData['due_date']);
+        }
 
         return $preparedData;
     }

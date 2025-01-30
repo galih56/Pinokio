@@ -17,6 +17,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
 import { PasswordInput } from '@/components/ui/password-input';
+import { useState } from 'react';
+import { AlertType } from '@/types/ui';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 type LoginFormProps = {
   onSuccess?: () => void;
@@ -26,6 +29,7 @@ type LoginFormProps = {
 export const LoginForm = ({ onSuccess , onError}: LoginFormProps) => {
   const [searchParams] = useSearchParams();
   const redirectTo = searchParams.get('redirectTo');
+  const [ alert, setAlert ] = useState<AlertType | null>(null)
 
   const form = useForm<z.infer<typeof loginInputSchema>>({
     resolver: zodResolver(loginInputSchema),
@@ -55,7 +59,18 @@ export const LoginForm = ({ onSuccess , onError}: LoginFormProps) => {
           }
         });
       }
-    }
+      onError?.()
+      if(error?.response?.data?.message){
+        setAlert({
+          title : 'Failed to login',
+          message : 'Please check your email or your password',
+          variant : 'destructive'
+        })
+      }
+    },
+    onSuccess(data, variables, context) {
+      setAlert(null)
+    },
   });
   function onSubmit(values: z.infer<typeof loginInputSchema>) {
     login.mutate(values)
@@ -64,7 +79,12 @@ export const LoginForm = ({ onSuccess , onError}: LoginFormProps) => {
   return (
     <div>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+        {alert && 
+          <Alert variant={alert.variant}>
+            <AlertTitle>{alert.title}</AlertTitle>
+            <AlertDescription>{alert.message}</AlertDescription>
+          </Alert>}
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 my-4">
           <FormField
             control={form.control}
             name="usernameOrEmail"

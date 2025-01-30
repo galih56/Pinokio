@@ -96,27 +96,6 @@ export const PublicIssues = ({
         )
       },
     },
-
-    {
-      accessorKey: "name",
-      header : 'Name',
-      cell : ({row}) => {
-        const issue = row.original;
-        if(!issue.issuer) return '-';
-        
-        return issue.issuer.name
-      }
-    },
-    {
-      accessorKey: "email",
-      header : 'Email',
-      cell : ({row}) => {
-        const issue = row.original;
-        if(!issue.issuer) return '-';
-        
-        return issue.issuer.email
-      }
-    },
     {
       accessorKey: "title",
       header : 'Title',

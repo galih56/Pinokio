@@ -11,6 +11,18 @@ class Issue extends Model
         'title', 'description', 'due_date', 'project_id', 'issuer_id', 'issuer_type' 
     ];
 
+    public static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($model) {
+            $allowedClasses = [User::class, GuestIssuer::class];
+            if (!in_array($model->issuer_type, $allowedClasses)) {
+                throw new \Exception("Invalid issuer_type: {$model->issuer_type}");
+            }
+        });
+    }
+    
     public function issuer()
     {
         return $this->morphTo();

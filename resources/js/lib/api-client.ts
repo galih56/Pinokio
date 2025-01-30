@@ -87,7 +87,7 @@ api.interceptors.response.use(
     // Handle HTTP error responses
     if (error.response) {
       const { status } = error.response;
-      const publicRoutes = ['/request-tracker'];
+      const publicRoutes = ['/auth','/request-tracker'];
       const isPublicPage = publicRoutes.some((route) => window.location.pathname.startsWith(route));
     
       // Handle unauthorized (401)

@@ -6,7 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use App\Services\HashidService;
 use App\Http\Requests\BaseRequest;
 
-class StoreIssueRequest extends BaseRequest
+class StorePublicIssueRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -76,7 +76,7 @@ class StoreIssueRequest extends BaseRequest
 
         $this->merge([
             'ip_address' => $this->ip(),
-            'issuer_type' => 'user'
+            'issuer_type' => 'guest'
         ]);
     }
 

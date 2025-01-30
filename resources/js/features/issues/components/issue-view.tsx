@@ -8,6 +8,7 @@ import { StatusBadge } from './status-badge';
 import { adjustActiveBreadcrumbs } from '@/components/layout/breadcrumbs/breadcrumbs-store';
 import { CommentList } from '@/features/comment/components/comment-list';
 import CreateComment from '@/features/comment/components/create-comment';
+import { IssueFiles } from './issue-files';
 
 export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
   if(!issueId){
@@ -80,7 +81,8 @@ export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
           </CardContent>
         </Card>
       </div>
-      <CreateComment  commentableId={issueId} commentableType={'issue'} />
+      <IssueFiles issueId={issueId} />
+      <CreateComment commentableId={issueId} commentableType={'issue'} />
       <CommentList commentableId={issueId} commentableType={'issue'}/>
     </div>  
   );

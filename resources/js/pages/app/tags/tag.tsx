@@ -48,7 +48,7 @@ export const TagRoute = () => {
         <div className="mt-8">
           <ErrorBoundary
             fallback={
-              <div>Failed to load comments. Try to refresh the page.</div>
+              <div>Failed to load the data. Try to refresh the page.</div>
             }
           >
           </ErrorBoundary>

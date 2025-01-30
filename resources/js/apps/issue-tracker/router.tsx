@@ -1,9 +1,8 @@
 import { QueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { Outlet, RouterProvider, createBrowserRouter, useLocation, useRouteError } from 'react-router-dom';
+import { Navigate, Outlet, RouterProvider, createBrowserRouter, useLocation, useRouteError } from 'react-router-dom';
 
 import { paths } from '@/apps/issue-tracker/paths';
-import { ProtectedRoute } from '@/lib/auth';
 import { queryClient } from '@/lib/react-query';
 import { Layout } from './layout';
 
@@ -13,7 +12,7 @@ const AppRootErrorBoundary = () => {
 };
 
 export const createAppRouter = (queryClient: QueryClient) => {
-  return createBrowserRouter([
+  const routes =  createBrowserRouter([
     {
       path: paths.home.path,
       element: (
@@ -32,12 +31,12 @@ export const createAppRouter = (queryClient: QueryClient) => {
             };
           },
           ErrorBoundary: AppRootErrorBoundary,
-        },
+        }, 
         {
-          path: paths.issue.path,
+          path: ':id', 
           lazy: async () => {
             const { IssueRoute, issueLoader } = await import(
-              '@/pages/app/issues/issue'
+              '@/pages/app/issues/public-issue-view'
             );
             return {
               Component: IssueRoute,
@@ -50,17 +49,14 @@ export const createAppRouter = (queryClient: QueryClient) => {
     },
     {
       path: '*',
-      lazy: async () => {
-        const { NotFoundRoute } = await import('@/pages/not-found');
-        return {
-          Component: NotFoundRoute,
-        };
-      },
-      ErrorBoundary: AppRootErrorBoundary,
+      element: <Navigate to={paths.home.path} replace />,
     },
   ], {
     basename : '/'
   })
+
+  
+  return routes;
 };
 
 export const AppRouter = () => {

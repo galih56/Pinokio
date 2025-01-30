@@ -5,8 +5,10 @@ use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Issue\StoreIssueRequest;
+use App\Http\Requests\Issue\StorePublicIssueRequest;
 use App\Http\Requests\Issue\UpdateIssueRequest;
 use App\Http\Resources\IssueResource;
+use App\Http\Resources\FileResource;
 use Illuminate\Support\Facades\DB;
 use App\Services\IssueService;
 
@@ -26,6 +28,17 @@ class IssueController extends Controller
         $issues = $this->issueService->searchIssues($keyword);
 
         return ApiResponse::sendResponse(IssueResource::collection($issues), null, 'success', 200);
+    }
+
+    public function storePublicIssue(StorePublicIssueRequest $request)
+    {
+        try {
+            $issue = $this->issueService->createIssue($request->validated());
+
+            return ApiResponse::sendResponse($issue, 'Issue Create Successful', 'success', 201);
+        } catch (\Exception $ex) {
+            return ApiResponse::rollback($ex);
+        }
     }
 
     public function getPublicIssues(Request $request){
@@ -112,9 +125,6 @@ class IssueController extends Controller
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreIssueRequest $request)
     {
         try {
@@ -158,5 +168,11 @@ class IssueController extends Controller
         $this->issueService->deleteIssue($id);
 
         return ApiResponse::sendResponse('Issue Delete Successful', '', 204);
+    }
+
+    public function getFiles($id){
+        $files = $this->issueService->getFiles($id);
+        
+        return ApiResponse::sendResponse(FileResource::collection($files), '', 'success', 200);
     }
 }

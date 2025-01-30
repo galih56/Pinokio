@@ -1,4 +1,5 @@
 import { PropsWithChildren, ReactNode } from "react";
+import { Card } from "../ui/card";
 
 export default function PublicFormLayout({
     children
@@ -6,7 +7,9 @@ export default function PublicFormLayout({
 }>) {
     return (
         <main className="md:pt-0">
-            {children}
+            <Card className="p-6 my-6 mx-12">
+                {children}
+            </Card>
         </main>
     );
 }

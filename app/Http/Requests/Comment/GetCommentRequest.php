@@ -41,8 +41,8 @@ class GetCommentRequest extends FormRequest
     public function rules()
     {
         return [
-            'commentable_id' => 'nullable|integer', // Optional, but must be an integer if provided
-            'commentable_type' => 'nullable|string|in:issue,project,task', // Optional, but must be one of the allowed types if provided
+            'commentable_id' => 'nullable|integer', 
+            'commentable_type' => 'nullable|string|in:issue,project,task', 
         ];
     }
 
