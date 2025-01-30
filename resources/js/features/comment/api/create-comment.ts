@@ -50,6 +50,7 @@ export const useCreateComment = ({
           commentableType
         }).queryKey,
       });
+      console.log( getCommentsQueryOptions().queryKey)
       onSuccess?.(args);
     },
     ...restConfig,
