@@ -9,3 +9,8 @@ export function abbreviateIfThreeWords(text : string) {
     if (words.length >= 3)  return words.map(word => word[0].toUpperCase()).join('');
     return text; 
 }
+
+export const isValidEmail = (email: string) => {
+    const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    return regex.test(email);
+};

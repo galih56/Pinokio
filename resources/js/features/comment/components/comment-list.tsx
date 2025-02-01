@@ -16,6 +16,7 @@ import { useDisclosure } from "@/hooks/use-disclosure";
 import DialogOrDrawer from "@/components/layout/dialog-or-drawer";
 import { UpdateComment } from "./update-comment";
 import { useVirtualizer } from "@tanstack/react-virtual";
+import { formatDateTime } from "@/lib/datetime";
 
 export type CommentsListProps = {
   commentableId: string;
@@ -63,7 +64,6 @@ export const CommentList = ({
   return (
     <div className="flex flex-col">
       {commentsQuery.isPending ? (
-        // Show skeleton while loading
         <Skeleton className="w-full min-h-[60vh]" />
       ) : comments.length > 0 ? (
         // Virtualized comment list
@@ -78,17 +78,43 @@ export const CommentList = ({
           >
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const comment = comments[virtualRow.index];
+              const isIssuer = comment.commenterType === "Issuer"; // Changed to Issuer
               return (
-                <div
-                  key={virtualRow.key}
-                  className="w-ful bg-white p-4 rounded-lg shadow-md my-4"
-                >
-                  <h3 className="text-lg font-bold">John Doe</h3>
-                  <p className="text-gray-700 text-sm mb-2">Posted on April 17, 2023</p>
-                  <div className="flex justify-between items-center">
-                    <p>{comment.comment}</p>
-                  </div>
-                </div>
+              <div
+                key={virtualRow.key}
+                className={`w-full bg-white p-4 rounded-lg shadow-md my-4 flex flex-col ${isIssuer ? "justify-start text-left" : "justify-end text-right"}`}
+              >
+                <div className="flex justify-between">
+                  {!isIssuer && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon">
+                          <MoreHorizontal className="w-5 h-5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align={"start"} 
+                      >
+                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setChoosenComment(comment);
+                            open();
+                          }}
+                        >
+                          Edit
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                <h3 className="justify-end text-base font-bold">{comment.commenter?.name || "Unknown"}</h3>
+              </div>
+                  <p className="text-gray-700 text-xs mb-2">
+                    Posted on {formatDateTime(comment.createdAt)}
+                  </p>
+                  <p className="text-sm">{comment.comment}</p>
+              </div>
+
               );
             })}
           </div>

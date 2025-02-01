@@ -19,7 +19,6 @@ export const IssueFiles = ({
     }
 
     const files = filesQuery.data?.data || [];
-    console.log(files)
     return (
         <Card>
             <CardHeader>
@@ -27,7 +26,14 @@ export const IssueFiles = ({
                 <CardDescription>A list of files associated with this issue. Click to view or download attachments.</CardDescription>
             </CardHeader>
             <CardContent>
-                <FileList data={files}/>
+                {filesQuery.isPending ? 
+                <Skeleton className="w-full min-h-[60vh]" />
+                : files.length > 0? <FileList data={files}/>
+                : (
+                    <div className="flex items-center justify-center w-full min-h-[60vh]">
+                    <p className="text-gray-500">No files uploaded.</p>
+                    </div>
+                )}
             </CardContent>
         </Card>
     )

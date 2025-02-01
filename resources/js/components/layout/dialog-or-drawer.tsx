@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription, DrawerTrigger } from "@/components/ui/drawer";
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import clsx from "clsx";
 
 interface DialogOrDrawerProps {
   title: React.ReactNode;
@@ -11,9 +12,10 @@ interface DialogOrDrawerProps {
   children: React.ReactNode; // Content inside the dialog or drawer
   open?: boolean; // Control open state
   onOpenChange?: (open: boolean) => void; // Handle state changes
+  scrollAreaClassName?: string;
 }
 
-const DialogOrDrawer = ({ title, description, trigger, children, open, onOpenChange }: DialogOrDrawerProps) => {
+const DialogOrDrawer = ({ title, description, trigger, children, open, onOpenChange , scrollAreaClassName}: DialogOrDrawerProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)"); // Adjust breakpoint for mobile as needed
 
   return (
@@ -26,7 +28,7 @@ const DialogOrDrawer = ({ title, description, trigger, children, open, onOpenCha
               {trigger}
             </DrawerTrigger>}
           <DrawerContent className="flex flex-col" aria-describedby={undefined}>
-            <ScrollArea className="h-[60vh] p-2">
+            <ScrollArea className={clsx(scrollAreaClassName ?? "h-[60vh] p-2")}>
               <DrawerHeader>
                 <DrawerTitle>{title}</DrawerTitle>
                 <DrawerDescription>{description}</DrawerDescription>
@@ -42,7 +44,7 @@ const DialogOrDrawer = ({ title, description, trigger, children, open, onOpenCha
           <DialogTrigger asChild>
             {trigger}
           </DialogTrigger>}
-          <DialogContent className="max-w-4xl w-full"aria-describedby={undefined}>
+          <DialogContent className="max-w-2xl w-full"aria-describedby={undefined}>
             <DialogHeader>
               <DialogTitle>{title}</DialogTitle>
               <DialogDescription>{description}</DialogDescription>

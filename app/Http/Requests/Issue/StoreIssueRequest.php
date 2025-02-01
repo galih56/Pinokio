@@ -74,10 +74,17 @@ class StoreIssueRequest extends BaseRequest
             ]);
         }
 
-        $this->merge([
-            'ip_address' => $this->ip(),
-            'issuer_type' => 'user'
-        ]);
+        if (auth()->check()) {
+            $this->merge([
+                'ip_address' => $this->ip(),
+                'issuer_type' => 'User'
+            ]);
+        }else{
+            $this->merge([
+                'ip_address' => $this->ip(),
+                'issuer_type' => 'GuestUser'
+            ]);
+        }
     }
 
     /**

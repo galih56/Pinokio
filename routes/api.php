@@ -54,7 +54,9 @@ Route::group([
 
 Route::group([
     "prefix" => "issues",
+    'middleware' => ['decode_id']
 ], function () {
+    Route::get('/{id}/files', [IssueController::class, 'getFiles']);
     Route::group([
         'middleware' => ['role:ADMIN,HR','decode_id', 'auth:sanctum']
     ], function () {
@@ -64,7 +66,6 @@ Route::group([
         Route::put('/{id}', [IssueController::class, 'update']);
         Route::patch('/{id}', [IssueController::class, 'update']);
         Route::delete('/{id}', [IssueController::class, 'destroy']);
-        Route::get('/{id}/files', [IssueController::class, 'getFiles']);
     });
 });
 

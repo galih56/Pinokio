@@ -30,6 +30,18 @@ class StoreCommentRequest extends FormRequest
                 'commentable_id' => $hashidService->decode($this->input('commentable_id')),
             ]);
         }
+        
+        if (auth()->check()) {
+            $this->merge([
+                'ip_address' => $this->ip(),
+                'commenter_type' => 'User'
+            ]);
+        }else{
+            $this->merge([
+                'ip_address' => $this->ip(),
+                'commenter_type' => 'GuestUser'
+            ]);
+        }
     }
 
     /**
@@ -43,6 +55,7 @@ class StoreCommentRequest extends FormRequest
             'comment' => 'required|string|max:1000', 
             'commentable_id' => 'required|integer', 
             'commentable_type' => 'required|string|in:issue,project,task', 
+            'commenter_type' => 'required|string'
         ];
     }
 

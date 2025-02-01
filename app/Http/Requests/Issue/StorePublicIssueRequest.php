@@ -76,7 +76,7 @@ class StorePublicIssueRequest extends BaseRequest
 
         $this->merge([
             'ip_address' => $this->ip(),
-            'issuer_type' => 'guest'
+            'issuer_type' => 'GuestUser'
         ]);
     }
 

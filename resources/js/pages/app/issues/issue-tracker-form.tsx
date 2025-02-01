@@ -34,7 +34,7 @@ export const IssueTrackerFormRoute = () => {
         <div className="m-4 mt-8">
           <header className="text-center px-2 text-gray-800">
             <h2 className="text-xl font-bold my-2">Request Tracker Form</h2>
-            <p>
+            <p className="text-sm mb-4">
               Let us know how we can assist you. Submit feature requests, report bugs, or share any issues you’ve encountered.
             </p>
           </header>

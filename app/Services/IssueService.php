@@ -28,7 +28,7 @@ class IssueService
     {
         try {
             $issuer = null;
-            if ($data['issuer_type'] == 'guest') {
+            if ($data['issuer_type'] == 'GuestUser') {
                 // If the user is a guest, create or fetch the GuestIssuer
                 $issuer = $this->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
                 $issuerType = GuestIssuer::class;

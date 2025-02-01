@@ -19,19 +19,13 @@ import {
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { CreateIssueInput, createIssueInputSchema, useCreateIssue } from '../api/create-issue';
 import { useNotifications } from '@/components/ui/notifications';
-import { useIsFetching, useQueries } from '@tanstack/react-query';
-import { Loader2, Paperclip, RefreshCcw } from "lucide-react";
-import { getTags } from "@/features/tags/api/get-tags";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useEffect } from "react";
 import DateTimePickerInput from "@/components/ui/date-picker/date-picker-input";
 import { Textarea } from "@/components/ui/textarea";
 import { FileInput, FileUploader, FileUploaderContent, FileUploaderItem } from "@/components/ui/file-upload";
 import { DropzoneOptions } from "react-dropzone";
-import { cn } from "@/lib/utils";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
+import { GuestUserInputs } from "./guest-user-inputs";
+import { createPublicIssueInputSchema, useCreatePublicIssue } from "../api/create-public-issue";
 
 type CreateIssueType = {
   onSuccess? : Function;
@@ -44,7 +38,7 @@ export default function IssueTrackerForm({
 } : CreateIssueType) { 
   const { addNotification } = useNotifications();
 
-  const { mutate: createIssueMutation, isPending } = useCreateIssue({
+  const { mutate: createIssueMutation, isPending } = useCreatePublicIssue({
     mutationConfig: {
       onSuccess: () => {
         onSuccess?.();
@@ -54,7 +48,7 @@ export default function IssueTrackerForm({
         if (error?.response?.data?.errors) {
           // Map the errors to React Hook Form `setError`
           Object.keys(error.response.data.errors).forEach((field) => {
-            form.setError(field as keyof CreateIssueInput, {
+            form.setError(field as keyof CreatePublicIssueInput, {
               type: 'manual',
               message: error.response.data.errors[field][0], // Display the first error message
             });
@@ -69,21 +63,12 @@ export default function IssueTrackerForm({
     },
   });
   
-  const queries = useQueries({
-    queries : [
-      { queryKey: ['tags'], queryFn: getTags },
-    ]
-  })
-  const [
-    tagsQuery,
-  ] = queries;
-
-  const form = useForm<z.infer<typeof createIssueInputSchema>>({
-    resolver: zodResolver(createIssueInputSchema)
+  const form = useForm<z.infer<typeof createPublicIssueInputSchema>>({
+    resolver: zodResolver(createPublicIssueInputSchema)
   })
   
 
-  async function onSubmit(values: z.infer<typeof createIssueInputSchema>) {
+  async function onSubmit(values: z.infer<typeof createPublicIssueInputSchema>) {
     const isValid = await form.trigger();
     if (!isValid) {
       addNotification({
@@ -108,33 +93,7 @@ export default function IssueTrackerForm({
   return (  
       <Form {...form} >
         <form onSubmit={form.handleSubmit(onSubmit)}>
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field , formState : { errors }  }) => (    
-              <FormItem className='my-3'>
-                  <FormLabel>Name</FormLabel>
-                  <FormControl>
-                      <Input {...field} placeholder="Name" />
-                  </FormControl>
-                  <FormMessage/>
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field , formState : { errors }  }) => (    
-              <FormItem className='my-3'>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                      <Input {...field} type="email" placeholder="Email" />
-                  </FormControl>
-                  <FormMessage/>
-              </FormItem>
-              )}
-            />
+            <GuestUserInputs />
             <FormField
               control={form.control}
               name="title"

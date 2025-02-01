@@ -1,11 +1,13 @@
 import { QueryClient } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useParams, LoaderFunctionArgs } from 'react-router-dom';
+import { useParams, LoaderFunctionArgs, useNavigate } from 'react-router-dom';
 
 import {
   getPublicIssueQueryOptions,
 } from '@/features/issues/api/get-public-issue';
 import { PublicIssueView } from '@/features/issues/components/public-issue-view';
+import { Button } from '@/components/ui/button';
+import { Undo2Icon } from 'lucide-react';
 
 export const issueLoader =
   (queryClient: QueryClient) =>
@@ -29,9 +31,15 @@ export const issueLoader =
 export const IssueRoute = () => {
   const params = useParams();
   const issueId = params.id;
+  const navigate = useNavigate();
+  const goBack = () => navigate(-1);
 
   return (
-    <div className='mt-6'>
+    <>
+        <Button variant={'secondary'} onClick={goBack}>
+          <Undo2Icon/>
+          Back to The Request List
+        </Button>
         <PublicIssueView issueId={issueId} />
         <div className="mt-8">
           <ErrorBoundary
@@ -41,6 +49,6 @@ export const IssueRoute = () => {
           >
           </ErrorBoundary>
         </div>
-    </div>
+    </>
   );
 };

@@ -11,6 +11,8 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Comment\StoreCommentRequest;
 use App\Http\Requests\Comment\UpdateCommentRequest;
 use App\Http\Requests\Comment\GetCommentRequest;
+use App\Http\Resources\CommentResource;
+use Illuminate\Database\Eloquent\Relations\Relation;
 
 class CommentController extends Controller
 {
@@ -28,35 +30,29 @@ class CommentController extends Controller
         'issue' => \App\Models\Issue::class,
         'project' => \App\Models\Project::class,
         'task' => \App\Models\Task::class,
-        'user' => \App\Models\Task::class,
-        'guest_user' => \App\Models\Task::class,
+        'user' => \App\Models\User::class,
+        'guest_user' => \App\Models\GuestUser::class,
     ];
 
-    /**
-     * Get a paginated list of comments.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
     public function index(GetCommentRequest $request)
     {
         $query = Comment::query();
-
-        // Filter by commentable_id and commentable_type if provided
+    
+        // Use Laravel's built-in method to resolve polymorphic types
         if ($request->has('commentable_id') && $request->has('commentable_type')) {
-            $commentableType = $this->commentableTypes[$request->commentable_type] ?? null;
-
+            $commentableType = Relation::getMorphedModel($request->commentable_type);
+    
             if ($commentableType) {
                 $query->where('commentable_id', $request->commentable_id)
                       ->where('commentable_type', $commentableType);
             }
         }
-
+    
         // Paginate and return the results
         $comments = $query->with(['commentable', 'commenter'])->paginate($request->per_page ?? 15);
         
         return response()->json([
-            'data' => $comments->items(),
+            'data' => CommentResource::collection($comments),
             'meta' => [
                 'total' => $comments->total(),
                 'per_page' => $comments->perPage(),
@@ -65,6 +61,7 @@ class CommentController extends Controller
             ],
         ]);
     }
+    
     
     /**
      * Store a new comment.

@@ -12,14 +12,12 @@ class CommentService
     {
         try {
             $user = null;
-            if (auth()->check()) {
-                // If the user is authenticated, set the user as the User
-                $user = auth()->user();
-                $userType = User::class;
-            } else {
-                // If the user is a guest, create or fetch the GuestIssuer
+            if ($data['commenter_type'] == 'GuestUser') {
                 $user = $this->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
                 $userType = GuestIssuer::class;
+            } else {
+                $user = auth()->user();
+                $userType = User::class;
             }
     
             $comment = [

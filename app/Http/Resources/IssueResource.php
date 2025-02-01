@@ -3,7 +3,6 @@
 namespace App\Http\Resources;
 
 use App\Services\HashIdService;
-use Hashids\Hashids;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
