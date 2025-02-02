@@ -5,11 +5,14 @@ import { createCommentInputSchema, useCreateComment } from '../api/create-commen
 import { useNotifications } from '@/components/ui/notifications';
 import { useIsFetching } from '@tanstack/react-query';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
 import useGuestIssuerStore from '@/store/useGuestIssuer';
 import { isValidEmail } from '@/lib/common';
+import { EditorContent, useEditor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import { Link } from '@tiptap/extension-link';
+
 
 type CreateCommentType = {
   onSuccess?: Function;
@@ -45,11 +48,11 @@ export default function CreateComment({
   });
 
   async function onSubmit(values: z.infer<typeof createCommentInputSchema>) {
-    if(!(name && isValidEmail(email))){
+    if (!(name && isValidEmail(email))) {
       addNotification({
         type: 'error',
         title: 'Please enter your name and email...',
-        toast: true
+        toast: true,
       });
       return;
     }
@@ -59,22 +62,44 @@ export default function CreateComment({
       addNotification({
         type: 'error',
         title: 'Required fields are empty',
-        toast: true
+        toast: true,
       });
       return;
     }
+
+    const content = editor?.getHTML(); // Get the HTML content from the editor
+
     createCommentMutation.mutate({
       commentableId, 
       commentableType,
-      comment : values.comment,
-      userDetail : {
-        email : email,
+      comment: content ?? '', // Send the HTML content
+      userDetail: {
+        email: email,
         name: name,
-        commenterType : commenterType
-      }
+        commenterType: commenterType,
+      },
     });
   }
 
+
+  Link.configure({
+    autolink: true,
+    openOnClick: true,
+    linkOnPaste: true,
+    shouldAutoLink: (url) => url.startsWith('https://') || url.startsWith('http://'),
+  })
+  
+  const editor = useEditor({
+    extensions: [
+      StarterKit,
+      Link
+    ],
+    content: '', // Initial content if needed
+    onUpdate: ({ editor }) => {
+      // Update the form field when the editor content changes
+      form.setValue('comment', editor.getHTML());
+    },
+  });
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -86,23 +111,23 @@ export default function CreateComment({
             <FormItem className="mt-2">
               <FormLabel>Comment</FormLabel>
               <FormControl>
-                <Textarea
-                  placeholder="Comment..."
-                  className="resize-none"
-                  {...field}
-                />
+                {/* Tiptap editor */}
+                <div className="border p-4 rounded-md">
+                  <EditorContent editor={editor} 
+                    className="resize-none"
+                    {...field}/>
+                </div>
               </FormControl>
-              
-              <div className='flex flex-row space-x-2 items-center'>
-                <h6 className='text-sm font-bold'>{name}</h6>
-                <span className='text-gray-600 text-xs italic'>{email}</span>
+              <div className="flex flex-row space-x-2 items-center mt-2">
+                <h6 className="text-sm font-bold">{name}</h6>
+                <span className="text-gray-600 text-xs italic">{email}</span>
               </div>
               <FormMessage />
             </FormItem>
           )}
         />
         <DialogFooter className="my-4">
-          <div className='flex flex-col'>
+          <div className="flex flex-col">
             <Button type="submit" disabled={Boolean(isFetching)}>
               Submit
             </Button>

@@ -18,6 +18,7 @@ import { UpdateComment } from "./update-comment";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { formatDateTime } from "@/lib/datetime";
 import clsx from "clsx";
+import DOMPurify from 'dompurify';
 
 export type CommentsListProps = {
   commentableId: string;
@@ -80,7 +81,7 @@ export const CommentList = ({
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const comment = comments[virtualRow.index];
               let isIssuer =  Boolean((comment.commenter?.type == 'GuestIssuer'));
-
+              const sanitizedContent = DOMPurify.sanitize(comment.comment);
               return (
                 <div 
                   key={virtualRow.key}
@@ -139,7 +140,7 @@ export const CommentList = ({
                         </div>
                       </>}
                     </div>
-                    <p className={clsx("text-sm", isIssuer ? "text-left" : "text-right")}>{comment.comment}</p>
+                    <div className={clsx("text-sm", isIssuer ? "text-left" : "text-right")} dangerouslySetInnerHTML={{__html : sanitizedContent}} />
                   </div>
                 </div>
               );

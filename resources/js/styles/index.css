@@ -60,3 +60,15 @@
     }
 }
   
+/*
+ react tiptap editor
+*/
+.editor a {
+  color: #0070f3;  /* Blue color */
+  text-decoration: underline; /* Underline links */
+}
+
+.editor a:hover {
+  color: #0050c8; /* Darker blue when hovering */
+  text-decoration: none;
+}
