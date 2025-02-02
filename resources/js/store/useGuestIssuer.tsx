@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
 // Define the store's state and actions
-interface GuestUserState {
+interface GuestIssuerState {
   name: string;
   email: string;
   setName: (name: string) => void;
@@ -10,7 +10,7 @@ interface GuestUserState {
   clearUser: () => void;
 }
 
-const useGuestUserStore = create<GuestUserState>()(
+const useGuestIssuerStore = create<GuestIssuerState>()(
   persist(
     (set) => ({
       name: "",
@@ -26,4 +26,4 @@ const useGuestUserStore = create<GuestUserState>()(
   )
 );
 
-export default useGuestUserStore;
+export default useGuestIssuerStore;

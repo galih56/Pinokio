@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useComments } from "../api/get-comments";
-import { Comment } from "@/types/api";
+import { Comment, Issue, Project, Task } from "@/types/api";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,19 +17,21 @@ import DialogOrDrawer from "@/components/layout/dialog-or-drawer";
 import { UpdateComment } from "./update-comment";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { formatDateTime } from "@/lib/datetime";
+import clsx from "clsx";
 
 export type CommentsListProps = {
   commentableId: string;
   commentableType: string;
+  commentable? : Issue | Project | Task;
 };
-
 export const CommentList = ({
   commentableId,
   commentableType,
+  commentable
 }: CommentsListProps) => {
   const [choosenComment, setChoosenComment] = useState<Comment | undefined>();
   const { open, isOpen, close, toggle } = useDisclosure();
-
+  
   // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -48,10 +50,10 @@ export const CommentList = ({
   // Virtualization setup with useVirtualizer
   const parentRef = useRef<HTMLDivElement>(null);
   const rowVirtualizer = useVirtualizer({
-    count: comments.length, // Total number of items
-    getScrollElement: () => parentRef.current, // Parent scrollable container
-    estimateSize: () => 80, // Approximate row height
-    overscan: 5, // Preload rows beyond the viewport
+    count: comments.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 80,
+    overscan: 5,
   });
 
   // Handle pagination changes
@@ -66,10 +68,9 @@ export const CommentList = ({
       {commentsQuery.isPending ? (
         <Skeleton className="w-full min-h-[60vh]" />
       ) : comments.length > 0 ? (
-        // Virtualized comment list
         <div
           ref={parentRef}
-          className="relative h-[600px] overflow-auto rounded-md shadow-sm w-full"
+          className="relative h-[600px] overflow-auto rounded-md px-6"
         >
           <div
             style={{
@@ -78,43 +79,69 @@ export const CommentList = ({
           >
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const comment = comments[virtualRow.index];
-              const isIssuer = comment.commenterType === "Issuer"; // Changed to Issuer
-              return (
-              <div
-                key={virtualRow.key}
-                className={`w-full bg-white p-4 rounded-lg shadow-md my-4 flex flex-col ${isIssuer ? "justify-start text-left" : "justify-end text-right"}`}
-              >
-                <div className="flex justify-between">
-                  {!isIssuer && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="w-5 h-5" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent
-                        align={"start"} 
-                      >
-                        <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                        <DropdownMenuItem
-                          onClick={() => {
-                            setChoosenComment(comment);
-                            open();
-                          }}
-                        >
-                          Edit
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                <h3 className="justify-end text-base font-bold">{comment.commenter?.name || "Unknown"}</h3>
-              </div>
-                  <p className="text-gray-700 text-xs mb-2">
-                    Posted on {formatDateTime(comment.createdAt)}
-                  </p>
-                  <p className="text-sm">{comment.comment}</p>
-              </div>
+              let isIssuer =  Boolean((comment.commenter?.type == 'GuestIssuer'));
 
+              return (
+                <div 
+                  key={virtualRow.key}
+                  className={clsx("w-full flex",
+                    isIssuer ? "justify-start" : "justify-end "
+                  )}>
+                    <div
+                      className={clsx(
+                        "max-w-[85%] bg-white p-4 rounded-lg shadow-md my-4 flex flex-col",
+                      )}>
+                    <div className={clsx(`flex justify-between`)}>
+                      {/* Only show dropdown if the commenter is NOT the issuer */}
+                      {isIssuer ? (
+                        <>
+                          <div className="flex flex-row">
+                            <h3 className="justify-end space-x-1">
+                              <span className="text-base font-bold">
+                                {comment.commenter?.name || "Unknown"}
+                              </span>
+                              <span className="text-gray-700 text-xs">
+                                {formatDateTime(comment.createdAt)}
+                              </span>
+                            </h3>
+                          </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="w-2 h-2" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align={"start"}>
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setChoosenComment(comment);
+                                  open();
+                                }}
+                              >
+                                Edit
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </>
+                      ): 
+                      <>
+                        <div></div>
+                        <div className="flex flex-row">
+                          <h3 className="justify-end space-x-1">
+                            <span className="text-gray-700 text-xs">
+                              {formatDateTime(comment.createdAt)}
+                            </span>
+                            <span className="text-base font-bold">
+                              {comment.commenter?.name || "Unknown"}
+                            </span>
+                          </h3>
+                        </div>
+                      </>}
+                    </div>
+                    <p className={clsx("text-sm", isIssuer ? "text-left" : "text-right")}>{comment.comment}</p>
+                  </div>
+                </div>
               );
             })}
           </div>

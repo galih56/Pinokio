@@ -48,7 +48,7 @@ class CommentServiceTest extends TestCase
     }
 
     /** @test */
-    public function it_can_create_a_comment_for_guest_user()
+    public function it_can_create_a_comment_for_guest_issuer()
     {
         // Data for the comment
         $data = [

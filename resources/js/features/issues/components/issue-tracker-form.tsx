@@ -10,13 +10,11 @@ import { TagCombobox } from "@/features/tags/components/tag-combobox";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useNotifications } from '@/components/ui/notifications';
@@ -24,7 +22,7 @@ import DateTimePickerInput from "@/components/ui/date-picker/date-picker-input";
 import { Textarea } from "@/components/ui/textarea";
 import { FileInput, FileUploader, FileUploaderContent, FileUploaderItem } from "@/components/ui/file-upload";
 import { DropzoneOptions } from "react-dropzone";
-import { GuestUserInputs } from "./guest-user-inputs";
+import { GuestIssuerInputs } from "./guest-issuer-inputs";
 import { createPublicIssueInputSchema, useCreatePublicIssue } from "../api/create-public-issue";
 
 type CreateIssueType = {
@@ -57,6 +55,7 @@ export default function IssueTrackerForm({
           addNotification({
             type: 'error',
             title: 'An error occurred',
+            toast: true
           });
         }
       },
@@ -74,7 +73,8 @@ export default function IssueTrackerForm({
       addNotification({
         type: 'error',
         title: 'Required fields are empty',
-      });;
+        toast: true
+      });
       return;
     }
     createIssueMutation(values)
@@ -83,6 +83,8 @@ export default function IssueTrackerForm({
   const dropzoneOptions = {
     accept: {
       "image/*": [".jpg", ".jpeg", ".png"],
+      "application/pdf": [".pdf"], 
+      "application/msword": [".doc"], 
     },
     multiple: true,
     maxFiles: 4,
@@ -93,7 +95,7 @@ export default function IssueTrackerForm({
   return (  
       <Form {...form} >
         <form onSubmit={form.handleSubmit(onSubmit)}>
-            <GuestUserInputs />
+            <GuestIssuerInputs />
             <FormField
               control={form.control}
               name="title"
@@ -116,7 +118,7 @@ export default function IssueTrackerForm({
                   <FormControl> 
                     <TagCombobox
                         multiple={false} 
-                        {...field} 
+                        name={field.name}
                       />
                   </FormControl>
                   <FormMessage>{errors.tagId?.message}</FormMessage>
@@ -176,7 +178,7 @@ export default function IssueTrackerForm({
                         <Button type="button" className="w-full" variant={"outline"}>Upload a file</Button>
                       </FileInput>
                       <FileUploaderContent className="max-h-48 ">
-                        {(field.value || []).length > 0 && (field.value || []).map((file: File, index: number) => (<FileUploaderItem index={index}>{file.name}</FileUploaderItem>))}
+                        {(field.value || []).length > 0 && (field.value || []).map((file: File, index: number) => (<FileUploaderItem key={index+"-"+file.name} index={index}>{file.name}</FileUploaderItem>))}
                       </FileUploaderContent>
                     </FileUploader>
                   </FormControl>

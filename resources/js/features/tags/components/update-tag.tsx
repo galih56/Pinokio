@@ -71,6 +71,7 @@ export const UpdateTag = ({ tagId , onSuccess, onError}: UpdateTagProps) => {
       addNotification({
         type: 'error',
         title: 'Required fields are empty',
+        toast: true
       });
       return;
     }

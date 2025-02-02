@@ -3,17 +3,26 @@ namespace App\Services;
 
 use App\Models\Comment;
 use App\Models\User;
+use App\Models\GuestIssuer;
 use Illuminate\Support\Facades\Log;
 
 class CommentService
-{    
+{  
+    protected $guestIssuerService;
+    protected $fileService;
+
+    public function __construct(GuestIssuerService $guestIssuerService)
+    {
+        $this->guestIssuerService = $guestIssuerService;
+    }
+  
 
     public function createComment(array $data): Comment
     {
         try {
             $user = null;
-            if ($data['commenter_type'] == 'GuestUser') {
-                $user = $this->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
+            if ($data['commenter_type'] == 'GuestIssuer') {
+                $user = $this->guestIssuerService->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
                 $userType = GuestIssuer::class;
             } else {
                 $user = auth()->user();

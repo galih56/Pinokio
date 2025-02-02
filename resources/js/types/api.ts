@@ -136,6 +136,7 @@ export interface Commenter {
     id: string;
     name: string; 
     email?: string; 
+    type?: 'GuestIssuer' | 'User';
 }
 
 export type Commentable = Issue | Project | Task; 
@@ -148,3 +149,27 @@ export type File = {
     size : string;
     uploadedAt : Date;
 }
+
+
+export const isIssue = (commentable: Issue | Project | Task): commentable is Issue =>
+    (commentable as Issue).issuer !== undefined;
+  
+/*
+export const isProjectOrTask = (commentable: Issue | Project | Task): commentable is Project | Task =>
+    (commentable as Project).creator !== undefined;
+*/
+
+export const getCommentableCreator = (commentable?: Issue | Project | Task) => {
+    if (!commentable) return null;
+
+    if (isIssue(commentable)) {
+        return commentable.issuer; 
+    } 
+
+    /*
+        if (isProjectOrTask(commentable)) {
+            return commentable.creator; 
+        }
+    */
+    return null;
+};

@@ -14,8 +14,12 @@ class StoreCommentRequest extends FormRequest
      */
     public function authorize()
     {
-        // Only allow authenticated users to create comments
-        return  true;
+        // If the commenter is a "User", ensure they are authenticated
+        if ($this->input('commenter_type') === 'User') {
+            return auth()->check();
+        }
+    
+        return true;
     }
 
     /**
@@ -30,18 +34,10 @@ class StoreCommentRequest extends FormRequest
                 'commentable_id' => $hashidService->decode($this->input('commentable_id')),
             ]);
         }
-        
-        if (auth()->check()) {
-            $this->merge([
-                'ip_address' => $this->ip(),
-                'commenter_type' => 'User'
-            ]);
-        }else{
-            $this->merge([
-                'ip_address' => $this->ip(),
-                'commenter_type' => 'GuestUser'
-            ]);
-        }
+    
+        $this->merge([
+            'ip_address' => $this->ip(),
+        ]);
     }
 
     /**
@@ -52,10 +48,13 @@ class StoreCommentRequest extends FormRequest
     public function rules()
     {
         return [
+            'ip_address' => 'nullable|ip',
             'comment' => 'required|string|max:1000', 
             'commentable_id' => 'required|integer', 
-            'commentable_type' => 'required|string|in:issue,project,task', 
-            'commenter_type' => 'required|string'
+            'commentable_type' => 'required|string|in:Issue,Project,Task', 
+            'commenter_type' => 'required|string|in:User,GuestIssuer',
+            'name' => 'required_if:commenter_type,GuestIssuer|string|max:255',
+            'email' => 'required_if:commenter_type,GuestIssuer|email|max:255',
         ];
     }
 

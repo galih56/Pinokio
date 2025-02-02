@@ -8,18 +8,18 @@ import { Issue } from "@/types/api";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown, MoreHorizontal, SaveIcon } from "lucide-react";
-import { getIssueQueryOptions } from "../api/get-issue";
 import { Link } from "@/components/ui/link";
 import { paths } from "@/apps/issue-tracker/paths";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { usePublicIssues } from "../api/get-public-issues";
-import { formatDate } from "@/lib/datetime";
+import { formatDate, formatDateTime } from "@/lib/datetime";
 import { StatusBadge } from "./status-badge";
-import { GuestUserInputs } from "./guest-user-inputs";
-import useGuestUserStore from "@/store/useGuestUser";
+import { GuestIssuerInputs } from "./guest-issuer-inputs";
+import useGuestIssuerStore from "@/store/useGuestIssuer";
 import DialogOrDrawer from "@/components/layout/dialog-or-drawer";
 import { isValidEmail } from "@/lib/common";
+import { getPublicIssueQueryOptions } from "../api/get-public-issue";
 
 export type PublicIssuesProps = {
   onIssuePrefetch?: (id: string) => void;
@@ -31,12 +31,12 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
   const currentPage = +(searchParams.get("page") || 1);
   const search = searchParams.get("search") || "";
 
-  const { name, email } = useGuestUserStore();
+  const { name, email } = useGuestIssuerStore();
   const [searchTerm, setSearchTerm] = useState(search);
   const isIdentityEmpty = !(name && isValidEmail(email));
   const [showDialog, setShowDialog] = useState(isIdentityEmpty); // Show dialog if user data is missing
 
-  const [guestUserInfoSaved, setGuestUserInfoSaved] = useState(!isIdentityEmpty); // Flag to trigger fetching, if the name and email are already filled on initial load, we don't need to input the name and email
+  const [guestIssuerInfoSaved, setGuestIssuerInfoSaved] = useState(!isIdentityEmpty); // Flag to trigger fetching, if the name and email are already filled on initial load, we don't need to input the name and email
 
   const queryClient = useQueryClient();
 
@@ -44,7 +44,7 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
     page: currentPage,
     search,
     queryConfig: {
-      enabled: guestUserInfoSaved && !isIdentityEmpty, // Fetch only when triggered and valid user info
+      enabled: guestIssuerInfoSaved && !isIdentityEmpty, // Fetch only when triggered and valid user info
     },
   });
 
@@ -53,7 +53,7 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
 
   const handleFetchIssues = () => {
     if (name && isValidEmail(email)) {
-      setGuestUserInfoSaved(true); // Trigger fetching if name and email are valid
+      setGuestIssuerInfoSaved(true); // Trigger fetching if name and email are valid
       setShowDialog(false); // Close the dialog
     } else {
       alert("Please enter a valid name and email.");
@@ -93,7 +93,7 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <Link
                 onMouseEnter={() => {
-                  queryClient.prefetchQuery(getIssueQueryOptions(issue.id));
+                  queryClient.prefetchQuery(getPublicIssueQueryOptions(issue.id));
                   onIssuePrefetch?.(issue.id);
                 }}
                 to={paths.issue.getHref(issue.id)}
@@ -128,6 +128,15 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
       header: "Status",
       cell: ({ row }) => <StatusBadge status={row.original.status} />,
     },
+    {
+      accessorKey: "createdAt",
+      header: "Created At",
+      cell: ({ row }) => {
+        const issue = row.original;
+        if (!issue.createdAt) return "-";
+        return formatDateTime(issue.createdAt);
+      },
+    },
   ];
 
   const onPageChange = (newPage: number) => {
@@ -136,7 +145,7 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
     issuesQuery.refetch();
   };
 
-  if (isIdentityEmpty || !guestUserInfoSaved) {
+  if (isIdentityEmpty || !guestIssuerInfoSaved) {
     return (
       <div className="flex items-center justify-center w-full min-h-[60vh]">
         <Button onClick={() => setShowDialog(true)}>Please tell us your name and email</Button>
@@ -148,7 +157,7 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
           description={"Please enter your name and email to continue."}
           scrollAreaClassName="h-[35vh] px-6"
         >
-          <GuestUserInputs />
+          <GuestIssuerInputs />
           {/* Button to trigger fetching */}
           <Button className="mt-4" onClick={handleFetchIssues}>
             <SaveIcon/> Save 
@@ -168,7 +177,7 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
         description={"Please enter your name and email to continue."}
         scrollAreaClassName="h-[35vh] px-6"
       >
-        <GuestUserInputs />
+        <GuestIssuerInputs />
         {/* Button to trigger fetching */}
         <Button className="mt-4" onClick={handleFetchIssues}>
           <SaveIcon/> Save 

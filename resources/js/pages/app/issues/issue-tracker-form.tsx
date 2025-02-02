@@ -6,7 +6,6 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/ui/tabs";
-import { Card } from "@/components/ui/card";
 import { PublicIssues } from "@/features/issues/components/public-issues";
 
 export const IssueTrackerFormRoute = () => {

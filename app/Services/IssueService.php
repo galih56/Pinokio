@@ -16,11 +16,13 @@ use App\Helpers\DatetimeHelper;
 class IssueService
 {
     protected $issueRepository;
+    protected $guestIssuerService;
     protected $fileService;
 
-    public function __construct(IssueRepositoryInterface $issueRepository, FileService $fileService)
+    public function __construct(IssueRepositoryInterface $issueRepository, FileService $fileService, GuestIssuerService $guestIssuerService)
     {
         $this->issueRepository = $issueRepository;
+        $this->guestIssuerService = $guestIssuerService;
         $this->fileService = $fileService;
     }
 
@@ -28,9 +30,9 @@ class IssueService
     {
         try {
             $issuer = null;
-            if ($data['issuer_type'] == 'GuestUser') {
+            if ($data['issuer_type'] == 'GuestIssuer') {
                 // If the user is a guest, create or fetch the GuestIssuer
-                $issuer = $this->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
+                $issuer =  $this->guestIssuerService->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
                 $issuerType = GuestIssuer::class;
             } else {
                 // If the user is authenticated, set the issuer as the User
@@ -148,20 +150,6 @@ class IssueService
         }
 
         return $preparedData;
-    }
-    
-    protected function getOrCreateGuestIssuer(string $email, string $name, string $ip): GuestIssuer
-    {
-        // Check if the guest issuer with this email already exists
-        $guestIssuer = GuestIssuer::firstOrCreate(
-            ['email' => $email], // Check by email
-            [
-                'name' => $name,
-                'ip_address' => $ip
-            ]   
-        );
-
-        return $guestIssuer;
     }
 
     public function attachFilesToIssue(Issue $issue, $files): void

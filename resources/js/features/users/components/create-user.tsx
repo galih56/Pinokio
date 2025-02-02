@@ -67,6 +67,7 @@ export default function CreateUser({
       addNotification({
         type: 'error',
         title: 'Required fields are empty',
+        toast: true
       });
       return;
     }

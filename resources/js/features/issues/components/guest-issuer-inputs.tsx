@@ -8,10 +8,10 @@ import {
 } from "@/components/ui/form";
 import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
-import useGuestUserStore from "@/store/useGuestUser";
+import useGuestIssuerStore from "@/store/useGuestIssuer";
 
-export function GuestUserInputs() {
-  const { name, email, setName, setEmail } = useGuestUserStore();
+export function GuestIssuerInputs() {
+  const { name, email, setName, setEmail } = useGuestIssuerStore();
   const formContext = useFormContext(); // Check if inside a form
   const control = formContext?.control;
   const setValue = formContext?.setValue;

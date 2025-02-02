@@ -4,10 +4,7 @@ import { z } from 'zod';
 import { api } from '@/lib/api-client';
 import { MutationConfig } from '@/lib/react-query';
 import { Comment } from '@/types/api';
-import { subYears } from 'date-fns';
-
 import { getCommentsQueryOptions } from './get-comments';
-
 
 export const createCommentInputSchema = z.object({
   comment: z.string().min(1, { message: 'Please give more detail comment...' }),
@@ -16,26 +13,27 @@ export const createCommentInputSchema = z.object({
 export type CreateCommentInput = z.infer<typeof createCommentInputSchema>;
 
 export const createComment = (
-  comment: string, 
-  commentableId: string, 
-  commentableType: string 
+  data: {
+    comment: string, 
+    commentableId: string, 
+    commentableType: string,
+    userDetail: { name: string; email: string , commenterType : string }
+  }
 ): Promise<Comment> => {
-  return api.post(`/comments`, {
+  const { comment, commentableId, commentableType, userDetail } = data;
+  return api.post('/comments', {
     comment,
-    commentable_id: commentableId,
-    commentable_type: commentableType,
+    commentableId: commentableId,
+    commentableType: commentableType,
+    ...userDetail
   });
 };
 
 type UseCreateCommentOptions = {
-  commentableId: string; 
-  commentableType: string; 
   mutationConfig?: MutationConfig<typeof createComment>;
 };
 
 export const useCreateComment = ({
-  commentableId,
-  commentableType,
   mutationConfig,
 }: UseCreateCommentOptions) => {
   const queryClient = useQueryClient();
@@ -44,16 +42,16 @@ export const useCreateComment = ({
 
   return useMutation({
     onSuccess: (...args: any) => {
+      const [data, variables, context] = args;
       queryClient.invalidateQueries({
         queryKey: getCommentsQueryOptions({
-          commentableId,
-          commentableType
+          commentableId: variables.commentableId,
+          commentableType: variables.commentableType,
         }).queryKey,
       });
-      console.log( getCommentsQueryOptions().queryKey)
-      onSuccess?.(args);
+      onSuccess?.(...args);
     },
     ...restConfig,
-    mutationFn: (comment: string) => createComment(comment, commentableId, commentableType), // Pass commentableId and commentableType
+    mutationFn: (data) => createComment(data),
   });
 };

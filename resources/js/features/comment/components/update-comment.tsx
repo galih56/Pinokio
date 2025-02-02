@@ -71,6 +71,7 @@ export const UpdateComment = ({ commentId , onSuccess, onError}: UpdateCommentPr
       addNotification({
         type: 'error',
         title: 'Required fields are empty',
+        toast: true
       });
       return;
     }

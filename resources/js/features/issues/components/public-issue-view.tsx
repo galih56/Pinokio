@@ -50,8 +50,8 @@ export const PublicIssueView = ({ issueId }: { issueId: string | undefined }) =>
           </div>
         </div>
         <IssueFiles issueId={issueId} />
-      <CreateComment  commentableId={issueId} commentableType={'issue'} />
-      <CommentList commentableId={issueId} commentableType={'issue'}/>
-    </div>  
+        <CreateComment  commentableId={issueId} commentableType={'Issue'} commenterType='GuestIssuer' />
+        <CommentList commentableId={issueId} commentableType={'Issue'}/>
+      </div>  
   );
 };

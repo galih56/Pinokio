@@ -58,7 +58,8 @@ export default function CreateIssue({
       addNotification({
         type: 'error',
         title: 'Required fields are empty',
-      });;
+        toast: true
+      });
       return;
     }
     createIssueMutation.mutate(values)

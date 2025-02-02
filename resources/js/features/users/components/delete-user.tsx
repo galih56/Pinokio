@@ -18,6 +18,7 @@ export const DeleteUser = ({ id }: DeleteUserProps) => {
         addNotification({
           type: 'success',
           title: 'User Deleted',
+          toast: true
         });
       },
     },

@@ -58,6 +58,7 @@ export default function CreateTag({
       addNotification({
         type: 'error',
         title: 'Required fields are empty',
+        toast: true
       });
       return;
     }

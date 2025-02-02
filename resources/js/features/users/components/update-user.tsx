@@ -56,6 +56,7 @@ export const UpdateUser = ({ userId }: UpdateUserProps) => {
         addNotification({
           type: 'success',
           title: 'User Updated',
+          toast: true
         });
       },
     },
@@ -82,7 +83,8 @@ export const UpdateUser = ({ userId }: UpdateUserProps) => {
       addNotification({
         type: 'error',
         title: 'Required fields are empty',
-      });;
+        toast: true
+      });
       return;
     }
     updateUserMutation.mutate({ data : values, userId : user?.id!})

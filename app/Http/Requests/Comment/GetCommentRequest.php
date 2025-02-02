@@ -42,7 +42,7 @@ class GetCommentRequest extends FormRequest
     {
         return [
             'commentable_id' => 'nullable|integer', 
-            'commentable_type' => 'nullable|string|in:issue,project,task', 
+            'commentable_type' => 'nullable|string|in:Issue,Project,Task', 
         ];
     }
 

@@ -8,12 +8,15 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { DialogFooter } from '@/components/ui/dialog';
+import useGuestIssuerStore from '@/store/useGuestIssuer';
+import { isValidEmail } from '@/lib/common';
 
 type CreateCommentType = {
   onSuccess?: Function;
   onError?: Function;
-  commentableId: string; // Add commentableId as a prop
-  commentableType: string; // Add commentableType as a prop
+  commentableId: string; 
+  commentableType: string;
+  commenterType: 'GuestIssuer' | 'User';
 };
 
 export default function CreateComment({
@@ -21,11 +24,11 @@ export default function CreateComment({
   onError,
   commentableId,
   commentableType,
+  commenterType
 }: CreateCommentType) {
   const { addNotification } = useNotifications();
+  const { name, email } = useGuestIssuerStore();
   const createCommentMutation = useCreateComment({
-    commentableId, // Pass commentableId
-    commentableType, // Pass commentableType
     mutationConfig: {
       onSuccess: () => {
         onSuccess?.();
@@ -42,15 +45,34 @@ export default function CreateComment({
   });
 
   async function onSubmit(values: z.infer<typeof createCommentInputSchema>) {
+    if(!(name && isValidEmail(email))){
+      addNotification({
+        type: 'error',
+        title: 'Please enter your name and email...',
+        toast: true
+      });
+      return;
+    }
+
     const isValid = await form.trigger();
     if (!isValid) {
       addNotification({
         type: 'error',
         title: 'Required fields are empty',
+        toast: true
       });
       return;
     }
-    createCommentMutation.mutate(values.comment); // Only pass the comment value
+    createCommentMutation.mutate({
+      commentableId, 
+      commentableType,
+      comment : values.comment,
+      userDetail : {
+        email : email,
+        name: name,
+        commenterType : commenterType
+      }
+    });
   }
 
   return (
@@ -70,15 +92,21 @@ export default function CreateComment({
                   {...field}
                 />
               </FormControl>
+              
+              <div className='flex flex-row space-x-2 items-center'>
+                <h6 className='text-sm font-bold'>{name}</h6>
+                <span className='text-gray-600 text-xs italic'>{email}</span>
+              </div>
               <FormMessage />
             </FormItem>
           )}
         />
-
         <DialogFooter className="my-4">
-          <Button type="submit" disabled={Boolean(isFetching)}>
-            Submit
-          </Button>
+          <div className='flex flex-col'>
+            <Button type="submit" disabled={Boolean(isFetching)}>
+              Submit
+            </Button>
+          </div>
         </DialogFooter>
       </form>
     </Form>

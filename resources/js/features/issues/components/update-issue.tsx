@@ -55,6 +55,7 @@ export const UpdateIssue = ({ issueId }: UpdateIssueProps) => {
         addNotification({
           type: 'success',
           title: 'Issue Updated',
+          toast: true
         });
       },
     },
@@ -80,7 +81,8 @@ export const UpdateIssue = ({ issueId }: UpdateIssueProps) => {
       addNotification({
         type: 'error',
         title: 'Required fields are empty',
-      });;
+        toast: true
+      });
       return;
     }
     updateIssueMutation.mutate({ data : values, issueId : issue?.id!})
