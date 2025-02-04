@@ -33,7 +33,7 @@ return new class extends Migration
             $table->foreignId('guest_issuer_id')->nullable()->constrained('guest_issuers')->onDelete('set null');
             $table->string('title');
             $table->text('description')->nullable();
-            $table->enum('status', ['open', 'idle', 'in progress', 'resolved', 'closed'])->default('idle');
+            $table->enum('status', ['idle', 'in progress', 'resolved', 'closed'])->default('idle');
             $table->enum('priority', ['low', 'medium', 'high', 'critical'])->default('medium');
             $table->date('due_date');
             $table->timestamps(0); 

@@ -13,12 +13,10 @@ import { getIssueQueryOptions } from "../api/get-issue"
 import { Link } from '@/components/ui/link';
 import { paths } from '@/apps/dashboard/paths';
 import { Skeleton } from '@/components/ui/skeleton';
-import { capitalizeFirstChar } from '@/lib/common';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useEffect, useState } from 'react';
 import { formatDate } from '@/lib/datetime';
-import { VariantType } from '@/types/ui';
+import DOMPurify from 'dompurify';
 import { StatusBadge } from './status-badge';
 
 export type IssuesListProps = {
@@ -121,8 +119,36 @@ export const IssuesList = ({
     },
     {
       accessorKey: "description",
-      header : 'Description',
+      header: "Description",
+      cell: ({ row }) => {
+        const issue = row.original;
+        const sanitizedContent = DOMPurify.sanitize(issue?.description ?? '');
+        
+        const [expanded, setExpanded] = useState(false);
+        const shortContent = sanitizedContent.length > 100 
+          ? sanitizedContent.substring(0, 100) + "..." 
+          : sanitizedContent;
+    
+        return (
+          <div className="max-w-xs">
+            <div 
+              dangerouslySetInnerHTML={{ __html: expanded ? sanitizedContent : shortContent }} 
+              className="max-w-xs overflow-hidden text-sm"
+            />
+            {sanitizedContent.length > 200 && (
+              <Button 
+                variant="link"
+                className="text-blue-500 text-xs w-full justify-end"
+                onClick={() => setExpanded(!expanded)}
+              >
+                {expanded ? "Show Less" : "Show More"}
+              </Button>
+            )}
+          </div>
+        );
+      }
     },
+    
     {
       accessorKey: "dueDate",
       header : 'Due Date',

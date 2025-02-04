@@ -20,6 +20,7 @@ import useGuestIssuerStore from "@/store/useGuestIssuer";
 import DialogOrDrawer from "@/components/layout/dialog-or-drawer";
 import { isValidEmail } from "@/lib/common";
 import { getPublicIssueQueryOptions } from "../api/get-public-issue";
+import DOMPurify from 'dompurify';
 
 export type PublicIssuesProps = {
   onIssuePrefetch?: (id: string) => void;
@@ -109,11 +110,38 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
     {
       accessorKey: "title",
       header: "Title",
-    },
-    {
+    },{
       accessorKey: "description",
       header: "Description",
+      cell: ({ row }) => {
+        const issue = row.original;
+        const sanitizedContent = DOMPurify.sanitize(issue?.description ?? '');
+        
+        const [expanded, setExpanded] = useState(false);
+        const shortContent = sanitizedContent.length > 100 
+          ? sanitizedContent.substring(0, 100) + "..." 
+          : sanitizedContent;
+    
+        return (
+          <div className="max-w-xs">
+            <div 
+              dangerouslySetInnerHTML={{ __html: expanded ? sanitizedContent : shortContent }} 
+              className="max-w-xs overflow-hidden text-sm"
+            />
+            {sanitizedContent.length > 200 && (
+              <Button 
+                variant="link"
+                className="text-blue-500 text-xs w-full justify-end"
+                onClick={() => setExpanded(!expanded)}
+              >
+                {expanded ? "Show Less" : "Show More"}
+              </Button>
+            )}
+          </div>
+        );
+      }
     },
+    
     {
       accessorKey: "dueDate",
       header: "Due Date",

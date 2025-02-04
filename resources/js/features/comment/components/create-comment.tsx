@@ -12,6 +12,7 @@ import { isValidEmail } from '@/lib/common';
 import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Link } from '@tiptap/extension-link';
+import RichTextEditor from '@/components/ui/text-editor';
 
 
 type CreateCommentType = {
@@ -67,12 +68,11 @@ export default function CreateComment({
       return;
     }
 
-    const content = editor?.getHTML(); // Get the HTML content from the editor
 
     createCommentMutation.mutate({
       commentableId, 
       commentableType,
-      comment: content ?? '', // Send the HTML content
+      comment: values.comment ?? '',
       userDetail: {
         email: email,
         name: name,
@@ -81,25 +81,6 @@ export default function CreateComment({
     });
   }
 
-
-  Link.configure({
-    autolink: true,
-    openOnClick: true,
-    linkOnPaste: true,
-    shouldAutoLink: (url) => url.startsWith('https://') || url.startsWith('http://'),
-  })
-  
-  const editor = useEditor({
-    extensions: [
-      StarterKit,
-      Link
-    ],
-    content: '', // Initial content if needed
-    onUpdate: ({ editor }) => {
-      // Update the form field when the editor content changes
-      form.setValue('comment', editor.getHTML());
-    },
-  });
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -111,12 +92,7 @@ export default function CreateComment({
             <FormItem className="mt-2">
               <FormLabel>Comment</FormLabel>
               <FormControl>
-                {/* Tiptap editor */}
-                <div className="border p-4 rounded-md">
-                  <EditorContent editor={editor} 
-                    className="resize-none"
-                    {...field}/>
-                </div>
+                  <RichTextEditor  {...field}/>
               </FormControl>
               <div className="flex flex-row space-x-2 items-center mt-2">
                 <h6 className="text-sm font-bold">{name}</h6>

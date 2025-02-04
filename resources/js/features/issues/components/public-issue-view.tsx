@@ -8,6 +8,8 @@ import { StatusBadge } from './status-badge';
 import { CommentList } from '@/features/comment/components/comment-list';
 import CreateComment from '@/features/comment/components/create-comment';
 import { IssueFiles } from './issue-files';
+import clsx from 'clsx';
+import DOMPurify from 'dompurify';
 
 export const PublicIssueView = ({ issueId }: { issueId: string | undefined }) => {
   if(!issueId){
@@ -30,7 +32,8 @@ export const PublicIssueView = ({ issueId }: { issueId: string | undefined }) =>
 
 
   if (!issue) return null;
-
+  
+  const sanitizedContent = DOMPurify.sanitize(issue?.description ?? '');
   return (
       <div className="mt-6 flex flex-col px-6 space-y-2">
         <h6 className='text-sm italic text-gray-500'>Requested At : {issue.createdAt && formatDateTime(issue.createdAt)}</h6>
@@ -40,7 +43,9 @@ export const PublicIssueView = ({ issueId }: { issueId: string | undefined }) =>
               <StatusBadge status={issue.status}/>
             </div>
         </div>
-          <p>{issue.description}</p>
+             
+        <div className={clsx("text-sm")} dangerouslySetInnerHTML={{__html : sanitizedContent}} />
+        <p>{issue.description}</p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-2">
           <div className="space-y-1">
             <p className="text-sm font-medium leading-none">Due Date</p>

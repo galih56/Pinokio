@@ -17,7 +17,7 @@ return new class extends Migration
             $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
             $table->string('title');
             $table->text('description')->nullable();
-            $table->enum('status', ['open', 'in progress', 'completed', 'on hold'])->default('open');
+            $table->enum('status', ['idle', 'in progress', 'completed', 'on hold'])->default('idle');
             $table->date('due_date')->nullable();
             $table->timestamps();
         });

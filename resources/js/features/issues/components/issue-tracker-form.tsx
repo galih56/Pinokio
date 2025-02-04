@@ -24,6 +24,7 @@ import { FileInput, FileUploader, FileUploaderContent, FileUploaderItem } from "
 import { DropzoneOptions } from "react-dropzone";
 import { GuestIssuerInputs } from "./guest-issuer-inputs";
 import { createPublicIssueInputSchema, useCreatePublicIssue } from "../api/create-public-issue";
+import RichTextEditor from "@/components/ui/text-editor";
 
 type CreateIssueType = {
   onSuccess? : Function;
@@ -149,11 +150,7 @@ export default function IssueTrackerForm({
                 <FormItem className="mt-2">
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Description..."
-                      className="resize-none"
-                      {...field}
-                    />
+                    <RichTextEditor  {...field}/>     
                   </FormControl>
                   <FormMessage />
                 </FormItem>

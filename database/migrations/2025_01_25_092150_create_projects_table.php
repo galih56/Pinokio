@@ -11,7 +11,7 @@ return new class extends Migration
     {
         Schema::table('projects', function (Blueprint $table) {
             $table->dropColumn('status');
-            $table->enum('status', ['active', 'completed', 'archived','open', 'in progress', 'finished', 'draft', 'inactive'])->default('active');
+            $table->enum('status', ['active', 'completed', 'archived','idle', 'in progress', 'finished', 'draft', 'inactive'])->default('idle');
             $table->text('description')->nullable()->change();
             $table->dateTime('start')->nullable();
             $table->dateTime('end')->nullable();
