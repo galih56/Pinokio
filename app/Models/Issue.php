@@ -49,17 +49,6 @@ class Issue extends Model
         );
     }
     
-    public function issues()
-    {
-        return $this->morphedByMany(
-            Issue::class,
-            'related',
-            'file_associations',
-            'file_id',
-            'related_id'
-        );
-    }
-    
     public function tasks()
     {
         return $this->morphedByMany(

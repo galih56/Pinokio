@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
 
 class BaseRepository implements RepositoryInterface
 {    
@@ -55,6 +56,7 @@ class BaseRepository implements RepositoryInterface
         $query = $this->model->newQuery();
 
         $query = $this->applyFilters($query, $search);
+
         $query = $this->applySorts($query, $sorts);
 
         if (!empty($relations)) {
@@ -86,6 +88,7 @@ class BaseRepository implements RepositoryInterface
         $record = $this->model->findOrFail($id);
         return $record->delete();
     }
+
     public function applyFilters(Builder $query, array $filters): Builder
     {
         foreach ($filters as $filterGroup) {
@@ -93,10 +96,16 @@ class BaseRepository implements RepositoryInterface
                 foreach ($filterGroup as $field => $value) {
                     if (strpos($field, 'with:') === 0) {
                         // Handle related filters (relationships)
-                        $this->applyRelatedFilter($q, $field, $value, 'whereHas');
+                        $this->applyRelatedFilter($q, $field, $value, 'orWhereHas');
                     } else {
-                        // Apply OR conditions within the group
-                        $this->applyCondition($q, $field, $value, 'orWhere');
+                        $segments = explode(':', $field);
+                        $columns = explode(',',$segments[0]); // Columns to compare (e.g., 'name,description')
+                        $operator = $segments[1]; // Operator (e.g., 'like', '=')
+                        
+                        foreach ($columns as $key => $column) {
+                            // Apply OR conditions within the group
+                            $this->applyCondition($q, $column, $value, 'orWhere', $operator);
+                        }
                     }
                 }
             });
@@ -104,47 +113,50 @@ class BaseRepository implements RepositoryInterface
     
         return $query;
     }
-    
     protected function applyRelatedFilter(
         Builder $query,
         string $field,
         $value,
         string $method = 'whereHas'
     ): void {
-        if (strpos($field, 'with:') === 0) {
-            $field = substr($field, 5);
-            $segments = explode(':', $field);
-            $relation = array_shift($segments);
-            $columns = implode(':', $segments);
-    
-            if (strpos($columns, ':') !== false) {
-                $columnOperator = explode(':', $columns);
-                $columnsArray = explode(',', $columnOperator[0]);
-                $operator = $columnOperator[1] ?? 'like';
-            } else {
-                $columnsArray = explode(',', $columns);
-                $operator = 'like';
-            }
+        // Remove the 'with:' prefix
+        $field = substr($field, 5);
+        
+        // Split the field into segments
+        $segments = explode(':', $field);
+        
+        // Ensure there are exactly 3 segments (related table, columns, operator)
+        if (count($segments) === 3) {
+            $relation = $segments[0]; // Related table (e.g., 'tags')
+            $columns = $segments[1]; // Columns to compare (e.g., 'name,description')
+            $operator = $segments[2]; // Operator (e.g., 'like', '=')
             
+            // Split the columns into an array
+            $columnsArray = explode(',', $columns);
+            
+            // Apply the conditions to the query
             $query->{$method}($relation, function ($q) use ($columnsArray, $operator, $value) {
-                foreach ($columnsArray as $column) {            
-                    $this->applyCondition($q, $column, $value, 'where');
+                foreach ($columnsArray as $column) {
+                    // Pass 'where' as the method and the operator separately
+                    $this->applyCondition($q, $column, $value, 'where', $operator);
                 }
             });
+        } else {
+            // Handle invalid segment count (optional: log or throw an exception)
+            throw new \InvalidArgumentException("Invalid field format. Expected 'with:relation:columns:operator'.");
         }
     }
-
-    protected function applyCondition(Builder $query, string $field, $value, string $method): void
-    {
-        $condition = 'where'; // Default condition
     
-        if (strpos($field, ':') !== false) {
-            list($field, $condition) = explode(':', $field);
-        }
-    
-        switch ($condition) {
+    protected function applyCondition(
+        Builder $query,
+        string $field,
+        $value,
+        string $method, // The condition method (e.g., 'where', 'orWhere')
+        string $operator = '=' // The operator (e.g., 'like', '=', '>')
+    ): void {
+        switch ($operator) {
             case 'like':
-                $query->{$method}($field, 'like', "%$value%");
+                $query->{$method}(DB::raw("LOWER($field)"), 'like', "%".strtolower($value)."%");
                 break;
     
             case 'in':
@@ -174,7 +186,7 @@ class BaseRepository implements RepositoryInterface
                 break;
     
             default:
-                $query->{$method}($field, $value);
+                $query->{$method}($field, $operator, $value);
                 break;
         }
     }

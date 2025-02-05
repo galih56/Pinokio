@@ -42,22 +42,24 @@ export const updateIssue = ({
 };
 
 type UseUpdateIssueOptions = {
+  issueId: string;
   mutationConfig?: MutationConfig<typeof updateIssue>;
 };
 
 export const useUpdateIssue = ({
+  issueId,
   mutationConfig,
-}: UseUpdateIssueOptions = {}) => {
+}: UseUpdateIssueOptions) => {
   const queryClient = useQueryClient();
 
   const { onSuccess, ...restConfig } = mutationConfig || {};
 
   return useMutation({
-    onSuccess: (data : any, ...args ) => {
+    onSuccess: (res : any, ...args ) => {
       queryClient.refetchQueries({
-        queryKey: getIssueQueryOptions(data.id).queryKey,
+        queryKey: getIssueQueryOptions(issueId).queryKey,
       });
-      onSuccess?.(data, ...args);
+      onSuccess?.(res, ...args);
     },
     ...restConfig,
     mutationFn: updateIssue,

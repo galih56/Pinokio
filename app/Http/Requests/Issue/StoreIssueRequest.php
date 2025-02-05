@@ -13,7 +13,7 @@ class StoreIssueRequest extends BaseRequest
      */
     public function authorize(): bool
     {
-        return true; // Adjust authorization logic as needed
+        return auth()->user();
     }
 
     /**

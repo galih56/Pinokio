@@ -5,6 +5,8 @@ use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Issue\StoreIssueRequest;
+use App\Http\Requests\Issue\CloseIssueRequest;
+use App\Http\Requests\Issue\ClosePublicIssueRequest;
 use App\Http\Requests\Issue\StorePublicIssueRequest;
 use App\Http\Requests\Issue\UpdateIssueRequest;
 use App\Http\Resources\IssueResource;
@@ -51,19 +53,19 @@ class IssueController extends Controller
             $prepare_search[] = [
                 'issues.title:like' => $search,
                 'issues.description:like' => $search,
-                'with:tags.name:like' => $search,
-                'with:guestIssuer.email:like' => ($email ?? $search),
-                'with:guestIssuer.name:like' => $search,
+                'with:tags:name:like' => $search,
+                // 'with:guestIssuer.email:like' => $email,
+                // 'with:guestIssuer.name:like' => $search,
             ];
         }
-
+        $sorts = [];
         $per_page = $request->query('per_page') ?? 0;
 
-        $data = $this->issueService->getPublicIssues($prepare_search, $per_page);
+        $data = $this->issueService->getPublicIssues($prepare_search, $per_page, $sorts, $email);
 
         if ($per_page) {
             $issues = [
-                'data' => IssueResource::collection($data->items()),  // The actual resource data
+                'data' => IssueResource::collection($data->items()),
                 'meta' => [
                     'current_page' => $data->currentPage(),
                     'per_page' => $data->perPage(),
@@ -155,6 +157,30 @@ class IssueController extends Controller
             $issue = $this->issueService->updateIssue($id, $request->validated());
 
             return ApiResponse::sendResponse($issue, 'Issue Update Successful', 'success', 201);
+        } catch (\Exception $ex) {
+            return ApiResponse::rollback($ex);
+        }
+    }
+
+    public function closePublicIssue($id, ClosePublicIssueRequest $request)
+    {
+        try {
+            $data = array_merge($request->validated(), ['issuer_type' => 'GuestIssuer']);
+            $issue = $this->issueService->closeIssue($id, $data);
+
+            return ApiResponse::sendResponse($issue, 'Issue Close Successful', 'success', 201);
+        } catch (\Exception $ex) {
+            return ApiResponse::rollback($ex);
+        }
+    }
+
+    public function closeIssue($id, CloseIssueRequest $request)
+    {
+        try {
+            $data = array_merge($request->validated(), ['issuer_type' => 'User']);
+            $issue = $this->issueService->closeIssue($id, $data);
+
+            return ApiResponse::sendResponse($issue, 'Issue Close Successful', 'success', 201);
         } catch (\Exception $ex) {
             return ApiResponse::rollback($ex);
         }

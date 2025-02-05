@@ -8,6 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Laravel\Sanctum\HasApiTokens;
+use App\Models\Logs\IssueLog;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class User extends Authenticatable
 {
@@ -92,4 +94,9 @@ class User extends Authenticatable
                     ->withPivot('read_at')
                     ->withTimestamps();
     }
+    public function issueLogs() : MorphMany
+    {
+        return $this->morphMany(IssueLog::class, 'user');
+    }
+
 }

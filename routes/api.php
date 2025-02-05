@@ -48,6 +48,7 @@ Route::group([
 ], function () {
     Route::get('/', [IssueController::class, 'getPublicIssues']);
     Route::post('/', [IssueController::class, 'storePublicIssue']);
+    Route::put('/{id}/close', [IssueController::class, 'closePublicIssue']);
     Route::get('/{id}/files', [IssueController::class, 'getFiles']);
     Route::get('/{id}', [IssueController::class, 'getPublicIssue']);
 });
@@ -64,6 +65,7 @@ Route::group([
         Route::get('/{id}', [IssueController::class, 'show'])->middleware('decode_id');
         Route::get('/', [IssueController::class, 'index']);
         Route::put('/{id}', [IssueController::class, 'update']);
+        Route::put('/{id}/close', [IssueController::class, 'closeIssue']);
         Route::patch('/{id}', [IssueController::class, 'update']);
         Route::delete('/{id}', [IssueController::class, 'destroy']);
     });

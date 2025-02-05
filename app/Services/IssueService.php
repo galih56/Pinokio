@@ -56,13 +56,13 @@ class IssueService
     
             // Attach files to the issue if any files are uploaded
             if (!empty($uploadedFiles)) {
-                $this->attachFilesToIssue($issue, $uploadedFiles);
+                $this->attachFilesToIssue($issue->id, $uploadedFiles);
             }
     
             // Attach tags to the issue if any tag IDs are provided
             $tagIds = $data['tag_ids'] ?? ($data['tag_id'] ? [$data['tag_id']] : []);
             if (!empty($tagIds)) {
-                $this->issueRepository->attachTags($issue, $tagIds);
+                $this->issueRepository->attachTags($issue->id, $tagIds);
             }
     
             // Refresh and load relationships
@@ -84,7 +84,7 @@ class IssueService
 
             $tagIds = $data['tag_ids'] ?? ($data['tag_id'] ? [$data['tag_id']] : []);
             if (!empty($tagIds)) {
-                $this->issueRepository->attachTags($issue, $tagIds);
+                $this->issueRepository->attachTags($issue->id, $tagIds);
             }
 
             $issue->refresh();
@@ -96,6 +96,32 @@ class IssueService
             throw $e;
         }
     }
+
+
+    
+    public function closeIssue(int $id, array $data): Issue
+    {
+        try {
+            $issuer = null;
+            if ($data['issuer_type'] == 'GuestIssuer') {
+                // If the user is a guest, create or fetch the GuestIssuer
+                $issuer =  $this->guestIssuerService->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
+                $issuerType = GuestIssuer::class;
+                $data['issuer_type'] = $issuerType;
+                return $this->issueRepository->close($id, $data);
+            } else {
+                // If the user is authenticated, set the issuer as the User
+                $issuer = auth()->user();
+                $issuerType = User::class;
+                $data['issuer_type'] = $issuerType;
+                return $this->issueRepository->closePublicIssue($id, $data);
+            }
+        } catch (\Exception $e) {
+            Log::error('Error closing issue: ' . $e->getMessage());
+            throw $e;
+        }
+    }
+
 
     public function deleteIssue(int $id): bool
     {
@@ -112,9 +138,13 @@ class IssueService
         return $this->issueRepository->getAll($filters, $perPage, $sorts);
     }
 
-    public function getPublicIssues(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
+    public function getPublicIssues(array $filters = [], int $perPage = 0, array $sorts = [], $email = ''): Collection | LengthAwarePaginator
     {
-        return $this->issueRepository->getPublicIssues($filters, $perPage, $sorts);
+        return $this->issueRepository->getQuery($filters, $sorts,  [
+            'tags',
+            'files',
+            'issuer',
+        ])->where('issues.issuer_type', GuestIssuer::class)->paginate($perPage);
     }
 
     public function getIssueById(int $id): ?Issue
@@ -152,18 +182,8 @@ class IssueService
         return $preparedData;
     }
 
-    public function attachFilesToIssue(Issue $issue, $files): void
+    public function attachFilesToIssue($id, $files): void
     {
-        // If a single file is passed, convert it to an array
-        if (!is_array($files)) {
-            $files = [$files];
-        }
-    
-        foreach ($files as $file) {
-            // Ensure $file is a File model, and attach the file ID to the issue
-            if ($file instanceof File) {
-                $issue->files()->attach($file->id); // Attach the file's ID
-            }
-        }
+        $this->issueRepository->attachFiles($id, $files);
     }
 }

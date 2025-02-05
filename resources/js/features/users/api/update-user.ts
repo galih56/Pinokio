@@ -30,22 +30,24 @@ export const updateUser = ({
 };
 
 type UseUpdateUserOptions = {
+  userId: string;
   mutationConfig?: MutationConfig<typeof updateUser>;
 };
 
 export const useUpdateUser = ({
+  userId,
   mutationConfig,
-}: UseUpdateUserOptions = {}) => {
+}: UseUpdateUserOptions) => {
   const queryClient = useQueryClient();
 
   const { onSuccess, ...restConfig } = mutationConfig || {};
 
   return useMutation({
-    onSuccess: (data : any, ...args ) => {
+    onSuccess: (res : any, ...args ) => {
       queryClient.refetchQueries({
-        queryKey: getUserQueryOptions(data.id).queryKey,
+        queryKey: getUserQueryOptions(userId).queryKey,
       });
-      onSuccess?.(data, ...args);
+      onSuccess?.(res, ...args);
     },
     ...restConfig,
     mutationFn: updateUser,

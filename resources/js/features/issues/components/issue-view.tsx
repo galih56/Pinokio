@@ -2,13 +2,14 @@
 
 import { Spinner } from '@/components/ui/spinner';
 import { useIssue } from '../api/get-issue';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDate, formatDateTime } from '@/lib/datetime';
 import { StatusBadge } from './status-badge';
 import { adjustActiveBreadcrumbs } from '@/components/layout/breadcrumbs/breadcrumbs-store';
 import { CommentList } from '@/features/comment/components/comment-list';
 import CreateComment from '@/features/comment/components/create-comment';
 import { IssueFiles } from './issue-files';
+import { CloseIssue } from './close-issue';
 
 export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
   if(!issueId){
@@ -38,7 +39,10 @@ export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
       <div className="grid grid-cols-2 gap-6">
         <Card className="col-span-1 shadow-sm">
           <CardHeader>
-            <CardTitle className='flex flex-row justify-between'> <span>{issue.title}</span>  <StatusBadge status={issue.status}/> </CardTitle>
+            <CardTitle className='flex flex-row justify-between'> 
+              <span>{issue.title}</span>  
+              <StatusBadge status={issue.status}/> 
+            </CardTitle>
             <CardDescription>{issue.description}</CardDescription>
           </CardHeader>
           <CardContent className='p-4'> 
@@ -51,6 +55,10 @@ export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
             </div>
           </div>
           </CardContent>
+          {issue.status != 'closed' &&
+            <CardFooter>
+              <CloseIssue issueId={issueId} />
+            </CardFooter>}
         </Card>
           
         <Card className="col-span-1 shadow-sm">

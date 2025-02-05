@@ -9,15 +9,19 @@ class GuestIssuerService
 {    
     public function getOrCreateGuestIssuer(string $email, string $name, string $ip): GuestIssuer
     {
-        // Check if the guest issuer with this email already exists
         $guestIssuer = GuestIssuer::firstOrCreate(
-            ['email' => $email], // Check by email
+            ['email' => $email], 
             [
                 'name' => $name,
                 'ip_address' => $ip
             ]   
         );
 
+        return $guestIssuer;
+    }
+    
+    public function getById(int $id){
+        $guestIssuer = GuestIssuer::find($id);
         return $guestIssuer;
     }
 }

@@ -26,25 +26,27 @@ export const updateTag = ({
 };
 
 type UseUpdateTagOptions = {
+  tagId: string;
   mutationConfig?: MutationConfig<typeof updateTag>;
 };
 
 export const useUpdateTag = ({
+  tagId,
   mutationConfig,
-}: UseUpdateTagOptions = {}) => {
+}: UseUpdateTagOptions) => {
   const queryClient = useQueryClient();
 
   const { onSuccess, ...restConfig } = mutationConfig || {};
 
   return useMutation({
-    onSuccess: (data : any, ...args ) => {
+    onSuccess: (res : any, ...args ) => {
       queryClient.refetchQueries({
-        queryKey: getTagQueryOptions(data.id).queryKey,
+        queryKey: getTagQueryOptions(tagId).queryKey,
       });
       queryClient.refetchQueries({
         queryKey: getTagsQueryOptions().queryKey,
       });
-      onSuccess?.(data, ...args);
+      onSuccess?.(res, ...args);
     },
     ...restConfig,
     mutationFn: updateTag,

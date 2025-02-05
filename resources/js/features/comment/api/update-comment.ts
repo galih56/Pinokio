@@ -26,25 +26,27 @@ export const updateComment = ({
 };
 
 type UseUpdateCommentOptions = {
+  commentId: string;
   mutationConfig?: MutationConfig<typeof updateComment>;
 };
 
 export const useUpdateComment = ({
+  commentId,
   mutationConfig,
-}: UseUpdateCommentOptions = {}) => {
+}: UseUpdateCommentOptions) => {
   const queryClient = useQueryClient();
 
   const { onSuccess, ...restConfig } = mutationConfig || {};
 
   return useMutation({
-    onSuccess: (data : any, ...args ) => {
+    onSuccess: (res : any, ...args ) => {
       queryClient.refetchQueries({
-        queryKey: getCommentQueryOptions(data.id).queryKey,
+        queryKey: getCommentQueryOptions(commentId).queryKey,
       });
       queryClient.refetchQueries({
         queryKey: getCommentsQueryOptions().queryKey,
       });
-      onSuccess?.(data, ...args);
+      onSuccess?.(res, ...args);
     },
     ...restConfig,
     mutationFn: updateComment,

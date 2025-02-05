@@ -27,7 +27,7 @@ const UserProfileDropdown = () => {
                             title: "Are you sure?",
                             description: "This action is irreversible.",
                             onConfirm: () => logout.mutate({}),
-                            onCancel: () => closeDialog(), // Properly close the dialog
+                            onCancel: () => closeDialog(),
                         })
                     }
                 >

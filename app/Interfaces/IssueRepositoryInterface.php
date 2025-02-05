@@ -4,8 +4,10 @@ namespace App\Interfaces;
 
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Models\Issue;
 
 interface IssueRepositoryInterface extends RepositoryInterface
 {
-    public function getPublicIssues(array $search = [], int $perPage = 0, array $sorts = [], array $relations = []): Collection|LengthAwarePaginator;
+    public function close(int $id, array $data) : Issue;
+    public function attachFiles(int $id, $files): void;
 }

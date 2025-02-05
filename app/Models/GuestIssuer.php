@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Logs\IssueLog;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 
 class GuestIssuer extends Model
 {
@@ -26,5 +28,9 @@ class GuestIssuer extends Model
     public function files()
     {
         return $this->morphMany(File::class, 'uploader');
+    }
+    public function issueLogs() : MorphMany
+    {
+        return $this->morphMany(IssueLog::class, 'user');
     }
 }
