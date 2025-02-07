@@ -3,11 +3,11 @@ import { z } from 'zod';
 
 import { api } from '@/lib/api-client';
 import { MutationConfig } from '@/lib/react-query';
-import { Issue } from '@/types/api';
+import { Task } from '@/types/api';
 
-import { getIssueQueryOptions } from './get-issue';
+import { getTaskQueryOptions } from './get-task';
 
-export const updateIssueInputSchema = z.object({
+export const updateTaskInputSchema = z.object({
   id: z.string(),
   projectId: z.string(),
   project: z.object({}).optional(), 
@@ -23,27 +23,27 @@ export const updateIssueInputSchema = z.object({
   updatedAt: z.date(),
 });
 
-export type UpdateIssueInput = z.infer<typeof updateIssueInputSchema>;
+export type UpdateTaskInput = z.infer<typeof updateTaskInputSchema>;
 
-export const updateIssue = ({
+export const updateTask = ({
   data,
-  issueId,
+  taskId,
 }: {
-  data: UpdateIssueInput;
-  issueId: string;
-}): Promise<Issue> => {
-  return api.patch(`/issues/${issueId}`, data);
+  data: UpdateTaskInput;
+  taskId: string;
+}): Promise<Task> => {
+  return api.patch(`/tasks/${taskId}`, data);
 };
 
-type UseUpdateIssueOptions = {
-  issueId: string;
-  mutationConfig?: MutationConfig<typeof updateIssue>;
+type UseUpdateTaskOptions = {
+  taskId: string;
+  mutationConfig?: MutationConfig<typeof updateTask>;
 };
 
-export const useUpdateIssue = ({
-  issueId,
+export const useUpdateTask = ({
+  taskId,
   mutationConfig,
-}: UseUpdateIssueOptions) => {
+}: UseUpdateTaskOptions) => {
   const queryClient = useQueryClient();
 
   const { onSuccess, ...restConfig } = mutationConfig || {};
@@ -51,11 +51,11 @@ export const useUpdateIssue = ({
   return useMutation({
     onSuccess: (res : any, ...args ) => {
       queryClient.refetchQueries({
-        queryKey: getIssueQueryOptions(issueId).queryKey,
+        queryKey: getTaskQueryOptions(taskId).queryKey,
       });
       onSuccess?.(res, ...args);
     },
     ...restConfig,
-    mutationFn: updateIssue,
+    mutationFn: updateTask,
   });
 };

@@ -10,6 +10,8 @@ import { getIssuesQueryOptions } from './get-issues';
 
 
 export const createIssueInputSchema = z.object({
+  projectId: z.string().optional(),
+  reporterId: z.string().optional(),
   name: z.string({ message: "Please tell us your name." }).min(1, { message: "Please tell us your name." }),
   email: z.string({ message: "Please tell us your email." }).min(1, { message: "Please tell us your email." }),
   title: z.string().min(1, { message: "Title is required." }),

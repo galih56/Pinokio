@@ -124,7 +124,6 @@ class BaseRepository implements RepositoryInterface
         
         // Split the field into segments
         $segments = explode(':', $field);
-        
         // Ensure there are exactly 3 segments (related table, columns, operator)
         if (count($segments) === 3) {
             $relation = $segments[0]; // Related table (e.g., 'tags')

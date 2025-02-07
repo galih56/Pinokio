@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Issue\StoreIssueRequest;
 use App\Http\Requests\Issue\CloseIssueRequest;
+use App\Http\Requests\Issue\GetPublicIssuesRequest;
 use App\Http\Requests\Issue\ClosePublicIssueRequest;
 use App\Http\Requests\Issue\StorePublicIssueRequest;
 use App\Http\Requests\Issue\UpdateIssueRequest;
@@ -43,7 +44,7 @@ class IssueController extends Controller
         }
     }
 
-    public function getPublicIssues(Request $request){
+    public function getPublicIssues(GetPublicIssuesRequest $request){
         $search = $request->query('search');
         $email = $request->query('email');
 
@@ -51,13 +52,14 @@ class IssueController extends Controller
         $prepare_search = [];
         if ($search) {
             $prepare_search[] = [
-                'issues.title:like' => $search,
-                'issues.description:like' => $search,
+                'issues:title,description:like' => $search,
                 'with:tags:name:like' => $search,
-                // 'with:guestIssuer.email:like' => $email,
-                // 'with:guestIssuer.name:like' => $search,
             ];
         }
+        $prepare_search[] = [
+            'with:issuer:email:=' => $email,
+            'with:issuer:name:=' => $search,
+        ];
         $sorts = [];
         $per_page = $request->query('per_page') ?? 0;
 

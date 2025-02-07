@@ -4,11 +4,16 @@ import { api } from '@/lib/api-client';
 import { QueryConfig } from '@/lib/react-query';
 import { Issue, Meta } from '@/types/api';
 
+type Issuer = {
+  name : string;
+  email : string;
+}
 
 export const getPublicIssues = (
   page = 1,
   perPage = 15,
-  search?: string
+  search?: string,
+  issuer? : Issuer
 ): Promise<{
   data: Issue[];
   meta?: Meta;
@@ -18,6 +23,7 @@ export const getPublicIssues = (
       page,
       per_page: perPage,
       search,
+      ...issuer
     },
   });
 };
@@ -26,10 +32,11 @@ export const getPublicIssuesQueryOptions = ({
   page,
   perPage = 15,
   search, 
-}: { page?: number; perPage?: number; search?: string } = {}) => {
+  issuer,
+}: { page?: number; perPage?: number; search?: string, issuer : Issuer }) => {
   return queryOptions({
     queryKey: ['public-issues', { page, perPage, search }],
-    queryFn: () => getPublicIssues(page, perPage, search),
+    queryFn: () => getPublicIssues(page, perPage, search, issuer),
   });
 };
 
@@ -37,6 +44,7 @@ type UsePublicIssuesOptions = {
   page?: number;
   perPage?: number;
   search?: string; 
+  issuer : Issuer;
   queryConfig?: QueryConfig<typeof getPublicIssuesQueryOptions>;
 };
 
@@ -45,9 +53,10 @@ export const usePublicIssues = ({
   page = 1,
   perPage = 15,
   search, 
+  issuer
 }: UsePublicIssuesOptions) => {
   return useQuery({
-    ...getPublicIssuesQueryOptions({ page, perPage, search }), 
+    ...getPublicIssuesQueryOptions({ page, perPage, search, issuer }), 
     ...queryConfig,
     select: (data) => {
       return {

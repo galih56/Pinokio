@@ -44,6 +44,9 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
   const issuesQuery = usePublicIssues({
     page: currentPage,
     search,
+    issuer : {
+      name, email
+    },
     queryConfig: {
       enabled: guestIssuerInfoSaved && !isIdentityEmpty, // Fetch only when triggered and valid user info
     },
