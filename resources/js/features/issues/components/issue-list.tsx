@@ -15,7 +15,7 @@ import { paths } from '@/apps/dashboard/paths';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { useEffect, useState } from 'react';
-import { formatDate } from '@/lib/datetime';
+import { formatDate, formatDateTime } from '@/lib/datetime';
 import DOMPurify from 'dompurify';
 import { StatusBadge } from './status-badge';
 
@@ -94,28 +94,25 @@ export const IssuesList = ({
       },
     },
     {
-      accessorKey: "name",
-      header : 'Name',
-      cell : ({row}) => {
-        const issue = row.original;
-        if(!issue.issuer) return '-';
-        
-        return issue.issuer.name
-      }
-    },
-    {
-      accessorKey: "email",
-      header : 'Email',
-      cell : ({row}) => {
-        const issue = row.original;
-        if(!issue.issuer) return '-';
-        
-        return issue.issuer.email
-      }
-    },
-    {
       accessorKey: "title",
       header : 'Title',
+      cell : ({row}) => {
+        const issue = row.original;
+        let email = '';
+        let name = '';
+        
+        if(issue.issuer){
+          email = issue.issuer.email;
+          name = issue.issuer.name;
+        }
+
+        return (
+          <div>
+            <p>{issue.title}</p>
+            {name && email && <p className='text-xs'>Created By : {name} <span className='text-xs text-gray-600'>{email}</span></p>}
+          </div> 
+        )
+      }
     },
     {
       accessorKey: "description",
@@ -156,7 +153,7 @@ export const IssuesList = ({
         const issue = row.original;
         if(!issue.dueDate) return '-';
         
-        return formatDate(issue.dueDate)
+        return <span className='text-xs text-nowrap'>{formatDate(issue.dueDate)}</span>
       }
     },
     {
@@ -165,6 +162,16 @@ export const IssuesList = ({
       cell : ({row}) => {
         const issue = row.original;
         return <StatusBadge status={issue.status}/>
+      }
+    },
+    {
+      accessorKey: "createdAt",
+      header : 'Created At',
+      cell : ({row}) => {
+        const issue = row.original;
+        if(!issue.createdAt) return '-';
+        
+        return <span className='text-xs text-nowrap'>{formatDateTime(issue.createdAt)}</span>
       }
     },
   ]

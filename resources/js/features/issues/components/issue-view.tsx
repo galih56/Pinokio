@@ -10,11 +10,16 @@ import { CommentList } from '@/features/comment/components/comment-list';
 import CreateComment from '@/features/comment/components/create-comment';
 import { IssueFiles } from './issue-files';
 import { CloseIssue } from './close-issue';
+import DOMPurify from 'dompurify';
+import { useCloseIssue } from '../api/close-issue';
+import { useUpdateIssueStatus } from '../api/update-issue-status';
 
 export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
   if(!issueId){
     return <h1>Unrecognized Request</h1>
   }
+
+  const updateIssueStatus = useUpdateIssueStatus({ issueId });
   
   const issueQuery = useIssue({
     issueId,
@@ -41,9 +46,20 @@ export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
           <CardHeader>
             <CardTitle className='flex flex-row justify-between'> 
               <span>{issue.title}</span>  
-              <StatusBadge status={issue.status}/> 
+              <StatusBadge 
+                status={issue.status}
+                editable={true} 
+                entityId={issueId} 
+                entityType={'issue'} 
+                onStatusChange={(status)=> {
+                  updateIssueStatus.mutateAsync({
+                    issueId,
+                    status
+                  });
+                }}
+              /> 
             </CardTitle>
-            <CardDescription>{issue.description}</CardDescription>
+            <CardDescription dangerouslySetInnerHTML={{__html : DOMPurify.sanitize(issue?.description ?? '')}} />
           </CardHeader>
           <CardContent className='p-4'> 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-2">

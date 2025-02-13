@@ -46,10 +46,17 @@ export default function CreateComment({
   const isFetching = useIsFetching();
   const form = useForm<z.infer<typeof createCommentInputSchema>>({
     resolver: zodResolver(createCommentInputSchema),
+    defaultValues : {
+      comment : '',
+      commenterType : commenterType,
+      email,
+      name
+    }
   });
+  console.log(form.formState.errors, commenterType)
 
   async function onSubmit(values: z.infer<typeof createCommentInputSchema>) {
-    if (!(name && isValidEmail(email))) {
+    if (commenterType != 'User' && !(name && isValidEmail(email))) {
       addNotification({
         type: 'error',
         title: 'Please enter your name and email...',

@@ -26,7 +26,7 @@ export const CloseIssue = ({ issueId }: { issueId: string | undefined }) => {
 
     return (
         <div className="w-full">
-            <Button variant={'success'} onClick={closeIssue}>Close this issue </Button>
+            <Button variant={'outline'} onClick={closeIssue}>Close this issue </Button>
         </div>  
     );
 };

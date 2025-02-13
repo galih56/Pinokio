@@ -144,15 +144,15 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
         );
       }
     },
-    
     {
       accessorKey: "dueDate",
-      header: "Due Date",
-      cell: ({ row }) => {
+      header : 'Due Date',
+      cell : ({row}) => {
         const issue = row.original;
-        if (!issue.dueDate) return "-";
-        return formatDate(issue.dueDate);
-      },
+        if(!issue.dueDate) return '-';
+        
+        return <span className='text-xs text-nowrap'>{formatDate(issue.dueDate)}</span>
+      }
     },
     {
       accessorKey: "status",
@@ -161,12 +161,13 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
     },
     {
       accessorKey: "createdAt",
-      header: "Created At",
-      cell: ({ row }) => {
+      header : 'Created At',
+      cell : ({row}) => {
         const issue = row.original;
-        if (!issue.createdAt) return "-";
-        return formatDateTime(issue.createdAt);
-      },
+        if(!issue.createdAt) return '-';
+        
+        return <span className='text-xs text-nowrap'>{formatDateTime(issue.createdAt)}</span>
+      }
     },
   ];
 

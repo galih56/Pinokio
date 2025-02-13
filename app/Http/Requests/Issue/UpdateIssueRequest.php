@@ -11,7 +11,7 @@ class UpdateIssueRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->user();
+        return auth()->check();
     }
     /**
      * Get the validation rules that apply to the request.

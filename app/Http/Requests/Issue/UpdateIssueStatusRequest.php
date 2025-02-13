@@ -4,14 +4,14 @@ namespace App\Http\Requests\Issue;
 
 use App\Http\Requests\BaseRequest;
 
-class CloseIssueRequest extends BaseRequest
+class UpdateIssueStatusRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return auth()->user();
+        return auth()->check();
     }
 
 
@@ -23,7 +23,7 @@ class CloseIssueRequest extends BaseRequest
     public function rules(): array
     {
         return [
-            'status' => 'required|in:closed',
+            'status' => 'required',
         ];
     }
 

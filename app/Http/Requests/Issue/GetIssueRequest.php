@@ -11,7 +11,7 @@ class GetIssueRequest extends BaseRequest
      */
     public function authorize(): bool
     {
-        return auth()->user();
+        return auth()->check();
     }
 
     /**

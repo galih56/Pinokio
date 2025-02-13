@@ -99,7 +99,7 @@ class IssueService
 
 
     
-    public function closeIssue(int $id, array $data): Issue
+    public function updateStatus(int $id, array $data): Issue
     {
         try {
             $issuer = null;
@@ -108,13 +108,13 @@ class IssueService
                 $issuer =  $this->guestIssuerService->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
                 $issuerType = GuestIssuer::class;
                 $data['issuer_type'] = $issuerType;
-                return $this->issueRepository->close($id, $data);
+                return $this->issueRepository->closePublicIssue($id, $data);
             } else {
                 // If the user is authenticated, set the issuer as the User
                 $issuer = auth()->user();
                 $issuerType = User::class;
                 $data['issuer_type'] = $issuerType;
-                return $this->issueRepository->closePublicIssue($id, $data);
+                return $this->issueRepository->updateStatus($id, $data);
             }
         } catch (\Exception $e) {
             Log::error('Error closing issue: ' . $e->getMessage());

@@ -5,7 +5,7 @@ use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Issue\StoreIssueRequest;
-use App\Http\Requests\Issue\CloseIssueRequest;
+use App\Http\Requests\Issue\UpdateIssueStatusRequest;
 use App\Http\Requests\Issue\GetPublicIssuesRequest;
 use App\Http\Requests\Issue\ClosePublicIssueRequest;
 use App\Http\Requests\Issue\StorePublicIssueRequest;
@@ -168,7 +168,7 @@ class IssueController extends Controller
     {
         try {
             $data = array_merge($request->validated(), ['issuer_type' => 'GuestIssuer']);
-            $issue = $this->issueService->closeIssue($id, $data);
+            $issue = $this->issueService->updateStatus($id, $data);
 
             return ApiResponse::sendResponse($issue, 'Issue Close Successful', 'success', 201);
         } catch (\Exception $ex) {
@@ -176,11 +176,11 @@ class IssueController extends Controller
         }
     }
 
-    public function closeIssue($id, CloseIssueRequest $request)
+    public function updateIssueStatus($id, UpdateIssueStatusRequest $request)
     {
         try {
             $data = array_merge($request->validated(), ['issuer_type' => 'User']);
-            $issue = $this->issueService->closeIssue($id, $data);
+            $issue = $this->issueService->updateStatus($id, $data);
 
             return ApiResponse::sendResponse($issue, 'Issue Close Successful', 'success', 201);
         } catch (\Exception $ex) {

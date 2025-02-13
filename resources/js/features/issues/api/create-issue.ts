@@ -16,9 +16,11 @@ export const createIssueInputSchema = z.object({
   description: z.string().optional(),
   dueDate: z.date().optional(),
   files: z.array(z.instanceof(File)).optional(), 
-  tagId: z.string().min(1, 'Issue type is required').refine(value => value !== '', {
-    message: 'Please select a issue type',
-  }),
+  tagIds: z.array(z.string().min(1))
+    .min(1, 'At least one issue type is required')
+    .refine(values => values.every(v => v !== ''), {
+      message: 'Please select valid issue types',
+    })
 });
 export type CreateIssueInput = z.infer<typeof createIssueInputSchema>;
 

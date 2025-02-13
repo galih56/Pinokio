@@ -65,7 +65,7 @@ Route::group([
         Route::get('/{id}', [IssueController::class, 'show'])->middleware('decode_id');
         Route::get('/', [IssueController::class, 'index']);
         Route::put('/{id}', [IssueController::class, 'update']);
-        Route::put('/{id}/close', [IssueController::class, 'closeIssue']);
+        Route::put('/{id}/status', [IssueController::class, 'updateIssueStatus']);
         Route::patch('/{id}', [IssueController::class, 'update']);
         Route::delete('/{id}', [IssueController::class, 'destroy']);
     });

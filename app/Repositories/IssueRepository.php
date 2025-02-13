@@ -70,11 +70,11 @@ class IssueRepository extends BaseRepository implements IssueRepositoryInterface
     /**
      * Close an issue.
      */
-    public function close(int $id, array $data) : Issue
+    public function updateStatus(int $id, array $data) : Issue
     {
         $this->model = $this->model->find($id);
         
-        $this->model->status = 'closed';
+        $this->model->status = $data['status'];
         $this->model->save();
         $this->issueLogService->create([
             'issue_id' => $this->model->id,

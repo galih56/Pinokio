@@ -7,7 +7,7 @@ import { lazy } from 'react';
 import DialogOrDrawer from '@/components/layout/dialog-or-drawer';
 import { Button } from '@/components/ui/button';
 import { useDisclosure } from '@/hooks/use-disclosure';
-const CreateIssue = lazy(() => import('@/features/issues/components/create-issue'));
+import CreateIssue from '@/features/issues/components/create-issue';
 
 export const issuesLoader =
   (queryClient: QueryClient) =>

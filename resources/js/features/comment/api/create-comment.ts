@@ -7,7 +7,29 @@ import { Comment } from '@/types/api';
 import { getCommentsQueryOptions } from './get-comments';
 
 export const createCommentInputSchema = z.object({
-  comment: z.string().min(1, { message: 'Please give more detail comment...' }),
+  comment: z.string().min(1, { message: 'Please give more detailed comment...' }),
+  commenterType: z.enum(['User', 'GuestIssuer'])
+}).extend({
+  name: z.string().optional(),
+  email: z.string().email().optional(),
+}).superRefine((data, ctx) => {
+  if (data.commenterType === 'GuestIssuer') {
+    if (!data.name) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Name is required for Guest users',
+        path: ['name']
+      });
+    }
+    if (!data.email) {
+      ctx.addIssue({
+        code: 'custom',
+        message: 'Email is required for Guest users',
+        path: ['email']
+      });
+    }
+  }
+  return true;
 });
 
 export type CreateCommentInput = z.infer<typeof createCommentInputSchema>;

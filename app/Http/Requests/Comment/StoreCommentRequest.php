@@ -53,8 +53,8 @@ class StoreCommentRequest extends FormRequest
             'commentable_id' => 'required|integer', 
             'commentable_type' => 'required|string|in:Issue,Project,Task', 
             'commenter_type' => 'required|string|in:User,GuestIssuer',
-            'name' => 'required_if:commenter_type,GuestIssuer|string|max:255',
-            'email' => 'required_if:commenter_type,GuestIssuer|email|max:255',
+            'name' => 'required_if:commenter_type,GuestIssuer|nullable|string|max:255',
+            'email' => 'required_if:commenter_type,GuestIssuer|nullable|email|max:255',
         ];
     }
 
@@ -74,6 +74,8 @@ class StoreCommentRequest extends FormRequest
             'commentable_type.required' => 'The commentable type is required.',
             'commentable_type.string' => 'The commentable type must be a string.',
             'commentable_type.in' => 'The commentable type must be one of: issue, project, task.',
+            'name.required_if' => 'Name is required',
+            'email.required_if' => 'Email is required',
         ];
     }
 }

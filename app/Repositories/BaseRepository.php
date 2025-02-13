@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use App\Helpers\DatetimeHelper;
 
 class BaseRepository implements RepositoryInterface
 {    
@@ -162,6 +163,26 @@ class BaseRepository implements RepositoryInterface
                 $query->{$method . 'In'}($field, (array) $value);
                 break;
     
+            case 'between':
+                if (is_array($value) && count($value) === 2) {
+                    $query->{$method . 'Between'}($field, $value);
+                }
+                break;
+    
+            case 'date_between':
+                if (is_array($value) && count($value) === 2) {
+                            
+                    $start = DatetimeHelper::createDateTimeObject($value[0]);
+                    $end = DatetimeHelper::createDateTimeObject($value[1]);
+                    if($start && $end){
+                        $query->whereBetween($field, [
+                            $start->startOfDay(),
+                            $end->endOfDay(),
+                        ]);
+                    }
+                }
+                break;
+        
             case 'greater_than':
                 $query->{$method}($field, '>', $value);
                 break;
@@ -173,11 +194,9 @@ class BaseRepository implements RepositoryInterface
             case 'equal':
                 $query->{$method}($field, '=', $value);
                 break;
-    
-            case 'between':
-                if (is_array($value) && count($value) === 2) {
-                    $query->{$method . 'Between'}($field, $value);
-                }
+            case 'not_equal':
+            case '!=':
+                $query->{$method}($field, '!=', $value);
                 break;
     
             case 'date':
