@@ -41,15 +41,15 @@ class IssueService
             }
     
             // Prepare issue data
-            $issueData = $this->prepareIssueData($data);
+            $data = $this->prepareIssueData($data);
     
             // Set the polymorphic issuer relationship
-            $issueData['issuer_id'] = $issuer->id;
-            $issueData['issuer_type'] = $issuerType;
-            $issueData['status'] = 'idle';
+            $data['issuer_id'] = $issuer->id;
+            $data['issuer_type'] = $issuerType;
+            $data['status'] = 'idle';
 
             // Create the issue
-            $issue = $this->issueRepository->create($issueData);
+            $issue = $this->issueRepository->create($data);
     
             // Use FileService to upload files and get an array of File models
             $uploadedFiles = $this->fileService->upload($data['files'] ?? [], 'issue_files' ,$issuer);
@@ -67,7 +67,7 @@ class IssueService
     
             // Refresh and load relationships
             $issue->refresh();
-            $issue->load(['tags', 'files', 'issuer']);
+            $issue->load( $this->issueRepository->getRelatedDat());
     
             return $issue;
         } catch (\Exception $e) {
@@ -79,8 +79,8 @@ class IssueService
     public function updateIssue(int $id, array $data): Issue
     {
         try {
-            $issueData = $this->prepareIssueData($data);
-            $issue = $this->issueRepository->update($id, $issueData);
+            $data = $this->prepareIssueData($data);
+            $issue = $this->issueRepository->update($id, $data);
 
             $tagIds = $data['tag_ids'] ?? ($data['tag_id'] ? [$data['tag_id']] : []);
             if (!empty($tagIds)) {
@@ -88,7 +88,7 @@ class IssueService
             }
 
             $issue->refresh();
-            $issue->load(['tags', 'files', 'guestIssuer']);
+            $issue->load($this->issueRepository->getRelatedDat());
 
             return $issue;
         } catch (\Exception $e) {
@@ -140,11 +140,7 @@ class IssueService
 
     public function getPublicIssues(array $filters = [], int $perPage = 0, array $sorts = [], $email = ''): Collection | LengthAwarePaginator
     {
-        return $this->issueRepository->getQuery($filters, $sorts,  [
-            'tags',
-            'files',
-            'issuer',
-        ])->where('issues.issuer_type', GuestIssuer::class)->paginate($perPage);
+        return $this->issueRepository->getQuery($filters, $sorts,  $this->issueRepository->getRelatedDat())->where('issues.issuer_type', GuestIssuer::class)->paginate($perPage);
     }
 
     public function getIssueById(int $id): ?Issue

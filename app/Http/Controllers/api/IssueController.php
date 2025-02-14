@@ -104,7 +104,6 @@ class IssueController extends Controller
                 'issues.description:like' => $search,
                 'with:tags.name:like' => $search,
                 'with:guestIssuer.email:like' => $search,
-                'with:guestIssuer.name:like' => $search,
             ];
         }
 
