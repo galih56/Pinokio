@@ -58,7 +58,6 @@ class IssueController extends Controller
         }
         $prepare_search[] = [
             'with:issuer:email:=' => $email,
-            'with:issuer:name:=' => $search,
         ];
         $sorts = [];
         $per_page = $request->query('per_page') ?? 0;

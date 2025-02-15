@@ -75,7 +75,7 @@ class IssueService
     
             // Refresh and load relationships
             $issue->refresh();
-            $issue->load( $this->issueRepository->getRelatedDat());
+            $issue->load( $this->issueRepository->getRelatedData());
     
             $this->issueLogService->create([
                 'issue_id' => $issue->id,
@@ -103,7 +103,7 @@ class IssueService
             }
 
             $issue->refresh();
-            $issue->load($this->issueRepository->getRelatedDat());
+            $issue->load($this->issueRepository->getRelatedData());
 
             $this->issueLogService->create([
                 'issue_id' => $this->model->id,
@@ -187,7 +187,8 @@ class IssueService
 
     public function getPublicIssues(array $filters = [], int $perPage = 0, array $sorts = [], $email = ''): Collection | LengthAwarePaginator
     {
-        return $this->issueRepository->getQuery($filters, $sorts,  $this->issueRepository->getRelatedDat())->where('issues.issuer_type', GuestIssuer::class)->paginate($perPage);
+        $query = $this->issueRepository->getQuery($filters, $sorts,  $this->issueRepository->getRelatedData())->where('issues.issuer_type', GuestIssuer::class);
+        return $query->paginate($perPage);
     }
 
     public function getIssueById(int $id): ?Issue

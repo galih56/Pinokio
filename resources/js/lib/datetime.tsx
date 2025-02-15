@@ -21,7 +21,7 @@ export const formatDate = (date: number | Date | string) => {
         if(typeof date === "string"){
             date = parseISO(date);
         }
-        date = format(date, 'd MMMM yyyy');
+        date = format(date, 'd MMM yyyy');
         return date
     }
     return "";

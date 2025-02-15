@@ -15,7 +15,7 @@ import { paths } from '@/apps/dashboard/paths';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { useEffect, useState } from 'react';
-import { formatDate, formatDateTime } from '@/lib/datetime';
+import { formatDate, formatDateTime, formatTime } from '@/lib/datetime';
 import DOMPurify from 'dompurify';
 import { StatusBadge } from './status-badge';
 
@@ -171,7 +171,7 @@ export const IssuesList = ({
         const issue = row.original;
         if(!issue.createdAt) return '-';
         
-        return <span className='text-xs text-nowrap'>{formatDateTime(issue.createdAt)}</span>
+        return <span className='text-xs text-nowrap'>{formatDate(issue.createdAt)} <br/>{formatTime(issue.createdAt)}</span>
       }
     },
   ]

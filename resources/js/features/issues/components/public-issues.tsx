@@ -13,7 +13,7 @@ import { paths } from "@/apps/issue-tracker/paths";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { usePublicIssues } from "../api/get-public-issues";
-import { formatDate, formatDateTime } from "@/lib/datetime";
+import { formatDate, formatDateTime, formatTime } from "@/lib/datetime";
 import { StatusBadge } from "./status-badge";
 import { GuestIssuerInputs } from "./guest-issuer-inputs";
 import useGuestIssuerStore from "@/store/useGuestIssuer";
@@ -166,7 +166,7 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
         const issue = row.original;
         if(!issue.createdAt) return '-';
         
-        return <span className='text-xs text-nowrap'>{formatDateTime(issue.createdAt)}</span>
+        return <span className='text-xs text-nowrap'>{formatDate(issue.createdAt)} <br/>{formatTime(issue.createdAt)}</span>
       }
     },
   ];

@@ -65,8 +65,8 @@ export const StatusBadge = ({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild className="relative cursor-pointer hover:opacity-80 transition-opacity">
-        <div className="relative inline-block">
+      <DropdownMenuTrigger asChild className="cursor-pointer hover:opacity-80 transition-opacity ">
+        <div className="relative inline-block z-0">
           <Badge variant={getStatusVariant(status)} className="text-md">
             {capitalizeFirstChar(status)}
           </Badge>
