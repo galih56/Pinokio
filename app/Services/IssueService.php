@@ -12,18 +12,26 @@ use App\Models\GuestIssuer;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Helpers\DatetimeHelper;
+use App\Services\Logs\IssueLogService;
 
 class IssueService
 {
     protected $issueRepository;
     protected $guestIssuerService;
     protected $fileService;
+    protected $issueLogService;
 
-    public function __construct(IssueRepositoryInterface $issueRepository, FileService $fileService, GuestIssuerService $guestIssuerService)
+    public function __construct(
+        IssueRepositoryInterface $issueRepository, 
+        IssueLogService $issueLogService,
+        GuestIssuerService $guestIssuerService,
+        FileService $fileService, 
+    )
     {
         $this->issueRepository = $issueRepository;
         $this->guestIssuerService = $guestIssuerService;
         $this->fileService = $fileService;
+        $this->issueLogService = $issueLogService;
     }
 
     public function createIssue(array $data): Issue
@@ -69,6 +77,13 @@ class IssueService
             $issue->refresh();
             $issue->load( $this->issueRepository->getRelatedDat());
     
+            $this->issueLogService->create([
+                'issue_id' => $issue->id,
+                'user_id' => $issuer->id,
+                'user_type' => $issuerType,
+                'action' => 'created',
+                'action_details' => json_encode(['description' => 'Issue created']),
+            ]);
             return $issue;
         } catch (\Exception $e) {
             Log::error('Error creating issue: ' . $e->getMessage());
@@ -90,6 +105,12 @@ class IssueService
             $issue->refresh();
             $issue->load($this->issueRepository->getRelatedDat());
 
+            $this->issueLogService->create([
+                'issue_id' => $this->model->id,
+                'user_id' => isset($data['user_id']) ? $data['user_id'] : null,
+                'action' => 'updated',
+                'action_details' => json_encode(['updated_fields' => array_keys($data)]),
+            ]);
             return $issue;
         } catch (\Exception $e) {
             Log::error('Error updating issue: ' . $e->getMessage());
@@ -108,13 +129,32 @@ class IssueService
                 $issuer =  $this->guestIssuerService->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
                 $issuerType = GuestIssuer::class;
                 $data['issuer_type'] = $issuerType;
-                return $this->issueRepository->closePublicIssue($id, $data);
+                $issue = $this->issueRepository->closePublicIssue($id, $data);
+                        
+                $this->issueLogService->create([
+                    'issue_id' => $issue->id,
+                    'user_id' => $issuer->id,
+                    'user_type' => $issuerType,
+                    'action' => 'status_change',
+                    'action_details' => json_encode(['previous_status' =>  $this->model->getOriginal('status'), 'new_status' => 'closed']),
+                ]);
+
+                return $issue;
             } else {
                 // If the user is authenticated, set the issuer as the User
                 $issuer = auth()->user();
                 $issuerType = User::class;
                 $data['issuer_type'] = $issuerType;
-                return $this->issueRepository->updateStatus($id, $data);
+                $issue = $this->issueRepository->close($id, $data);
+                
+                $this->issueLogService->create([
+                    'issue_id' => $issue->id,
+                    'user_id' => auth()->id(),
+                    'user_type' => $issuerType,
+                    'action' => 'status_change',
+                    'action_details' => json_encode(['previous_status' =>  $this->model->getOriginal('status'), 'new_status' => 'closed']),
+                ]);
+                return $issue;
             }
         } catch (\Exception $e) {
             Log::error('Error closing issue: ' . $e->getMessage());
@@ -126,7 +166,14 @@ class IssueService
     public function deleteIssue(int $id): bool
     {
         try {
-            return $this->issueRepository->delete($id);
+            $issue = $this->issueRepository->getById($id);
+            $deleted = $this->issueRepository->delete($id);
+            $this->issueLogService->create([
+                'user_id' => auth()->id(), 
+                'user_type' => User::class,
+                'action' => 'deleted',
+                'action_details' => json_encode(['description' => 'Issue "'.$issue->title.'" is deleted']),
+            ]);
         } catch (\Exception $e) {
             Log::error('Error deleting issue: ' . $e->getMessage());
             throw $e;

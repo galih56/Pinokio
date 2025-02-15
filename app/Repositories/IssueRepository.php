@@ -6,19 +6,15 @@ use App\Interfaces\IssueRepositoryInterface;
 use App\Models\Issue;
 use App\Models\Tag;
 use App\Models\File;
-use App\Services\Logs\IssueLogService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Exception;
 
 class IssueRepository extends BaseRepository implements IssueRepositoryInterface
 {
-    protected $issueLogService;
-
-    public function __construct(Issue $model, IssueLogService $issueLogService)
+    public function __construct(Issue $model)
     {
         parent::__construct($model);
-        $this->issueLogService = $issueLogService;
     }
 
     public function getRelatedData()
@@ -37,14 +33,6 @@ class IssueRepository extends BaseRepository implements IssueRepositoryInterface
     {
         $this->model = $this->model->create($data);
 
-        $this->issueLogService->create([
-            'issue_id' => $this->model->id,
-            'user_id' => $data['issuer_id'],
-            'user_type' => $data['issuer_type'],
-            'action' => 'created',
-            'action_details' => json_encode(['description' => 'Issue created']),
-        ]);
-
         return $this->model;
     }
 
@@ -55,14 +43,6 @@ class IssueRepository extends BaseRepository implements IssueRepositoryInterface
     {
         $this->model = $this->model->find($id);
         $this->model->update($data);
-
-        // Log the update action
-        $this->issueLogService->create([
-            'issue_id' => $this->model->id,
-            'user_id' => isset($data['user_id']) ? $data['user_id'] : null,
-            'action' => 'updated',
-            'action_details' => json_encode(['updated_fields' => array_keys($data)]),
-        ]);
 
         return $this->model;
     }
@@ -76,13 +56,6 @@ class IssueRepository extends BaseRepository implements IssueRepositoryInterface
         
         $this->model->status = $data['status'];
         $this->model->save();
-        $this->issueLogService->create([
-            'issue_id' => $this->model->id,
-            'user_id' => auth()->id(),
-            'user_type' => $data['issuer_type'],
-            'action' => 'status_change',
-            'action_details' => json_encode(['previous_status' =>  $this->model->getOriginal('status'), 'new_status' => 'closed']),
-        ]);
 
         return $this->model;
     }
@@ -97,14 +70,6 @@ class IssueRepository extends BaseRepository implements IssueRepositoryInterface
         $this->model->status = 'closed';
         $this->model->save();
 
-        $this->issueLogService->create([
-            'issue_id' => $this->model->id,
-            'user_id' => $data['user_id'],
-            'user_type' => $data['issuer_type'],
-            'action' => 'status_change',
-            'action_details' => json_encode(['previous_status' =>  $this->model->getOriginal('status'), 'new_status' => 'closed']),
-        ]);
-
         return $this->model;
     }
     /**
@@ -118,14 +83,6 @@ class IssueRepository extends BaseRepository implements IssueRepositoryInterface
         }
 
         $this->model->tags()->detach();
-
-        // Log the deletion action
-        $this->issueLogService->create([
-            'issue_id' => $this->model->id,
-            'user_id' => auth()->id(),  // Assuming the authenticated user is deleting
-            'action' => 'deleted',
-            'action_details' => json_encode(['description' => 'Issue deleted']),
-        ]);
 
         return $this->model->delete();
     }
@@ -143,7 +100,7 @@ class IssueRepository extends BaseRepository implements IssueRepositoryInterface
      */
     public function getById(int $id): ?Issue
     {
-        return $this->model->with($this->getRelatedData())->find($id);
+        return $this->model->with($this->getRelatedData())->findOrFail($id);
     }
 
     /**
