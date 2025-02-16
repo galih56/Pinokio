@@ -1,29 +1,29 @@
 
 
 import { Spinner } from '@/components/ui/spinner';
-import { useIssue } from '../api/get-issue';
+import { useTask } from '../api/get-task';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDate, formatDateTime } from '@/lib/datetime';
 import { StatusBadge } from './status-badge';
 import { adjustActiveBreadcrumbs } from '@/components/layout/breadcrumbs/breadcrumbs-store';
 import { CommentList } from '@/features/comment/components/comment-list';
 import CreateComment from '@/features/comment/components/create-comment';
-import { IssueFiles } from './issue-files';
-import { CloseIssue } from './close-issue';
+import { TaskFiles } from './task-files';
+import { CloseTask } from './close-task';
 
-export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
-  if(!issueId){
+export const TaskView = ({ taskId }: { taskId: string | undefined }) => {
+  if(!taskId){
     return <h1>Unrecognized Request</h1>
   }
   
-  const issueQuery = useIssue({
-    issueId,
+  const taskQuery = useTask({
+    taskId,
   });
 
-  const issue = issueQuery?.data?.data;
-  adjustActiveBreadcrumbs(`/issues/:id`,`/issues/${issueId}`, issue?.title, [ issue ]);
+  const task = taskQuery?.data?.data;
+  adjustActiveBreadcrumbs(`/tasks/:id`,`/tasks/${taskId}`, task?.title, [ task ]);
   
-  if (issueQuery.isLoading) {
+  if (taskQuery.isLoading) {
     return (
       <div className="flex h-48 w-full items-center justify-center">
         <Spinner size="lg" />
@@ -32,7 +32,7 @@ export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
   }
 
 
-  if (!issue) return null;
+  if (!task) return null;
 
   return (
     <div className="mt-6 flex flex-col px-6 space-y-2">
@@ -40,58 +40,58 @@ export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
         <Card className="col-span-1 shadow-sm">
           <CardHeader>
             <CardTitle className='flex flex-row justify-between'> 
-              <span>{issue.title}</span>  
-              <StatusBadge status={issue.status}/> 
+              <span>{task.title}</span>  
+              <StatusBadge status={task.status}/> 
             </CardTitle>
-            <CardDescription>{issue.description}</CardDescription>
+            <CardDescription>{task.description}</CardDescription>
           </CardHeader>
           <CardContent className='p-4'> 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-2">
             <div className="space-y-1">
               <p className="text-sm font-medium leading-none">Due Date</p>
               <p className="text-sm text-muted-foreground">
-                 {issue.dueDate ? formatDate(issue.dueDate) : '-'}
+                 {task.dueDate ? formatDate(task.dueDate) : '-'}
               </p>
             </div>
           </div>
           </CardContent>
-          {issue.status != 'closed' &&
+          {task.status != 'closed' &&
             <CardFooter>
-              <CloseIssue issueId={issueId} />
+              <CloseTask taskId={taskId} />
             </CardFooter>}
         </Card>
           
         <Card className="col-span-1 shadow-sm">
           <CardHeader>
-            <CardTitle>Issuer</CardTitle>
+            <CardTitle>Taskr</CardTitle>
           </CardHeader>
           <CardContent className='p-4'>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-2 text-wrap">
               <div className="space-y-1">
                 <p className="text-sm font-medium leading-none">Name</p>
                 <p className="text-sm text-muted-foreground">
-                  {issue.issuer?.name}
+                  {task.taskr?.name}
                 </p>
               </div>              
               <div className="space-y-1">
                 <p className="text-sm font-medium leading-none">Email</p>
                 <p className="text-sm text-muted-foreground">
-                  {issue.issuer?.email}
+                  {task.taskr?.email}
                 </p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium leading-none">Requested At</p>
                 <p className="text-sm text-muted-foreground">
-                  {issue.createdAt && formatDateTime(issue.createdAt)}
+                  {task.createdAt && formatDateTime(task.createdAt)}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
-      <IssueFiles issueId={issueId} />
-      <CreateComment commentableId={issueId} commentableType={'Issue'} commenterType='User'/>
-      <CommentList commentableId={issueId} commentableType={'Issue'} commentable={issue}/>
+      <TaskFiles taskId={taskId} />
+      <CreateComment commentableId={taskId} commentableType={'task'} commenterType='user'/>
+      <CommentList commentableId={taskId} commentableType={'task'} commentable={task}/>
     </div>  
   );
 };

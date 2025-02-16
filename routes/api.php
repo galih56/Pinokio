@@ -57,13 +57,15 @@ Route::group([
     "prefix" => "issues",
     'middleware' => ['decode_id']
 ], function () {
-    Route::get('/{id}/files', [IssueController::class, 'getFiles']);
+    Route::post('/', [IssueController::class, 'store']);
+    Route::get('/', [IssueController::class, 'index']);
+    
     Route::group([
         'middleware' => ['role:ADMIN,HR','decode_id', 'auth:sanctum']
     ], function () {
-        Route::post('/', [IssueController::class, 'store']);
-        Route::get('/{id}', [IssueController::class, 'show'])->middleware('decode_id');
-        Route::get('/', [IssueController::class, 'index']);
+        Route::get('/{id}/files', [IssueController::class, 'getFiles']);
+        Route::get('/{id}', [IssueController::class, 'show']);
+        Route::get('/{id}/logs', [IssueController::class, 'getIssueLogs']);
         Route::put('/{id}', [IssueController::class, 'update']);
         Route::put('/{id}/status', [IssueController::class, 'updateIssueStatus']);
         Route::patch('/{id}', [IssueController::class, 'update']);

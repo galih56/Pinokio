@@ -20,6 +20,8 @@ use App\Repositories\TagRepository;
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\DateTimeHelper;
 
+use Illuminate\Database\Eloquent\Relations\Relation;
+
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -37,6 +39,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+
+        Relation::enforceMorphMap([
+            'guest_issuer' => \App\Models\GuestIssuer::class,
+            'user' => \App\Models\User::class,
+            'task' => \App\Models\Task::class,
+            'project' => \App\Models\Project::class,
+            'issue' => \App\Models\Issue::class,
+        ]);
+
         Schema::defaultStringLength(191);
         RateLimiter::for('api', function ($request) {
             return Limit::perMinute(60)->by(optional($request->user())->id ?: $request->ip());

@@ -50,12 +50,39 @@ class IssueLogService
      * @param  int  $issueId
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getLogsByIssue(int $issueId)
+    public function getIssueLogs(int $issueId)
     {
         try {
             return IssueLog::where('issue_id', $issueId)->get();
         } catch (\Exception $e) {
             Log::error('Error retrieving Issue Logs for Issue ID ' . $issueId . ': ' . $e->getMessage());
+            throw new \Exception('Unable to retrieve issue logs.');
+        }
+    }
+    
+    /**
+    * Get issue logs for a specific issue and user (User or GuestIssuer).
+    *
+    * @param  int  $issueId
+    * @param  int  $userId
+    * @param  string  $issuerType ('user' or 'guest_issuer')
+    * @return \Illuminate\Database\Eloquent\Collection
+    */
+    public function getIssueLogsByUser(int $issueId, int $issuer, string $issuerType)
+    {
+        try {
+            // Resolve the correct class using MorphMap
+            $resolvedType = Relation::getMorphedModel($issuerType);
+            if (!$resolvedType) {
+                throw new \Exception("Invalid user type: $issuerType");
+            }
+
+            return IssueLog::where('issue_id', $issueId)
+                ->where('issuer_id', $issuer)
+                ->where('issuer_type', $resolvedType)
+                ->get();
+        } catch (\Exception $e) {
+            Log::error("Error retrieving Issue Logs for Issue ID {$issueId} and User ID {$issuer}: " . $e->getMessage());
             throw new \Exception('Unable to retrieve issue logs.');
         }
     }

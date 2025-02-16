@@ -51,10 +51,10 @@ class StoreCommentRequest extends FormRequest
             'ip_address' => 'nullable|ip',
             'comment' => 'required|string|max:1000', 
             'commentable_id' => 'required|integer', 
-            'commentable_type' => 'required|string|in:Issue,Project,Task', 
-            'commenter_type' => 'required|string|in:User,GuestIssuer',
-            'name' => 'required_if:commenter_type,GuestIssuer|nullable|string|max:255',
-            'email' => 'required_if:commenter_type,GuestIssuer|nullable|email|max:255',
+            'commentable_type' => 'required|string|in:issue,project,task', 
+            'commenter_type' => 'required|string|in:user,guest_issuer',
+            'name' => 'required_if:commenter_type,guest_issuer|nullable|string|max:255',
+            'email' => 'required_if:commenter_type,guest_issuer|nullable|email|max:255',
         ];
     }
 

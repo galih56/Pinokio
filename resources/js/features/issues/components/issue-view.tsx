@@ -4,7 +4,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { useIssue } from '../api/get-issue';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDate, formatDateTime } from '@/lib/datetime';
-import { StatusBadge } from './status-badge';
+import { StatusBadge } from '../../../components/ui/status-badge';
 import { adjustActiveBreadcrumbs } from '@/components/layout/breadcrumbs/breadcrumbs-store';
 import { CommentList } from '@/features/comment/components/comment-list';
 import CreateComment from '@/features/comment/components/create-comment';
@@ -106,8 +106,8 @@ export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
         </Card>
       </div>
       <IssueFiles issueId={issueId} />
-      <CreateComment commentableId={issueId} commentableType={'Issue'} commenterType='User'/>
-      <CommentList commentableId={issueId} commentableType={'Issue'} commentable={issue}/>
+      <CreateComment commentableId={issueId} commentableType={'issue'}/>
+      <CommentList commentableId={issueId} commentableType={'issue'} commentable={issue}/>
     </div>  
   );
 };

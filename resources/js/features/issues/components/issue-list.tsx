@@ -17,7 +17,7 @@ import { Input } from '@/components/ui/input';
 import { useEffect, useState } from 'react';
 import { formatDate, formatDateTime, formatTime } from '@/lib/datetime';
 import DOMPurify from 'dompurify';
-import { StatusBadge } from './status-badge';
+import { StatusBadge } from '../../../components/ui/status-badge';
 
 export type IssuesListProps = {
   onIssuePrefetch?: (id: string) => void;

@@ -17,7 +17,7 @@ export const Notifications = () => {
           onDismiss={dismissNotification}
         />
       ))}
-      <Toaster position='top-right' theme='system' 
+      <Toaster position='bottom-right' theme='system' 
         toastOptions={{
           classNames: {
             toast: "rounded-lg shadow-lg",

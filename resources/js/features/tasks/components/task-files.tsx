@@ -30,7 +30,7 @@ export const IssueFiles = ({
                 <Skeleton className="w-full min-h-[60vh]" />
                 : files.length > 0? <FileList data={files}/>
                 : (
-                    <div className="flex items-center justify-center w-full min-h-[60vh]">
+                    <div className="flex items-center justify-center w-full min-h-[10vh]">
                     <p className="text-gray-500">No files uploaded.</p>
                     </div>
                 )}

@@ -41,31 +41,6 @@ interface RepositoryInterface
     public function find(int $id) : ? Model;
 
     /**
-     * Create a new record.
-     *
-     * @param array $data
-     * @return mixed
-     */
-    public function create(array $data);
-
-    /**
-     * Update an existing record.
-     *
-     * @param mixed $id
-     * @param array $data
-     * @return mixed
-     */
-    public function update(int $id, array $data) : Model;
-
-    /**
-     * Delete a record by its ID.
-     *
-     * @param mixed $id
-     * @return bool
-     */
-    public function delete(int $id) : bool;
-
-    /**
      * Apply search to a query.
      *
      * @param Builder $query

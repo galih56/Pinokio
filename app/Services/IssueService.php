@@ -16,18 +16,21 @@ use App\Services\Logs\IssueLogService;
 
 class IssueService
 {
+    protected $model;
     protected $issueRepository;
     protected $guestIssuerService;
     protected $fileService;
     protected $issueLogService;
 
     public function __construct(
-        IssueRepositoryInterface $issueRepository, 
+        Issue $model,
+        IssueRepositoryInterface $issueRepository,
         IssueLogService $issueLogService,
         GuestIssuerService $guestIssuerService,
         FileService $fileService, 
     )
     {
+        $this->model = $model;
         $this->issueRepository = $issueRepository;
         $this->guestIssuerService = $guestIssuerService;
         $this->fileService = $fileService;
@@ -41,11 +44,11 @@ class IssueService
             if ($data['issuer_type'] == 'GuestIssuer') {
                 // If the user is a guest, create or fetch the GuestIssuer
                 $issuer =  $this->guestIssuerService->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
-                $issuerType = GuestIssuer::class;
+                $issuerType = 'guest_issuer';
             } else {
                 // If the user is authenticated, set the issuer as the User
                 $issuer = auth()->user();
-                $issuerType = User::class;
+                $issuerType = 'user';
             }
     
             // Prepare issue data
@@ -57,34 +60,34 @@ class IssueService
             $data['status'] = 'idle';
 
             // Create the issue
-            $issue = $this->issueRepository->create($data);
+            $this->model = $this->model->create($data);
     
             // Use FileService to upload files and get an array of File models
             $uploadedFiles = $this->fileService->upload($data['files'] ?? [], 'issue_files' ,$issuer);
     
             // Attach files to the issue if any files are uploaded
             if (!empty($uploadedFiles)) {
-                $this->attachFilesToIssue($issue->id, $uploadedFiles);
+                $this->attachFilesToIssue( $this->model->id, $uploadedFiles);
             }
     
             // Attach tags to the issue if any tag IDs are provided
-            $tagIds = $data['tag_ids'] ?? ($data['tag_id'] ? [$data['tag_id']] : []);
+            $tagIds = $data['tag_ids'] ?? (isset($data['tag_id']) ? [$data['tag_id']] : []);
             if (!empty($tagIds)) {
-                $this->issueRepository->attachTags($issue->id, $tagIds);
+                $this->attachTags( $this->model->id, $tagIds);
             }
     
             // Refresh and load relationships
-            $issue->refresh();
-            $issue->load( $this->issueRepository->getRelatedData());
+            $this->model->refresh();
+            $this->model->load( $this->issueRepository->getRelatedData());
     
             $this->issueLogService->create([
-                'issue_id' => $issue->id,
+                'issue_id' =>  $this->model->id,
                 'user_id' => $issuer->id,
                 'user_type' => $issuerType,
                 'action' => 'created',
                 'action_details' => json_encode(['description' => 'Issue created']),
             ]);
-            return $issue;
+            return $this->model;
         } catch (\Exception $e) {
             Log::error('Error creating issue: ' . $e->getMessage());
             throw $e;
@@ -95,11 +98,15 @@ class IssueService
     {
         try {
             $data = $this->prepareIssueData($data);
+                
+            $this->model = $this->model->find($id);
+            $issue = $this->model->update($data);
+
             $issue = $this->issueRepository->update($id, $data);
 
             $tagIds = $data['tag_ids'] ?? ($data['tag_id'] ? [$data['tag_id']] : []);
             if (!empty($tagIds)) {
-                $this->issueRepository->attachTags($issue->id, $tagIds);
+                $this->attachTags($issue->id, $tagIds);
             }
 
             $issue->refresh();
@@ -127,35 +134,30 @@ class IssueService
             if ($data['issuer_type'] == 'GuestIssuer') {
                 // If the user is a guest, create or fetch the GuestIssuer
                 $issuer =  $this->guestIssuerService->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
-                $issuerType = GuestIssuer::class;
-                $data['issuer_type'] = $issuerType;
-                $issue = $this->issueRepository->closePublicIssue($id, $data);
-                        
-                $this->issueLogService->create([
-                    'issue_id' => $issue->id,
-                    'user_id' => $issuer->id,
-                    'user_type' => $issuerType,
-                    'action' => 'status_change',
-                    'action_details' => json_encode(['previous_status' =>  $this->model->getOriginal('status'), 'new_status' => 'closed']),
-                ]);
-
-                return $issue;
+                $issuerType = 'guest_issuer';
+                                
+                $this->model = $this->model->where('id',$id)->where('issuer_type', $issuerType)->firstOrFail();
+                $this->model->status = 'closed';
+                $this->model->save();
             } else {
                 // If the user is authenticated, set the issuer as the User
                 $issuer = auth()->user();
-                $issuerType = User::class;
-                $data['issuer_type'] = $issuerType;
-                $issue = $this->issueRepository->close($id, $data);
-                
-                $this->issueLogService->create([
-                    'issue_id' => $issue->id,
-                    'user_id' => auth()->id(),
-                    'user_type' => $issuerType,
-                    'action' => 'status_change',
-                    'action_details' => json_encode(['previous_status' =>  $this->model->getOriginal('status'), 'new_status' => 'closed']),
-                ]);
-                return $issue;
+                $issuerType = 'user';
+
+                $this->model = $this->model->find($id);
+                $this->model->status = $data['status'];
+                $this->model->save();
+
             }
+            
+            $this->issueLogService->create([
+                'issue_id' => $this->model->id,
+                'user_id' => $issuer->id,
+                'user_type' => $issuerType,
+                'action' => 'status_change',
+                'action_details' => json_encode(['previous_status' =>  $this->model->getOriginal('status'), 'new_status' => 'closed']),
+            ]);
+            return $this->model;
         } catch (\Exception $e) {
             Log::error('Error closing issue: ' . $e->getMessage());
             throw $e;
@@ -166,11 +168,16 @@ class IssueService
     public function deleteIssue(int $id): bool
     {
         try {
-            $issue = $this->issueRepository->getById($id);
+            $this->model = $this->model->find($id);
+            if (!$this->model) {
+                throw new Exception("Issue not found.");
+            }
+
+            $this->model->tags()->detach();
             $deleted = $this->issueRepository->delete($id);
             $this->issueLogService->create([
                 'user_id' => auth()->id(), 
-                'user_type' => User::class,
+                'user_type' => 'user',
                 'action' => 'deleted',
                 'action_details' => json_encode(['description' => 'Issue "'.$issue->title.'" is deleted']),
             ]);
@@ -187,7 +194,8 @@ class IssueService
 
     public function getPublicIssues(array $filters = [], int $perPage = 0, array $sorts = [], $email = ''): Collection | LengthAwarePaginator
     {
-        $query = $this->issueRepository->getQuery($filters, $sorts,  $this->issueRepository->getRelatedData())->where('issues.issuer_type', GuestIssuer::class);
+        $query = $this->issueRepository->getQuery($filters, $sorts,  $this->issueRepository->getRelatedData());
+        $query = $query->where('issues.issuer_type', 'guest_issuer');
         return $query->paginate($perPage);
     }
 
@@ -228,6 +236,25 @@ class IssueService
 
     public function attachFilesToIssue($id, $files): void
     {
-        $this->issueRepository->attachFiles($id, $files);
+        $this->model = $this->model->with('files')->find($id);
+        if (!is_array($files)) {
+            $files = [$files];
+        }
+        foreach ($files as $file) {
+            // Ensure $file is a File model, and attach the file ID to the issue
+            if ($file instanceof File) {
+                $this->model->files()->attach($file->id); // Attach the file's ID
+            }
+        }
     }
+
+    
+    public function attachTags(int $id, array $tagIds): void
+    {
+        $this->model = $this->model->find($id);
+        $tags = Tag::find($tagIds);
+        $this->model->tags()->attach($tags);
+    }
+
+
 }

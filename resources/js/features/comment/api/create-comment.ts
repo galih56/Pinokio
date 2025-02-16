@@ -8,12 +8,12 @@ import { getCommentsQueryOptions } from './get-comments';
 
 export const createCommentInputSchema = z.object({
   comment: z.string().min(1, { message: 'Please give more detailed comment...' }),
-  commenterType: z.enum(['User', 'GuestIssuer'])
+  commenterType: z.enum(['user', 'guest_issuer'])
 }).extend({
   name: z.string().optional(),
   email: z.string().email().optional(),
 }).superRefine((data, ctx) => {
-  if (data.commenterType === 'GuestIssuer') {
+  if (data.commenterType === 'guest_issuer') {
     if (!data.name) {
       ctx.addIssue({
         code: 'custom',

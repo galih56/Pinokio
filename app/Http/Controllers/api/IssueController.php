@@ -14,14 +14,17 @@ use App\Http\Resources\IssueResource;
 use App\Http\Resources\FileResource;
 use Illuminate\Support\Facades\DB;
 use App\Services\IssueService;
+use App\Services\Logs\IssueLogService;
 
 class IssueController extends Controller
 {
     private IssueService $issueService;
+    private IssueLogService $issueLogService;
 
-    public function __construct(IssueService $issueService)
+    public function __construct(IssueService $issueService, IssueLogService $issueLogService)
     {
         $this->issueService = $issueService;
+        $this->issueLogService = $issueLogService;
     }
 
     public function searchIssue(Request $request)
@@ -201,4 +204,9 @@ class IssueController extends Controller
         
         return ApiResponse::sendResponse(FileResource::collection($files), '', 'success', 200);
     }
+
+    public function getIssueLogs($id){
+
+    }
+
 }

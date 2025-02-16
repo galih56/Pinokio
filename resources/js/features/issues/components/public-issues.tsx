@@ -14,7 +14,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { usePublicIssues } from "../api/get-public-issues";
 import { formatDate, formatDateTime, formatTime } from "@/lib/datetime";
-import { StatusBadge } from "./status-badge";
+import { StatusBadge } from "../../../components/ui/status-badge";
 import { GuestIssuerInputs } from "./guest-issuer-inputs";
 import useGuestIssuerStore from "@/store/useGuestIssuer";
 import DialogOrDrawer from "@/components/layout/dialog-or-drawer";

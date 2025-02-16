@@ -13,6 +13,7 @@ import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { Link } from '@tiptap/extension-link';
 import RichTextEditor from '@/components/ui/text-editor';
+import useAuth from '@/store/useAuth';
 
 
 type CreateCommentType = {
@@ -20,7 +21,6 @@ type CreateCommentType = {
   onError?: Function;
   commentableId: string; 
   commentableType: string;
-  commenterType: 'GuestIssuer' | 'User';
 };
 
 export default function CreateComment({
@@ -28,10 +28,10 @@ export default function CreateComment({
   onError,
   commentableId,
   commentableType,
-  commenterType
 }: CreateCommentType) {
   const { addNotification } = useNotifications();
-  const { name, email } = useGuestIssuerStore();
+  const { authenticated, user } = useAuth();
+  const guestIssuer = useGuestIssuerStore();
   const createCommentMutation = useCreateComment({
     mutationConfig: {
       onSuccess: () => {
@@ -43,20 +43,24 @@ export default function CreateComment({
     },
   });
 
+  const name = authenticated ? user.name : guestIssuer.name;
+  const email = authenticated ? user.email : guestIssuer.email;
+  const commenterType = authenticated ? 'user' : 'guest_issuer';
+
   const isFetching = useIsFetching();
   const form = useForm<z.infer<typeof createCommentInputSchema>>({
     resolver: zodResolver(createCommentInputSchema),
     defaultValues : {
       comment : '',
       commenterType : commenterType,
-      email,
-      name
+      email : email,
+      name : name
     }
   });
   console.log(form.formState.errors, commenterType)
 
   async function onSubmit(values: z.infer<typeof createCommentInputSchema>) {
-    if (commenterType != 'User' && !(name && isValidEmail(email))) {
+    if (commenterType != 'user' && !(name && isValidEmail(email))) {
       addNotification({
         type: 'error',
         title: 'Please enter your name and email...',

@@ -15,12 +15,6 @@ class Issue extends Model
     {
         parent::boot();
 
-        static::saving(function ($model) {
-            $allowedClasses = [User::class, GuestIssuer::class];
-            if (!in_array($model->issuer_type, $allowedClasses)) {
-                throw new \Exception("Invalid issuer_type: {$model->issuer_type}");
-            }
-        });
     }
     
     public function issuer()

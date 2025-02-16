@@ -1,29 +1,29 @@
 
 
 import { Spinner } from '@/components/ui/spinner';
-import { useIssue } from '../api/get-issue';
+import { useIssue } from '../api/get-project';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDate, formatDateTime } from '@/lib/datetime';
 import { StatusBadge } from './status-badge';
 import { adjustActiveBreadcrumbs } from '@/components/layout/breadcrumbs/breadcrumbs-store';
 import { CommentList } from '@/features/comment/components/comment-list';
 import CreateComment from '@/features/comment/components/create-comment';
-import { IssueFiles } from './issue-files';
-import { CloseIssue } from './close-issue';
+import { IssueFiles } from './project-files';
+import { CloseIssue } from './close-project';
 
-export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
-  if(!issueId){
+export const IssueView = ({ projectId }: { projectId: string | undefined }) => {
+  if(!projectId){
     return <h1>Unrecognized Request</h1>
   }
   
-  const issueQuery = useIssue({
-    issueId,
+  const projectQuery = useIssue({
+    projectId,
   });
 
-  const issue = issueQuery?.data?.data;
-  adjustActiveBreadcrumbs(`/issues/:id`,`/issues/${issueId}`, issue?.title, [ issue ]);
+  const project = projectQuery?.data?.data;
+  adjustActiveBreadcrumbs(`/projects/:id`,`/projects/${projectId}`, project?.title, [ project ]);
   
-  if (issueQuery.isLoading) {
+  if (projectQuery.isLoading) {
     return (
       <div className="flex h-48 w-full items-center justify-center">
         <Spinner size="lg" />
@@ -32,7 +32,7 @@ export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
   }
 
 
-  if (!issue) return null;
+  if (!project) return null;
 
   return (
     <div className="mt-6 flex flex-col px-6 space-y-2">
@@ -40,24 +40,24 @@ export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
         <Card className="col-span-1 shadow-sm">
           <CardHeader>
             <CardTitle className='flex flex-row justify-between'> 
-              <span>{issue.title}</span>  
-              <StatusBadge status={issue.status}/> 
+              <span>{project.title}</span>  
+              <StatusBadge status={project.status}/> 
             </CardTitle>
-            <CardDescription>{issue.description}</CardDescription>
+            <CardDescription>{project.description}</CardDescription>
           </CardHeader>
           <CardContent className='p-4'> 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-2">
             <div className="space-y-1">
               <p className="text-sm font-medium leading-none">Due Date</p>
               <p className="text-sm text-muted-foreground">
-                 {issue.dueDate ? formatDate(issue.dueDate) : '-'}
+                 {project.dueDate ? formatDate(project.dueDate) : '-'}
               </p>
             </div>
           </div>
           </CardContent>
-          {issue.status != 'closed' &&
+          {project.status != 'closed' &&
             <CardFooter>
-              <CloseIssue issueId={issueId} />
+              <CloseIssue projectId={projectId} />
             </CardFooter>}
         </Card>
           
@@ -70,28 +70,28 @@ export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
               <div className="space-y-1">
                 <p className="text-sm font-medium leading-none">Name</p>
                 <p className="text-sm text-muted-foreground">
-                  {issue.issuer?.name}
+                  {project.projectr?.name}
                 </p>
               </div>              
               <div className="space-y-1">
                 <p className="text-sm font-medium leading-none">Email</p>
                 <p className="text-sm text-muted-foreground">
-                  {issue.issuer?.email}
+                  {project.projectr?.email}
                 </p>
               </div>
               <div className="space-y-1">
                 <p className="text-sm font-medium leading-none">Requested At</p>
                 <p className="text-sm text-muted-foreground">
-                  {issue.createdAt && formatDateTime(issue.createdAt)}
+                  {project.createdAt && formatDateTime(project.createdAt)}
                 </p>
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
-      <IssueFiles issueId={issueId} />
-      <CreateComment commentableId={issueId} commentableType={'Issue'} commenterType='User'/>
-      <CommentList commentableId={issueId} commentableType={'Issue'} commentable={issue}/>
+      <IssueFiles projectId={projectId} />
+      <CreateComment commentableId={projectId} commentableType={'project'} commenterType='user'/>
+      <CommentList commentableId={projectId} commentableType={'project'} commentable={project}/>
     </div>  
   );
 };

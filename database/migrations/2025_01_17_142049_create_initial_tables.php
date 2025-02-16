@@ -34,7 +34,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->enum('status', ['idle', 'in progress', 'resolved', 'closed'])->default('idle');
-            $table->enum('priority', ['low', 'medium', 'high', 'critical'])->default('medium');
+            $table->enum('priority', ['undefined','unverified','low', 'medium', 'high', 'critical'])->default('unverified');
             $table->date('due_date');
             $table->timestamps(0); 
         });

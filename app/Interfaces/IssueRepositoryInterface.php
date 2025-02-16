@@ -8,6 +8,4 @@ use App\Models\Issue;
 
 interface IssueRepositoryInterface extends RepositoryInterface
 {
-    public function updateStatus(int $id, array $data) : Issue;
-    public function attachFiles(int $id, $files): void;
 }

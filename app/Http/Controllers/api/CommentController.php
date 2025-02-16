@@ -27,11 +27,14 @@ class CommentController extends Controller
      * Map keywords to fully qualified class names.
      */
     protected $commentableTypes = [
-        'Issue' => \App\Models\Issue::class,
-        'Project' => \App\Models\Project::class,
-        'Task' => \App\Models\Task::class,
-        'User' => \App\Models\User::class,
-        'GuestIssuer' => \App\Models\GuestIssuer::class,
+        'issue' => \App\Models\Issue::class,
+        'project' => \App\Models\Project::class,
+        'task' => \App\Models\Task::class,
+    ];
+
+    protected $commenterTypes = [
+        'user' => \App\Models\User::class,
+        'guest_issuer' => \App\Models\GuestIssuer::class,
     ];
 
     public function index(GetCommentRequest $request)

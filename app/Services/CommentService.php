@@ -21,18 +21,18 @@ class CommentService
     {
         try {
             $user = null;
-            if ($data['commenter_type'] == 'GuestIssuer') {
+            if ($data['commenter_type'] == 'guest_issuer') {
                 $user = $this->guestIssuerService->getOrCreateGuestIssuer($data['email'], $data['name'], $data['ip_address']);
-                $userType = GuestIssuer::class;
+                $userType = 'guest_issuer';
             } else {
                 $user = auth()->user();
-                $userType = User::class;
+                $userType = 'user';
             }
     
             $comment = [
                 'comment' => $data['comment'],
                 'commentable_id' => $data['commentable_id'],
-                'commentable_type' => $this->commentableTypes[$data['commentable_type']] ?? $data['commentable_type'],
+                'commentable_type' => $data['commentable_type'],
             ];
 
             if($user){

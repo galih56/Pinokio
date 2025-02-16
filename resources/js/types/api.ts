@@ -79,7 +79,7 @@ export interface Issue extends BaseEntity  {
     title: string;
     description?: string;
     status: 'open' | 'idle' | 'in progress' | 'resolved' | 'closed';
-    priority: 'low' | 'medium' | 'high' | 'critical';
+    priority: 'unverified','low' | 'medium' | 'high' | 'critical';
     dueDate?: Date;
     comments?: Comment[];
     tags?: Tag[];
