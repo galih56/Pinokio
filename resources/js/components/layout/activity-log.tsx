@@ -1,140 +1,104 @@
-import { CalendarDays, User, AlertCircle, Check, RefreshCw } from "lucide-react"
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
-import { ScrollArea } from "../ui/scroll-area"
+import { CalendarDays, AlertCircle, Check, RefreshCw } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { ScrollArea } from "../ui/scroll-area";
+import { formatDateTime } from "@/lib/datetime";
 
-type ActivityItem = {
-  id: string
-  issue_id: number
-  user_id: number
-  user_type?: string
-  action: "created" | "updated" | "status_change"
-  action_details: string // This will be a JSON string
-  created_at: string // Assuming you have a timestamp
-}
+// Define LogAction type
+export type LogAction = "created" | "updated" | "status_change";
 
-const mockActivities: ActivityItem[] = [
-  {
-    id: "1",
-    issue_id: 1,
-    user_id: 101,
-    user_type: "admin",
-    action: "created",
-    action_details: JSON.stringify({ description: "Issue created" }),
-    created_at: "2025-02-16T18:30:00Z",
-  },
-  {
-    id: "2",
-    issue_id: 1,
-    user_id: 102,
-    action: "updated",
-    action_details: JSON.stringify({ updated_fields: ["title", "description"] }),
-    created_at: "2025-02-16T17:45:00Z",
-  },
-  {
-    id: "2",
-    issue_id: 1,
-    user_id: 102,
-    action: "updated",
-    action_details: JSON.stringify({ updated_fields: ["title", "description"] }),
-    created_at: "2025-02-16T17:45:00Z",
-  },
-  {
-    id: "3",
-    issue_id: 1,
-    user_id: 101,
-    user_type: "admin",
-    action: "status_change",
-    action_details: JSON.stringify({ previous_status: "open", new_status: "closed" }),
-    created_at: "2025-02-16T16:20:00Z",
-  },
-  {
-    id: "3",
-    issue_id: 1,
-    user_id: 101,
-    user_type: "admin",
-    action: "status_change",
-    action_details: JSON.stringify({ previous_status: "open", new_status: "closed" }),
-    created_at: "2025-02-16T16:20:00Z",
-  },
-  {
-    id: "3",
-    issue_id: 1,
-    user_id: 101,
-    user_type: "admin",
-    action: "status_change",
-    action_details: JSON.stringify({ previous_status: "open", new_status: "closed" }),
-    created_at: "2025-02-16T16:20:00Z",
-  },
-]
+// Define LogDetails as a flexible object for any details
+export type LogDetails = {
+  [key: string]: any;
+};
 
-const getActionIcon = (action: ActivityItem["action"]) => {
+// LogItem is a generic type to support any LogDetails
+export type LogItem<T extends LogDetails> = {
+  id: string;
+  userName: number;
+  userType?: string;
+  action: LogAction;
+  actionDetails: T;
+  createdAt: string;
+};
+
+// Define ActivityItemProps to be generic, accepting LogItem of any type
+type ActivityItemProps<T extends LogDetails> = {
+  item: LogItem<T>;
+};
+
+// Function to return action icons based on action type
+const getActionIcon = (action: LogAction) => {
   switch (action) {
     case "created":
-      return <Check className="w-5 h-5 text-green-500" />
+      return <Check className="w-5 h-5 text-green-500" />;
     case "updated":
-      return <RefreshCw className="w-5 h-5 text-blue-500" />
+      return <RefreshCw className="w-5 h-5 text-blue-500" />;
     case "status_change":
-      return <AlertCircle className="w-5 h-5 text-orange-500" />
+      return <AlertCircle className="w-5 h-5 text-orange-500" />;
     default:
-      return <AlertCircle className="w-5 h-5 text-gray-500" />
+      return <AlertCircle className="w-5 h-5 text-gray-500" />;
   }
-}
+};
 
-const formatActionDetails = (action: ActivityItem["action"], details: string) => {
-  const parsedDetails = JSON.parse(details)
+// Formatting action details
+const formatActionDetails = (action: LogAction, details: LogDetails) => {
   switch (action) {
     case "created":
-      return parsedDetails.description
+      return details.description || "Created item";
     case "updated":
-      return `Updated fields: ${parsedDetails.updated_fields.join(", ")}`
+      return `Updated fields: ${details.updatedFields?.join(", ")}`;
     case "status_change":
-      return `Status changed from ${parsedDetails.previous_status} to ${parsedDetails.new_status}`
+      return `Status changed from ${details.previousStatus} to ${details.newStatus}`;
     default:
-      return "Unknown action"
+      return "Unknown action";
   }
-}
+};
 
-const ActivityItem = ({ item }: { item: ActivityItem }) => {
+// ActivityItem component to display each log entry
+const ActivityItem = <T extends LogDetails>({ item }: ActivityItemProps<T>) => {
   return (
     <li className="flex items-start space-x-4 py-4">
       <div className="flex-shrink-0">{getActionIcon(item.action)}</div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-900">
-          User {item.user_id}{" "}
+          {item.userName}{" "}
           {item.action === "created"
-            ? "created an issue"
+            ? "created an item"
             : item.action === "updated"
-              ? "updated an issue"
-              : "changed issue status"}
+            ? "updated an item"
+            : "changed item status"}
         </p>
-        <p className="text-sm text-gray-600">{formatActionDetails(item.action, item.action_details)}</p>
+        <p className="text-sm text-gray-600">{formatActionDetails(item.action, item.actionDetails)}</p>
         <p className="text-sm text-gray-500 flex items-center mt-1">
           <CalendarDays className="w-4 h-4 mr-1" />
-          {new Date(item.created_at).toLocaleString()}
+          {formatDateTime(item.createdAt)}
         </p>
       </div>
     </li>
-  )
-}
+  );
+};
 
-export default function ActivityLog() {
+// ActivityLog component to display the list of activities
+export default function ActivityLog<T extends LogDetails>({ logData }: { logData: LogItem<T>[] }) {
   return (
     <Card className="max-h-[60vh] flex flex-col">
-        <CardHeader>
-            <CardTitle>
-                Activity Log
-            </CardTitle>
-        </CardHeader>
-        <CardContent className="flex-grow overflow-hidden">
-            <ScrollArea className="h-full">
-                <ul className="divide-y divide-gray-200">
-                    {mockActivities.map((activity) => (
-                    <ActivityItem key={activity.id} item={activity} />
-                    ))}
-                </ul>
-            </ScrollArea>
-        </CardContent>
+      <CardHeader>
+        <CardTitle>Activity Log</CardTitle>
+      </CardHeader>
+      <CardContent className="flex-grow overflow-hidden">
+        {logData ? 
+        <ScrollArea className="h-full">
+          <ul className="divide-y divide-gray-200">
+            {logData.map((activity) => (
+              <ActivityItem key={activity.id} item={activity} />
+            ))}
+          </ul>
+        </ScrollArea>:
+          <div className="flex items-center justify-center w-full min-h-[60vh]">
+            <p className="text-gray-500">No issues found.</p>
+          </div>
+        }
+      </CardContent>
     </Card>
-  )
+  );
 }
-

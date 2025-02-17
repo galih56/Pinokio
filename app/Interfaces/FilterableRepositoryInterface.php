@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
 
-interface RepositoryInterface
+interface FilterableRepositoryInterface
 {
     /**
      * Get records with optional search and pagination.
@@ -31,14 +31,6 @@ interface RepositoryInterface
      * @return Builder
      */
     public function getQuery(array $search = [], array $sorts = [],  array $relations = []): Builder;
-
-    /**
-     * Find a record by its ID.
-     *
-     * @param mixed $id
-     * @return mixed
-     */
-    public function find(int $id) : ? Model;
 
     /**
      * Apply search to a query.

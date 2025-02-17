@@ -11,7 +11,7 @@ use App\Http\Requests\Issue\ClosePublicIssueRequest;
 use App\Http\Requests\Issue\StorePublicIssueRequest;
 use App\Http\Requests\Issue\UpdateIssueRequest;
 use App\Http\Resources\IssueResource;
-use App\Http\Resources\FileResource;
+use App\Http\Resources\Logs\IssueLogResource;
 use Illuminate\Support\Facades\DB;
 use App\Services\IssueService;
 use App\Services\Logs\IssueLogService;
@@ -202,11 +202,41 @@ class IssueController extends Controller
     public function getFiles($id){
         $files = $this->issueService->getFiles($id);
         
-        return ApiResponse::sendResponse(FileResource::collection($files), '', 'success', 200);
+        return ApiResponse::sendResponse(IssueLogResource::collection($files), '', 'success', 200);
     }
 
-    public function getIssueLogs($id){
+    public function getIssueLogs($id, Request $request){
+        
+        $search = $request->query('search');
 
+
+        $prepare_search = [];
+        if ($search) {
+            $prepare_search[] = [
+                'issue.title:like' => $search,
+            ];
+        }
+
+        $per_page = $request->query('per_page') ?? 0;
+
+        $data = $this->issueService->getAllIssues($prepare_search, $per_page);
+
+        if ($per_page) {
+            $logs = [
+                'data' => IssueLogResource::collection($data->items()),  // The actual resource data
+                'meta' => [
+                    'current_page' => $data->currentPage(),
+                    'per_page' => $data->perPage(),
+                    'total_count' => $data->total(),
+                    'total_pages' => $data->lastPage(),
+                ],
+            ];
+            return response()->json($logs, 200);
+        } else {
+            $logs = $this->isseLogService->getIssueLogs($id);
+            return ApiResponse::sendResponse(IssueLogResource::collection($logs), '', 'success', 200);
+        
+        }
     }
 
 }

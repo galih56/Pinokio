@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\Interfaces\RepositoryInterface;
+use App\Interfaces\FilterableRepositoryInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -10,7 +10,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\DatetimeHelper;
 
-class BaseRepository implements RepositoryInterface
+class FilterableRepository implements FilterableRepositoryInterface
 {    
     protected $model;
 
@@ -65,29 +65,6 @@ class BaseRepository implements RepositoryInterface
         }
 
         return $query;
-    }
-
-    public function find(int $id) : ?Model
-    {
-        return $this->model->findOrFail($id);
-    }
-
-    public function create(array $data)
-    {
-        return $this->model->create($data);
-    }
-
-    public function update(int $id, array $data) : Model
-    {
-        $record = $this->model->findOrFail($id);
-        $record->update($data);
-        return $record;
-    }
-
-    public function delete(int $id) : bool
-    {
-        $record = $this->model->findOrFail($id);
-        return $record->delete();
     }
 
     public function applyFilters(Builder $query, array $filters): Builder

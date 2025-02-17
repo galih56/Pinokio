@@ -90,7 +90,7 @@ export const TaskView = ({ taskId }: { taskId: string | undefined }) => {
         </Card>
       </div>
       <TaskFiles taskId={taskId} />
-      <CreateComment commentableId={taskId} commentableType={'task'} commenterType='user'/>
+      <CreateComment commentableId={taskId} commentableType={'task'} />
       <CommentList commentableId={taskId} commentableType={'task'} commentable={task}/>
     </div>  
   );

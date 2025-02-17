@@ -2,7 +2,7 @@
 
 namespace App\Repositories;
 
-use App\Interfaces\RepositoryInterface;
+use App\Interfaces\FilterableRepositoryInterface;
 use App\Interfaces\UserRepositoryInterface;
 use App\Models\User;
 use App\Models\UserRole;
@@ -11,8 +11,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 use Auth;
 
-class UserRepository extends BaseRepository
-implements RepositoryInterface, UserRepositoryInterface
+class UserRepository extends FilterableRepository
+implements FilterableRepositoryInterface, UserRepositoryInterface
 {
     protected $related_data = [
         'role'

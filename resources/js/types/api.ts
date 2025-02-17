@@ -79,7 +79,7 @@ export interface Issue extends BaseEntity  {
     title: string;
     description?: string;
     status: 'open' | 'idle' | 'in progress' | 'resolved' | 'closed';
-    priority: 'unverified','low' | 'medium' | 'high' | 'critical';
+    priority: 'unverified' | 'low' | 'medium' | 'high' | 'critical';
     dueDate?: Date;
     comments?: Comment[];
     tags?: Tag[];
@@ -150,6 +150,18 @@ export type File = {
     uploadedAt : Date;
 }
 
+export type ActionDetails = 
+  | { updatedFields: string[] }
+  | { previousStatus: string; newStatus: string }
+  | { description: string };
+
+export interface IssueLog  extends BaseEntity  {
+  issueId?: number;
+  userId: number | null;
+  userType?: string;
+  action: 'updated' | 'status_change' | 'created' | 'deleted';
+  actionDetails: ActionDetails;
+};  
 
 export const isIssue = (commentable: Issue | Project | Task): commentable is Issue =>
     (commentable as Issue).issuer !== undefined;

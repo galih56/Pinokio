@@ -4,7 +4,7 @@ namespace App\Interfaces;
 
 use App\Models\User;
 
-interface UserRepositoryInterface extends RepositoryInterface
+interface UserRepositoryInterface extends FilterableRepositoryInterface
 {
     public function getUserRoles();
 }

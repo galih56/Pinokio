@@ -4,13 +4,11 @@ namespace App\Repositories;
 
 use App\Interfaces\IssueRepositoryInterface;
 use App\Models\Issue;
-use App\Models\Tag;
-use App\Models\File;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Exception;
 
-class IssueRepository extends BaseRepository implements IssueRepositoryInterface
+class IssueRepository extends FilterableRepository implements IssueRepositoryInterface
 {
     public function __construct(Issue $model)
     {

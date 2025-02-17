@@ -2,38 +2,21 @@
 namespace App\Http\Controllers\api;
 
 use App\Helpers\ApiResponse;
-use App\Interfaces\TagRepositoryInterface;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Tag\StoreTagRequest;
 use App\Http\Requests\Tag\UpdateTagRequest;
 use App\Http\Resources\TagResource;
 use Illuminate\Support\Facades\DB;
+use App\Services\TagService;
 
 class TagController extends Controller
 {
-    private TagRepositoryInterface $tagRepository;
+    private TagService $tagService;
     
-    public function __construct(TagRepositoryInterface $tagRepository)
+    public function __construct(TagService $tagService)
     {
-        $this->tagRepository = $tagRepository;
-    }
-
-    public function searchTag(Request $request){
-        
-        $keyword = $request->query('keyword');
-
-        $filters = [];
-
-        if($keyword){
-            $filters[] = [
-                'name:like' => $keyword,
-            ];
-        }
-
-        $tags = $this->tagRepository->searchTag($filters);
-        
-        return ApiResponse::sendResponse(TagResource::collection($tags), null, 'success', 200);
+        $this->tagService = $tagService;
     }
 
     /**
@@ -45,7 +28,7 @@ class TagController extends Controller
 
         $filters = [];
 
-        $data = $this->tagRepository->get($filters, $perPage, []);
+        $data = $this->tagService->getAllTags($filters, $perPage, []);
 
         if($perPage){
             $tags = [
@@ -75,7 +58,7 @@ class TagController extends Controller
         try{
             $data = $request->all();
             
-            $tag = $this->tagRepository->create($data);
+            $tag = $this->tagService->create($data);
 
             DB::commit();
             return ApiResponse::sendResponse($tag,'Tag Created Successful','success', 201);
@@ -90,7 +73,7 @@ class TagController extends Controller
      */
     public function show($id)
     {
-        $tag = $this->tagRepository->find($id);
+        $tag = $this->tagService->getTagById($id);
 
         return ApiResponse::sendResponse(new TagResource($tag),'', 'success', 200);
     }
@@ -103,7 +86,7 @@ class TagController extends Controller
     {
         DB::beginTransaction();
         try{
-            $tag = $this->tagRepository->update($id, $request->all());
+            $tag = $this->tagService->update($id, $request->all());
 
             DB::commit();
             return ApiResponse::sendResponse( $tag , 'Tag Succesdsful','success',201);
@@ -118,7 +101,7 @@ class TagController extends Controller
      */
     public function destroy($id)
     {
-        $this->tagRepository->delete($id);
+        $this->tagService->delete($id);
         
         return ApiResponse::sendResponse('Tag Deleted Successful','',204);
     }

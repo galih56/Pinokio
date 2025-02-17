@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Interfaces\IssueRepositoryInterface;
+use App\Interfaces\Logs\IssueLogRepositoryInterface;
 use App\Models\Issue;
 use App\Models\User;
 use App\Models\GestIssuer;
@@ -147,7 +148,6 @@ class IssueService
                 $this->model = $this->model->find($id);
                 $this->model->status = $data['status'];
                 $this->model->save();
-
             }
             
             $this->issueLogService->create([

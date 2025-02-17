@@ -12,6 +12,7 @@ import clsx from 'clsx';
 import DOMPurify from 'dompurify';
 import { CloseIssue } from './close-issue';
 import ActivityLog from '@/components/layout/activity-log';
+import IssueLog from './issue-log';
 
 export const PublicIssueView = ({ issueId }: { issueId: string | undefined }) => {
   if(!issueId){
@@ -57,9 +58,9 @@ export const PublicIssueView = ({ issueId }: { issueId: string | undefined }) =>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 p-2">
           <IssueFiles issueId={issueId} />
-          <ActivityLog />
+          <IssueLog issueId={issueId}  />
         </div>
-        <CreateComment  commentableId={issueId} commentableType={'issue'} commenterType='guest_issuer' />
+        <CreateComment  commentableId={issueId} commentableType={'issue'} />
         <CommentList commentableId={issueId} commentableType={'issue'}/>
       </div>  
   );

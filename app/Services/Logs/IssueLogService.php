@@ -2,17 +2,29 @@
 
 namespace App\Services\Logs;
 
+use App\Interfaces\Logs\IssueLogRepositoryInterface;
 use App\Models\Logs\IssueLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class IssueLogService
 {
+    protected $model;
+    protected $issueLogRepository;
+
+    public function __construct(
+        IssueLog $model,
+        IssueLogRepositoryInterface $issueLogRepository,
+    )
+    {
+        $this->model = $model;
+        $this->issueLogRepository = $issueLogRepository;
+    }
     /**
      * Create a new issue log entry.
      *
      * @param  array  $data
-     * @return \App\Models\IssueLog
+     * @return \App\Models\Logs\IssueLog
      */
     public function create(array $data): IssueLog
     {
@@ -50,10 +62,10 @@ class IssueLogService
      * @param  int  $issueId
      * @return \Illuminate\Database\Eloquent\Collection
      */
-    public function getIssueLogs(int $issueId)
+    public function getIssueLogs(int $issueId, array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
     {
         try {
-            return IssueLog::where('issue_id', $issueId)->get();
+            return $this->issueLogRepository->getAll($filters, $perPage, $sorts);
         } catch (\Exception $e) {
             Log::error('Error retrieving Issue Logs for Issue ID ' . $issueId . ': ' . $e->getMessage());
             throw new \Exception('Unable to retrieve issue logs.');

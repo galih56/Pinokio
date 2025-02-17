@@ -1,18 +1,17 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Repositories\Logs;
 
-use App\Interfaces\IssueRepositoryInterface;
-use App\Models\Issue;
-use App\Models\Tag;
-use App\Models\File;
+use App\Interfaces\Logs\IssueLogRepositoryInterface;
+use App\repositories\FilterableRepository;
+use App\Models\Logs\IssueLog;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Exception;
 
-class IssueRepository extends BaseRepository implements IssueRepositoryInterface
+class IssueLogRepository extends FilterableRepository implements IssueLogRepositoryInterface
 {
-    public function __construct(Issue $model)
+    public function __construct(IssueLog $model)
     {
         parent::__construct($model);
     }
@@ -21,9 +20,7 @@ class IssueRepository extends BaseRepository implements IssueRepositoryInterface
     public function getRelatedData()
     {
         return [
-            'tags',
-            'files',
-            'issuer',
+            'issue',
         ];
     }
     
@@ -38,7 +35,7 @@ class IssueRepository extends BaseRepository implements IssueRepositoryInterface
     /**
      * Get issue by ID with related data.
      */
-    public function getById(int $id): ?Issue
+    public function getById(int $id): ?IssueLog
     {
         return $this->model->with($this->getRelatedData())->findOrFail($id);
     }

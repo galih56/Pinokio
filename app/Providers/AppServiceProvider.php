@@ -16,6 +16,8 @@ use App\Repositories\IssueRepository;
 use App\Interfaces\TagRepositoryInterface;
 use App\Repositories\TagRepository;
 
+use App\Interfaces\Logs\IssueLogRepositoryInterface;
+use App\Repositories\Logs\IssueLogRepository;
 
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\DateTimeHelper;
@@ -32,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserRepositoryInterface::class,UserRepository::class);
         $this->app->bind(IssueRepositoryInterface::class,IssueRepository::class);
         $this->app->bind(TagRepositoryInterface::class,TagRepository::class);
+        $this->app->bind(IssueLogRepositoryInterface::class,IssueLogRepository::class);
     }
 
     /**

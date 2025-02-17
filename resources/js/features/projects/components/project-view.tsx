@@ -90,7 +90,7 @@ export const IssueView = ({ projectId }: { projectId: string | undefined }) => {
         </Card>
       </div>
       <IssueFiles projectId={projectId} />
-      <CreateComment commentableId={projectId} commentableType={'project'} commenterType='user'/>
+      <CreateComment commentableId={projectId} commentableType={'project'} />
       <CommentList commentableId={projectId} commentableType={'project'} commentable={project}/>
     </div>  
   );

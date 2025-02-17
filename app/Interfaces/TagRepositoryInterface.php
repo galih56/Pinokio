@@ -2,6 +2,6 @@
 
 namespace App\Interfaces;
 
-interface TagRepositoryInterface extends RepositoryInterface
+interface TagRepositoryInterface extends FilterableRepositoryInterface
 {
 }

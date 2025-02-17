@@ -57,7 +57,6 @@ export default function CreateComment({
       name : name
     }
   });
-  console.log(form.formState.errors, commenterType)
 
   async function onSubmit(values: z.infer<typeof createCommentInputSchema>) {
     if (commenterType != 'user' && !(name && isValidEmail(email))) {
