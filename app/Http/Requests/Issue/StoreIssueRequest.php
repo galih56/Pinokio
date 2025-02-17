@@ -82,7 +82,7 @@ class StoreIssueRequest extends BaseRequest
         }else{
             $this->merge([
                 'ip_address' => $this->ip(),
-                'issuer_type' => 'GuestIssuer'
+                'issuer_type' => 'guest_issuer'
             ]);
         }
     }

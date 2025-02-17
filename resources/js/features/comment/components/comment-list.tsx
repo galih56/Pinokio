@@ -80,7 +80,7 @@ export const CommentList = ({
           >
             {rowVirtualizer.getVirtualItems().map((virtualRow) => {
               const comment = comments[virtualRow.index];
-              let isIssuer =  Boolean((comment.commenter?.type == 'GuestIssuer'));
+              let isIssuer =  Boolean((comment.commenter?.type == 'guest_issuer'));
               const sanitizedContent = DOMPurify.sanitize(comment.comment);
               return (
                 <div 

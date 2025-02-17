@@ -136,7 +136,7 @@ export interface Commenter {
     id: string;
     name: string; 
     email?: string; 
-    type?: 'GuestIssuer' | 'User';
+    type?: 'guest_issuer' | 'user';
 }
 
 export type Commentable = Issue | Project | Task; 

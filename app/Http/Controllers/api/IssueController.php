@@ -168,7 +168,7 @@ class IssueController extends Controller
     public function closePublicIssue($id, ClosePublicIssueRequest $request)
     {
         try {
-            $data = array_merge($request->validated(), ['issuer_type' => 'GuestIssuer']);
+            $data = array_merge($request->validated(), ['issuer_type' => 'guest_issuer']);
             $issue = $this->issueService->updateStatus($id, $data);
 
             return ApiResponse::sendResponse($issue, 'Issue Close Successful', 'success', 201);

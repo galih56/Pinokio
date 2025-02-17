@@ -25,11 +25,15 @@ class CommentResource extends JsonResource
             'commentable_id' => $hashid->encode($this->commentable_id), 
             'commentable_type' => class_basename($this->commentable_type),
             'commenter' => $this->whenLoaded('commenter', function () use ($hashid) {
+                $commenter_type = class_basename($this->commenter);
+                if($commenter_type == 'User') $commenter_type = 'user';
+                else if($commenter_type == 'GuestIssuer') $commenter_type = 'guest_issuer';
+
                 return [
                     'id' => $hashid->encode($this->commenter->id), 
                     'email' => $this->commenter->email,
                     'name' => $this->commenter->name,
-                    'type' => class_basename($this->commenter), // 'User' or 'GuestIssuer'
+                    'type' => $commenter_type,
                     'role' => $this->when($this->commenter instanceof \App\Models\User, function () {
                         return [
                             'id' => $this->commenter->role->id ?? null,
