@@ -6,19 +6,36 @@ use App\Models\Tag;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
+use App\Interfaces\FilterableRepositoryInterface;
+use App\Helpers\QueryProcessor;
 
 class TagService
 {
     protected Tag $model;
+    protected $filterableRepo;
 
-    public function __construct(Tag $model)
+    public function getRelatedData()
+    {
+        return [
+            'issues',
+        ];
+    }
+
+    public function __construct(
+        Tag $model,
+    )
     {
         $this->model = $model;
     }
 
     public function getAllTags(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
     {
-        return $this->tagRepository->getAll($filters, $perPage, $sorts);
+        $query = $this->model->newQuery();
+
+        $query = QueryProcessor::applyFilters($query, $filters);
+        $query = QueryProcessor::applySorts($query, $sorts);
+        
+        return $perPage ? $query->paginate($perPage) : $query->get();
     }
     public function getTagById(int $id): ?Tag
     {

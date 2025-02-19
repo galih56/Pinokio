@@ -219,7 +219,7 @@ class IssueController extends Controller
 
         $per_page = $request->query('per_page') ?? 0;
 
-        $data = $this->issueService->getAllIssues($prepare_search, $per_page);
+        $data = $this->issueLogService->getIssueLogs($id,$prepare_search, $per_page);
 
         if ($per_page) {
             $logs = [

@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Interfaces\IssueRepositoryInterface;
 use App\Interfaces\Logs\IssueLogRepositoryInterface;
 use App\Models\Issue;
 use App\Models\User;
@@ -14,30 +13,37 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use App\Helpers\DatetimeHelper;
 use App\Services\Logs\IssueLogService;
+use App\Helpers\QueryProcessor;
 
 class IssueService
 {
     protected $model;
-    protected $issueRepository;
     protected $guestIssuerService;
     protected $fileService;
     protected $issueLogService;
 
     public function __construct(
         Issue $model,
-        IssueRepositoryInterface $issueRepository,
         IssueLogService $issueLogService,
         GuestIssuerService $guestIssuerService,
         FileService $fileService, 
     )
     {
         $this->model = $model;
-        $this->issueRepository = $issueRepository;
         $this->guestIssuerService = $guestIssuerService;
         $this->fileService = $fileService;
         $this->issueLogService = $issueLogService;
     }
 
+    public function getRelatedData()
+    {
+        return [
+            'tags',
+            'files',
+            'issuer',
+        ];
+    }
+    
     public function createIssue(array $data): Issue
     {
         try {
@@ -79,7 +85,7 @@ class IssueService
     
             // Refresh and load relationships
             $this->model->refresh();
-            $this->model->load( $this->issueRepository->getRelatedData());
+            $this->model->load( $this->getRelatedData());
     
             $this->issueLogService->create([
                 'issue_id' =>  $this->model->id,
@@ -103,15 +109,13 @@ class IssueService
             $this->model = $this->model->find($id);
             $issue = $this->model->update($data);
 
-            $issue = $this->issueRepository->update($id, $data);
-
             $tagIds = $data['tag_ids'] ?? ($data['tag_id'] ? [$data['tag_id']] : []);
             if (!empty($tagIds)) {
                 $this->attachTags($issue->id, $tagIds);
             }
 
             $issue->refresh();
-            $issue->load($this->issueRepository->getRelatedData());
+            $issue->load($this->getRelatedData());
 
             $this->issueLogService->create([
                 'issue_id' => $this->model->id,
@@ -174,7 +178,7 @@ class IssueService
             }
 
             $this->model->tags()->detach();
-            $deleted = $this->issueRepository->delete($id);
+            $deleted = $this->model->delete($id);
             $this->issueLogService->create([
                 'user_id' => auth()->id(), 
                 'user_type' => 'user',
@@ -189,19 +193,32 @@ class IssueService
 
     public function getAllIssues(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
     {
-        return $this->issueRepository->getAll($filters, $perPage, $sorts);
+        $query = $this->model->newQuery();
+
+        $query = QueryProcessor::applyFilters($query, $filters);
+        $query = QueryProcessor::applySorts($query, $sorts);
+
+        
+        $query->with($this->getRelatedData());
+        
+        return $perPage ? $query->paginate($perPage) : $query->get();
     }
 
     public function getPublicIssues(array $filters = [], int $perPage = 0, array $sorts = [], $email = ''): Collection | LengthAwarePaginator
     {
-        $query = $this->issueRepository->getQuery($filters, $sorts,  $this->issueRepository->getRelatedData());
+        $query = $this->model->newQuery();
+
+        $query = QueryProcessor::applyFilters($query, $filters);
+        $query = QueryProcessor::applySorts($query, $sorts);
+
         $query = $query->where('issues.issuer_type', 'guest_issuer');
+        $query->with($this->getRelatedData());
         return $query->paginate($perPage);
     }
 
     public function getIssueById(int $id): ?Issue
     {
-        return $this->issueRepository->getById($id);
+        return Issue::with($this->getRelatedData())->findOrFail($id);
     }
 
     public function getFiles(int $id) {

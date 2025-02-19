@@ -6,6 +6,8 @@ use App\Interfaces\Logs\IssueLogRepositoryInterface;
 use App\Models\Logs\IssueLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class IssueLogService
 {
@@ -65,7 +67,9 @@ class IssueLogService
     public function getIssueLogs(int $issueId, array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
     {
         try {
-            return $this->issueLogRepository->getAll($filters, $perPage, $sorts);
+            $logs = $this->issueLogRepository->getQuery($filters, $sorts, [ 'user' ])->where('issue_logs.issue_id',$issueId)->paginate($perPage);
+
+            return $logs;
         } catch (\Exception $e) {
             Log::error('Error retrieving Issue Logs for Issue ID ' . $issueId . ': ' . $e->getMessage());
             throw new \Exception('Unable to retrieve issue logs.');
@@ -80,7 +84,7 @@ class IssueLogService
     * @param  string  $issuerType ('user' or 'guest_issuer')
     * @return \Illuminate\Database\Eloquent\Collection
     */
-    public function getIssueLogsByUser(int $issueId, int $issuer, string $issuerType)
+    public function getIssueLogsByUser(int $issueId, int $issuerId, string $issuerType)
     {
         try {
             // Resolve the correct class using MorphMap
@@ -90,11 +94,11 @@ class IssueLogService
             }
 
             return IssueLog::where('issue_id', $issueId)
-                ->where('issuer_id', $issuer)
+                ->where('issuer_id', $issuerId)
                 ->where('issuer_type', $resolvedType)
                 ->get();
         } catch (\Exception $e) {
-            Log::error("Error retrieving Issue Logs for Issue ID {$issueId} and User ID {$issuer}: " . $e->getMessage());
+            Log::error("Error retrieving Issue Logs for Issue ID {$issueId} and User ID {$issuerId}: " . $e->getMessage());
             throw new \Exception('Unable to retrieve issue logs.');
         }
     }

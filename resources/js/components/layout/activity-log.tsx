@@ -14,8 +14,7 @@ export type LogDetails = {
 // LogItem is a generic type to support any LogDetails
 export type LogItem<T extends LogDetails> = {
   id: string;
-  userName: number;
-  userType?: string;
+  user? : any ;
   action: LogAction;
   actionDetails: T;
   createdAt: string;
@@ -42,6 +41,7 @@ const getActionIcon = (action: LogAction) => {
 
 // Formatting action details
 const formatActionDetails = (action: LogAction, details: LogDetails) => {
+  console.log(action)
   switch (action) {
     case "created":
       return details.description || "Created item";
@@ -61,17 +61,23 @@ const ActivityItem = <T extends LogDetails>({ item }: ActivityItemProps<T>) => {
       <div className="flex-shrink-0">{getActionIcon(item.action)}</div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-gray-900">
-          {item.userName}{" "}
           {item.action === "created"
-            ? "created an item"
+            ? "Created an item"
             : item.action === "updated"
-            ? "updated an item"
-            : "changed item status"}
+            ? "Updated an item"
+            : "Changed item status"}
         </p>
-        <p className="text-sm text-gray-600">{formatActionDetails(item.action, item.actionDetails)}</p>
-        <p className="text-sm text-gray-500 flex items-center mt-1">
-          <CalendarDays className="w-4 h-4 mr-1" />
-          {formatDateTime(item.createdAt)}
+        {(item.action == "updated" || item.action == "status_change") && <p className="text-sm text-gray-600">{formatActionDetails(item.action, item.actionDetails)}</p>}
+        <p className="text-xs text-gray-500 flex items-center mt-1 space-x-2">
+          <CalendarDays className="w-4 h-4" />
+          <span>
+            {formatDateTime(item.createdAt)}
+          </span>
+          {item.user ? (
+            <>
+              {item.user?.name && <span>{item.user.name}</span>} 
+            </>
+          ) : null}
         </p>
       </div>
     </li>

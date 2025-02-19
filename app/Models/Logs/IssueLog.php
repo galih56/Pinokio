@@ -3,6 +3,7 @@
 namespace App\Models\Logs;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class IssueLog extends Model
 {
@@ -12,8 +13,12 @@ class IssueLog extends Model
     protected $fillable = [
         'id', 'issue_id', 'action', 'action_details', 'user_id', 'user_type'
     ];
+    
+    public function issue() : BelongsTo{
+        return $this->belongsTo(\App\Models\Issue::class, 'issue_id');
+    }
 
-    public function issuer()
+    public function user()
     {
         return $this->morphTo();
     }

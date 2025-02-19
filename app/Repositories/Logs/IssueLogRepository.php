@@ -7,6 +7,7 @@ use App\repositories\FilterableRepository;
 use App\Models\Logs\IssueLog;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Builder;
 use Exception;
 
 class IssueLogRepository extends FilterableRepository implements IssueLogRepositoryInterface
@@ -21,6 +22,7 @@ class IssueLogRepository extends FilterableRepository implements IssueLogReposit
     {
         return [
             'issue',
+            'user'
         ];
     }
     
@@ -30,6 +32,11 @@ class IssueLogRepository extends FilterableRepository implements IssueLogReposit
     public function getAll(array $filters = [], int $perPage = 0, array $sorts = [], array $relations = []): Collection | LengthAwarePaginator
     {
         return parent::get($filters, $perPage, $sorts, $this->getRelatedData());
+    }
+
+    public function getQuery(array $filters = [], array $sorts = [], array $relations = []): Builder
+    {
+        return parent::getQuery($filters, $sorts, $relations ?? $this->getRelatedData());
     }
 
     /**

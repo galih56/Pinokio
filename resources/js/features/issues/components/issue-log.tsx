@@ -1,5 +1,6 @@
 import ActivityLog from "@/components/layout/activity-log";
 import { useIssueLogs } from "../api/get-issue-logs";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type IssueLogProps = {
     issueId: string;
@@ -21,8 +22,10 @@ export default function IssueLog({
         search,
     });
 
-    if (isLoading) return <p>Loading...</p>;
+    if (isLoading) return (
+        <Skeleton className="w-full min-h-[60vh]" />
+    );
     if (isError) return <p>Error: {(error as Error).message}</p>;
-    console.log(data);
+    
     return <ActivityLog logData={data?.data || []} />;
 }
