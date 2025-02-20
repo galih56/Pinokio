@@ -31,11 +31,11 @@ export const TagsRoute = () => {
     <>
       <div className="mt-4">
         <DialogOrDrawer 
-          open={isOpen}
-          onOpenChange={toggle}
-          title={"Create Tag"}
-          description={"Pastikan data yang anda masukan sudah benar sesuai!"}
-          trigger={ <Button variant="outline">Create Tag</Button>}
+            open={isOpen}
+            onOpenChange={toggle}
+            title={"Create Tag"}
+            trigger={ <Button variant="outline">Create Tag</Button>}
+            dialogContentClassName="max-w-xs"
           >
             <div className='p-2'>
               <CreateTag onSuccess={close} onError={close}/>

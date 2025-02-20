@@ -18,6 +18,7 @@ import { useEffect, useState } from 'react';
 import { formatDate, formatDateTime, formatTime } from '@/lib/datetime';
 import DOMPurify from 'dompurify';
 import { StatusBadge } from '../../../components/ui/status-badge';
+import { Badge } from '@/components/ui/badge';
 
 export type IssuesListProps = {
   onIssuePrefetch?: (id: string) => void;
@@ -96,7 +97,38 @@ export const IssuesList = ({
     {
       accessorKey: "title",
       header : 'Title',
+      meta :{ cellClassName :  "max-w-[40vh]" },
       cell : ({row}) => {
+        const issue = row.original;
+
+        return (
+          <div>
+            <p>{issue.title}</p>
+            
+            {issue.tags && 
+            <div className="flex flex-wrap gap-1 mt-1">
+              {issue.tags.map((tag) => (
+                <Badge key={tag.id} variant="outline" className="text-xs text-nowrap" 
+                  style={{
+                    ...(tag.color && {
+                      backgroundColor: tag.color,
+                      color: "#fff",
+                      border: "1px solid transparent", 
+                    }),
+                  }}>
+                  {tag.name}
+                </Badge>
+              ))}
+            </div>}
+          </div> 
+        )
+      }
+    },
+    {
+      accessorKey: "description",
+      header: "Description",
+      meta :{ cellClassName :  "max-w-[40vh] " },
+      cell: ({ row }) => {
         const issue = row.original;
         let email = '';
         let name = '';
@@ -105,20 +137,6 @@ export const IssuesList = ({
           email = issue.issuer.email;
           name = issue.issuer.name;
         }
-
-        return (
-          <div>
-            <p>{issue.title}</p>
-            {name && email && <p className='text-xs'>Created By : {name} <span className='text-xs text-gray-600'>{email}</span></p>}
-          </div> 
-        )
-      }
-    },
-    {
-      accessorKey: "description",
-      header: "Description",
-      cell: ({ row }) => {
-        const issue = row.original;
         const sanitizedContent = DOMPurify.sanitize(issue?.description ?? '');
         
         const [expanded, setExpanded] = useState(false);
@@ -132,6 +150,7 @@ export const IssuesList = ({
               dangerouslySetInnerHTML={{ __html: expanded ? sanitizedContent : shortContent }} 
               className="max-w-xs overflow-hidden text-sm"
             />
+            {name && email && <p className='text-xs'>Created By : {name} <span className='text-xs text-gray-600'>{email}</span></p>}
             {sanitizedContent.length > 200 && (
               <Button 
                 variant="link"
@@ -145,7 +164,6 @@ export const IssuesList = ({
         );
       }
     },
-    
     {
       accessorKey: "dueDate",
       header : 'Due Date',
@@ -154,14 +172,6 @@ export const IssuesList = ({
         if(!issue.dueDate) return '-';
         
         return <span className='text-xs text-nowrap'>{formatDate(issue.dueDate)}</span>
-      }
-    },
-    {
-      accessorKey: "status",
-      header : 'Status',
-      cell : ({row}) => {
-        const issue = row.original;
-        return <StatusBadge status={issue.status}/>
       }
     },
     {

@@ -133,7 +133,8 @@ namespace App\Models\Logs{
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property int|null $user_id
  * @property string|null $user_type
- * @property-read \Illuminate\Database\Eloquent\Model|\Eloquent|null $issuer
+ * @property-read \App\Models\Issue $issue
+ * @property-read \Illuminate\Database\Eloquent\Model|\Eloquent|null $user
  * @method static \Illuminate\Database\Eloquent\Builder<static>|IssueLog newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|IssueLog newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|IssueLog query()
@@ -158,6 +159,7 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property string|null $color
+ * @property bool $is_public
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Issue> $issues
  * @property-read int|null $issues_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Tag newModelQuery()
@@ -166,6 +168,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Tag whereColor($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Tag whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Tag whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Tag whereIsPublic($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Tag whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Tag whereUpdatedAt($value)
  */

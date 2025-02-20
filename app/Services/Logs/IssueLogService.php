@@ -2,26 +2,33 @@
 
 namespace App\Services\Logs;
 
-use App\Interfaces\Logs\IssueLogRepositoryInterface;
 use App\Models\Logs\IssueLog;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
+use App\Helpers\QueryProcessor;
 
 class IssueLogService
 {
     protected $model;
-    protected $issueLogRepository;
 
     public function __construct(
         IssueLog $model,
-        IssueLogRepositoryInterface $issueLogRepository,
     )
     {
         $this->model = $model;
-        $this->issueLogRepository = $issueLogRepository;
     }
+
+    
+    public function getRelatedData()
+    {
+        return [
+            'issue',
+            'user'
+        ];
+    }
+    
     /**
      * Create a new issue log entry.
      *
@@ -49,7 +56,7 @@ class IssueLogService
     {
         try {
             // Find the issue log by ID
-            $log = IssueLog::findOrFail($logId);
+            $log = $this->model->findOrFail($logId);
             $log->update($data);
             return $log;
         } catch (\Exception $e) {
@@ -67,9 +74,13 @@ class IssueLogService
     public function getIssueLogs(int $issueId, array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
     {
         try {
-            $logs = $this->issueLogRepository->getQuery($filters, $sorts, [ 'user' ])->where('issue_logs.issue_id',$issueId)->paginate($perPage);
+            $query = $this->model->newQuery();
+    
+            $query = QueryProcessor::applyFilters($query, $filters)->where('issue_logs.issue_id',$issueId);
+            $query = QueryProcessor::applySorts($query, $sorts);
 
-            return $logs;
+            $query->with([ 'user' ]);
+            return $perPage ? $query->paginate($perPage) : $query->get();
         } catch (\Exception $e) {
             Log::error('Error retrieving Issue Logs for Issue ID ' . $issueId . ': ' . $e->getMessage());
             throw new \Exception('Unable to retrieve issue logs.');

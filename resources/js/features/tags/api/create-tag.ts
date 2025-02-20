@@ -12,6 +12,7 @@ import { getTagsQueryOptions } from './get-tags';
 export const createTagInputSchema = z.object({
   name: z.string().min(1, { message: 'Name is required.' }),
   color: z.string().optional(),
+  isPublic: z.boolean().default(false),
 });
 
 export type CreateTagInput = z.infer<typeof createTagInputSchema>;

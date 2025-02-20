@@ -9,7 +9,7 @@ class Tag extends Model
     protected $table = 'tags';
     public $timestamps = true;
 
-    protected $fillable = ['name', 'color'];
+    protected $fillable = ['name', 'color','is_public'];
 
 
     public function issues()

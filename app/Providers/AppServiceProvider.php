@@ -7,16 +7,6 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Support\Facades\RateLimiter;
 
-use App\Interfaces\FilterableRepositoryInterface;
-use App\Repositories\FilterableRepository;
-
-use App\Interfaces\UserRepositoryInterface;
-use App\Repositories\UserRepository;
-
-
-use App\Interfaces\Logs\IssueLogRepositoryInterface;
-use App\Repositories\Logs\IssueLogRepository;
-
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\DateTimeHelper;
 
@@ -29,8 +19,6 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->bind(UserRepositoryInterface::class,UserRepository::class);
-        $this->app->bind(IssueLogRepositoryInterface::class,IssueLogRepository::class);
     }
 
     /**

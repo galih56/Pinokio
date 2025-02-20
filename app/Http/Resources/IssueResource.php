@@ -17,21 +17,25 @@ class IssueResource extends JsonResource
     {
         $hashid = new HashIdService();
 
-        $data = [
+        return [
             'id' => $hashid->encode($this->id), 
             'title' => $this->title,
             'status' => $this->status,
-            'issuer' => $this->whenLoaded('issuer', fn() => ([
+            'issuer' => $this->whenLoaded('issuer', fn() => [
                 'id' => $hashid->encode($this->issuer->id), 
                 'email' => $this->issuer->email,
                 'name' => $this->issuer->name,
-            ])),    
+            ]),   
+            'tags' => $this->whenLoaded('tags', fn() => $this->tags->map(fn($tag) => [
+                'id' => $hashid->encode($tag->id), 
+                'name' => $tag->name,
+                'color' => $tag->color,
+            ])),     
             'description' => $this->description,
             'due_date' => $this->due_date,
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at,
         ];
-        
-        return $data;
     }
+
 }

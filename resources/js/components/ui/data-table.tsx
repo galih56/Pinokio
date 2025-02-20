@@ -26,6 +26,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { ScrollArea, ScrollBar } from "./scroll-area";
 
 
 interface ColumnMeta {
@@ -71,10 +72,10 @@ export function DataTable<TData, TValue>({
     onPaginationChange?.(page);
   };
 
-  return (
-    <div>
-      <div className="rounded-md border">
-        <Table>
+  return (<div className="w-full">
+    <ScrollArea>
+      <div className="overflow-x-auto rounded-md border">
+        <Table className="min-w-max">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
@@ -84,12 +85,9 @@ export function DataTable<TData, TValue>({
                     <TableHead key={header.id} className={headerClass}>
                       {header.isPlaceholder
                         ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                        : flexRender(header.column.columnDef.header, header.getContext())}
                     </TableHead>
-                  )
+                  );
                 })}
               </TableRow>
             ))}
@@ -97,18 +95,14 @@ export function DataTable<TData, TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => {                  
+                <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                  {row.getVisibleCells().map((cell) => {
                     const cellClass = cell.column.columnDef.meta?.cellClassName || "";
-
                     return (
                       <TableCell key={cell.id} className={cellClass}>
                         {flexRender(cell.column.columnDef.cell, cell.getContext())}
                       </TableCell>
-                    )
+                    );
                   })}
                 </TableRow>
               ))
@@ -122,13 +116,11 @@ export function DataTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-       
-      {pagination && (
-        <DataTablePagination 
-          pagination={pagination} 
-          onPageChange={onPageChange} />
-      )}
-    </div>
+      <ScrollBar orientation="horizontal" />
+    </ScrollArea>
+  
+    {pagination && <DataTablePagination pagination={pagination} onPageChange={onPageChange} />}
+  </div>
   )
 }
 

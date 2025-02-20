@@ -19,11 +19,12 @@ class QueryProcessor
                         self::applyRelatedFilter($q, $field, $value, 'orWhereHas');
                     } else {
                         $segments = explode(':', $field);
-                        $columns = explode(',', $segments[0]); // Columns to compare (e.g., 'name,description')
-                        $operator = $segments[1] ?? '='; // Default operator '='
+                        $table_name = $segments[0];
+                        $columns = explode(',', $segments[1]); // Columns to compare (e.g., 'name,description')
+                        $operator = $segments[2] ?? '='; // Default operator '='
 
                         foreach ($columns as $column) {
-                            self::applyCondition($q, $column, $value, 'orWhere', $operator);
+                            self::applyCondition($q, 'orWhere',$column, $value,  $operator);
                         }
                     }
                 }
@@ -52,7 +53,7 @@ class QueryProcessor
 
             $query->{$method}($relation, function ($q) use ($columnsArray, $operator, $value) {
                 foreach ($columnsArray as $column) {
-                    self::applyCondition($q, $column, $value, 'where', $operator);
+                    self::applyCondition($q, 'where', $column, $value, $operator);
                 }
             });
         } else {
@@ -60,8 +61,9 @@ class QueryProcessor
         }
     }
 
-    public static function applyCondition(Builder $query, string $field, $value, string $method, string $operator = '='): void
+    public static function applyCondition(Builder $query, string $method, string $field, $value, string $operator = '='): void
     {
+
         switch ($operator) {
             case 'like':
                 $query->{$method}(DB::raw("LOWER($field)"), 'like', "%".strtolower($value)."%");

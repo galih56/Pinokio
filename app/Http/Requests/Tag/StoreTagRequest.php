@@ -14,18 +14,21 @@ class StoreTagRequest extends FormRequest
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
-    public function rules(): array
+    public function rules()
     {
-        
         return [
-            'start' => 'nullable|date_format:Y-m-d H:i:s', 
-            'end' => 'nullable|date_format:Y-m-d H:i:s|after_or_equal:check_in',
-            'description' => ['nullable'],
+            'name' => ['required', 'string', 'max:255'],
+            'color' => ['nullable', 'string', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'], // Validates hex color
+            'isPublic' => ['boolean'],
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'name.required' => 'Tag name is required.',
+            'color.regex' => 'Invalid color format. Please use a valid HEX color code.',
+            'isPublic.boolean' => 'Invalid value for public availability.',
         ];
     }
 }

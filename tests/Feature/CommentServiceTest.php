@@ -38,7 +38,7 @@ class CommentServiceTest extends TestCase
         ];
 
         // Create the comment
-        $comment = $this->commentService->createIssue($data);
+        $comment = $this->commentService->create($data);
 
         // Assertions
         $this->assertInstanceOf(Comment::class, $comment);
@@ -61,7 +61,7 @@ class CommentServiceTest extends TestCase
         ];
 
         // Create the comment
-        $comment = $this->commentService->createIssue($data);
+        $comment = $this->commentService->create($data);
 
         // Assertions
         $this->assertInstanceOf(Comment::class, $comment);
@@ -140,6 +140,6 @@ class CommentServiceTest extends TestCase
         $this->expectException(\Exception::class);
 
         // Attempt to create the comment
-        $this->commentService->createIssue($data);
+        $this->commentService->create($data);
     }
 }

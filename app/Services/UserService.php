@@ -2,49 +2,50 @@
 
 namespace App\Services;
 
-use App\Models\Tag;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\QueryProcessor;
 
-class TagService
+class UserService
 {
-    protected Tag $model;
+    protected User $model;
 
     public function getRelatedData()
     {
         return [
-            'issues',
+            'role',
         ];
     }
 
     public function __construct(
-        Tag $model,
+        User $model,
     )
     {
         $this->model = $model;
     }
 
-    public function get(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
+    public function getAllUsers(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
     {
         $query = $this->model->newQuery();
 
         $query = QueryProcessor::applyFilters($query, $filters);
         $query = QueryProcessor::applySorts($query, $sorts);
+        $query->with($this->getRelatedData());
 
         return $perPage ? $query->paginate($perPage) : $query->get();
     }
-    public function getTagById(int $id): ?Tag
+    public function getUserById(int $id): ?User
     {
-        $this->model = Tag::findOrFail($id);
+        $this->model = User::findOrFail($id);
         return $this->model;
     }
 
     /**
      * Create a new tag.
      */
-    public function create(array $data): Tag
+    public function create(array $data): User
     {
         $this->model = $this->model->create($data);
         return $this->model;
@@ -53,7 +54,7 @@ class TagService
     /**
      * Update an existing tag.
      */
-    public function update(int $id, array $data): Tag
+    public function updateUser(int $id, array $data): User
     {
         $model = $this->model->find($id);
         $model->update($data);
@@ -63,7 +64,7 @@ class TagService
     /**
      * Delete a tag.
      */
-    public function delete(int $id): bool
+    public function deleteUser(int $id): bool
     {
         $model = $this->model->find($id);
         return $model->delete();
@@ -72,7 +73,7 @@ class TagService
     /**
      * Attach a tag to an issue.
      */
-    public function attachTagToIssue(int $tagId, int $issueId): void
+    public function attachUserToIssue(int $tagId, int $issueId): void
     {
         DB::table('issue_tag')->insert([
             'tag_id' => $tagId,
@@ -83,7 +84,7 @@ class TagService
     /**
      * Detach a tag from an issue.
      */
-    public function detachTagFromIssue(int $tagId, int $issueId): void
+    public function detachUserFromIssue(int $tagId, int $issueId): void
     {
         DB::table('issue_tag')
             ->where('tag_id', $tagId)

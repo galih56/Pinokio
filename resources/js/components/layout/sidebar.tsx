@@ -35,7 +35,7 @@ export function AppSidebar({ navigationItems } : SidebarType) {
   const isMobile = useMediaQuery("(max-width: 768px)"); 
   
   return (
-    <Sidebar>
+    <Sidebar className="z-50">
       <SidebarHeader className="items-center">
         <Logo/>
       </SidebarHeader>

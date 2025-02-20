@@ -39,7 +39,7 @@ class IssueController extends Controller
     public function storePublicIssue(StorePublicIssueRequest $request)
     {
         try {
-            $issue = $this->issueService->createIssue($request->validated());
+            $issue = $this->issueService->create($request->validated());
 
             return ApiResponse::sendResponse($issue, 'Issue Create Successful', 'success', 201);
         } catch (\Exception $ex) {
@@ -86,7 +86,7 @@ class IssueController extends Controller
 
     public function getPublicIssue($id)
     {
-        $issue = $this->issueService->getIssueById($id);
+        $issue = $this->issueService->getById($id);
 
         return ApiResponse::sendResponse(new IssueResource($issue), '', 'success', 200);
     }
@@ -102,16 +102,16 @@ class IssueController extends Controller
         $prepare_search = [];
         if ($search) {
             $prepare_search[] = [
-                'issues.title:like' => $search,
-                'issues.description:like' => $search,
-                'with:tags.name:like' => $search,
-                'with:guestIssuer.email:like' => $search,
+                'issues:title:like' => $search,
+                'issues:description:like' => $search,
+                'with:tags:name:like' => $search,
+                'with:issuer:email:like' => $search,
             ];
         }
 
         $per_page = $request->query('per_page') ?? 0;
 
-        $data = $this->issueService->getAllIssues($prepare_search, $per_page);
+        $data = $this->issueService->get($prepare_search, $per_page);
 
         if ($per_page) {
             $issues = [
@@ -133,7 +133,7 @@ class IssueController extends Controller
     public function store(StoreIssueRequest $request)
     {
         try {
-            $issue = $this->issueService->createIssue($request->validated());
+            $issue = $this->issueService->create($request->validated());
 
             return ApiResponse::sendResponse($issue, 'Issue Create Successful', 'success', 201);
         } catch (\Exception $ex) {
@@ -146,7 +146,7 @@ class IssueController extends Controller
      */
     public function show($id)
     {
-        $issue = $this->issueService->getIssueById($id);
+        $issue = $this->issueService->getById($id);
 
         return ApiResponse::sendResponse(new IssueResource($issue), '', 'success', 200);
     }
@@ -157,7 +157,7 @@ class IssueController extends Controller
     public function update($id, UpdateIssueRequest $request)
     {
         try {
-            $issue = $this->issueService->updateIssue($id, $request->validated());
+            $issue = $this->issueService->update($id, $request->validated());
 
             return ApiResponse::sendResponse($issue, 'Issue Update Successful', 'success', 201);
         } catch (\Exception $ex) {
@@ -194,7 +194,7 @@ class IssueController extends Controller
      */
     public function destroy($id)
     {
-        $this->issueService->deleteIssue($id);
+        $this->issueService->delete($id);
 
         return ApiResponse::sendResponse('Issue Delete Successful', '', 204);
     }

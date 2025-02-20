@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Interfaces\Logs\IssueLogRepositoryInterface;
 use App\Models\Issue;
 use App\Models\User;
 use App\Models\GestIssuer;
@@ -44,7 +43,7 @@ class IssueService
         ];
     }
     
-    public function createIssue(array $data): Issue
+    public function create(array $data): Issue
     {
         try {
             $issuer = null;
@@ -101,7 +100,7 @@ class IssueService
         }
     }
 
-    public function updateIssue(int $id, array $data): Issue
+    public function update(int $id, array $data): Issue
     {
         try {
             $data = $this->prepareIssueData($data);
@@ -169,7 +168,7 @@ class IssueService
     }
 
 
-    public function deleteIssue(int $id): bool
+    public function delete(int $id): bool
     {
         try {
             $this->model = $this->model->find($id);
@@ -191,7 +190,7 @@ class IssueService
         }
     }
 
-    public function getAllIssues(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
+    public function get(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
     {
         $query = $this->model->newQuery();
 
@@ -216,7 +215,7 @@ class IssueService
         return $query->paginate($perPage);
     }
 
-    public function getIssueById(int $id): ?Issue
+    public function getById(int $id): ?Issue
     {
         return Issue::with($this->getRelatedData())->findOrFail($id);
     }

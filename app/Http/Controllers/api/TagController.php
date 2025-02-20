@@ -26,9 +26,23 @@ class TagController extends Controller
     {
         $perPage = $request->query('per_page') ?? 0;
 
-        $filters = [];
+        $search = $request->query('search');
 
-        $data = $this->tagService->getAllTags($filters, $perPage, []);
+
+        $prepare_search = [];
+        if ($search) {
+            $prepare_search[] = [
+                'tags:name:like' => $search,
+            ];
+        }
+
+        if(empty(auth()->check())){
+            $prepare_search[] = [
+                'tags:is_public:=' => true,
+            ];
+        }
+
+        $data = $this->tagService->get($prepare_search, $perPage, []);
 
         if($perPage){
             $tags = [
@@ -46,7 +60,6 @@ class TagController extends Controller
             $tags = TagResource::collection($data);
             return ApiResponse::sendResponse($tags,'','success', 200);
         }
-
     }
 
     /**
@@ -101,7 +114,7 @@ class TagController extends Controller
      */
     public function destroy($id)
     {
-        $this->tagService->delete($id);
+        $this->tagService->deleteTag($id);
         
         return ApiResponse::sendResponse('Tag Deleted Successful','',204);
     }

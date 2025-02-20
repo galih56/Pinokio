@@ -8,18 +8,18 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\UserResource;
-use App\Interfaces\UserRepositoryInterface;
+use App\Services\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
     
-    private UserRepositoryInterface $userRepository;
+    private UserService $userService;
     
-    public function __construct(UserRepositoryInterface $userRepository)
+    public function __construct(UserService $userService)
     {
-        $this->userRepository = $userRepository;
+        $this->userService = $userService;
     }
 
     /**
@@ -28,7 +28,7 @@ class UserController extends Controller
     public function index(Request $request)
     {
         $perPage = $request->query('per_page') ?? 0;
-        $data = $this->userRepository->get([], $perPage);
+        $data = $this->userService->get([], $perPage);
 
         if($perPage){
             $users = [
@@ -58,7 +58,7 @@ class UserController extends Controller
         $data = $request->all();
 
         try{
-            $user = $this->userRepository->create($data);
+            $user = $this->userService->getTagById($data);
 
             DB::commit();
             return ApiResponse::sendResponse(new UserResource($user),'User Create Successful','success', 201);
@@ -72,7 +72,7 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = $this->userRepository->find($id);
+        $user = $this->userService->getTagById($id);
 
         return ApiResponse::sendResponse(new UserResource($user),'', 'success', 200);
     }
@@ -85,7 +85,7 @@ class UserController extends Controller
     {
         DB::beginTransaction();
         try{
-            $user = $this->userRepository->update($id, $request->all());
+            $user = $this->userService->update($id, $request->all());
 
             DB::commit();
             return ApiResponse::sendResponse( $user , 'User Successful','success',201);
@@ -100,14 +100,14 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $this->userRepository->delete($id);
+        $this->userService->deleteUser($id);
         
         return ApiResponse::sendResponse('User Delete Successful','',204);
     }
 
     public function getUserRoles()
     {
-        $data = $this->userRepository->getUserRoles();
+        $data = $this->userService->getUserRoles();
 
         return ApiResponse::sendResponse($data,'','success', 200);
     }

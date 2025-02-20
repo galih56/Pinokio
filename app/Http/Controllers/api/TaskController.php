@@ -79,9 +79,9 @@ class TaskController extends Controller
         $prepare_search = [];
         if ($search) {
             $prepare_search[] = [
-                'tasks.title:like' => $search,
-                'tasks.description:like' => $search,
-                'with:tags.name:like' => $search,
+                'tasks:title:like' => $search,
+                'tasks:description:like' => $search,
+                'with:tags:name:like' => $search,
             ];
         }
 
