@@ -6,8 +6,8 @@ import { DataTable } from "@/components/ui/data-table";
 import { ColumnDef } from "@tanstack/react-table";
 import { Issue } from "@/types/api";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { ArrowUpDown, MoreHorizontal, SaveIcon } from "lucide-react";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { ArrowUpDown, MoreHorizontal, SaveIcon, Undo2Icon } from "lucide-react";
 import { Link } from "@/components/ui/link";
 import { paths } from "@/apps/issue-tracker/paths";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,6 +21,7 @@ import DialogOrDrawer from "@/components/layout/dialog-or-drawer";
 import { isValidEmail } from "@/lib/common";
 import { getPublicIssueQueryOptions } from "../api/get-public-issue";
 import DOMPurify from 'dompurify';
+import { cn } from "@/lib/utils";
 
 export type PublicIssuesProps = {
   onIssuePrefetch?: (id: string) => void;
@@ -177,6 +178,19 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
     issuesQuery.refetch();
   };
 
+  const BackToLoginLink = () => {
+    return (
+    
+      <a
+          href={import.meta.env.VITE_BASE_URL + "/auth/login"}
+          className={cn(buttonVariants({ variant: 'ghost' }))}
+          >
+          <Undo2Icon className="mr-2 h-4 w-4" />
+          Back to Login Page
+      </a>
+    )
+  }
+
   if (isIdentityEmpty || !guestIssuerInfoSaved) {
     return (
       <div className="flex items-center justify-center w-full min-h-[60vh]">
@@ -194,6 +208,7 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
           <Button className="mt-4" onClick={handleFetchIssues}>
             <SaveIcon/> Save 
           </Button>
+          <BackToLoginLink/>
         </DialogOrDrawer>
       </div>
     );
@@ -214,6 +229,7 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
         <Button className="mt-4" onClick={handleFetchIssues}>
           <SaveIcon/> Save 
         </Button>
+        <BackToLoginLink/>
       </DialogOrDrawer>
 
       {!isIdentityEmpty &&

@@ -165,6 +165,11 @@ export const IssuesList = ({
       }
     },
     {
+      accessorKey: "status",
+      header: "Status",
+      cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    },
+    {
       accessorKey: "dueDate",
       header : 'Due Date',
       cell : ({row}) => {

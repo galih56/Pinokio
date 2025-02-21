@@ -20,6 +20,7 @@ import { PasswordInput } from '@/components/ui/password-input';
 import { useState } from 'react';
 import { AlertType } from '@/types/ui';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import logo from '@/assets/logo-with-label.png';
 
 type LoginFormProps = {
   onSuccess?: () => void;
@@ -77,7 +78,12 @@ export const LoginForm = ({ onSuccess , onError}: LoginFormProps) => {
   }
 
   return (
-    <div>
+    <div> 
+      <div className="flex justify-center">
+        <Link className="flex items-center text-white" to={'/'} >
+          <img className="h-56 w-auto" src={logo} alt="Pinokio" />
+        </Link>
+      </div>
       <Form {...form}>
         {alert && 
           <Alert variant={alert.variant}>

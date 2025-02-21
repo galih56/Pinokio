@@ -9,19 +9,31 @@ import {
 import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
 import useGuestIssuerStore from "@/store/useGuestIssuer";
+import useAuth from "@/store/useAuth";
 
 export function GuestIssuerInputs() {
-  const { name, email, setName, setEmail } = useGuestIssuerStore();
+  const { authenticated, user } = useAuth();
+  const guest = useGuestIssuerStore();
   const formContext = useFormContext(); // Check if inside a form
   const control = formContext?.control;
   const setValue = formContext?.setValue;
 
   useEffect(() => {
-    if (setValue) {
-      setValue("name", name);
-      setValue("email", email);
+    guest.setName(user.name);
+    guest.setEmail(user.email);
+
+    if (control) {
+      setValue("name", user.name);
+      setValue("email", user.email);
     }
-  }, [name, email, setValue]);
+  }, [control])
+
+  useEffect(() => {
+    if (control) {
+      setValue("name", guest.name);
+      setValue("email", guest.email);
+    }
+  }, [guest.name, guest.email, control]);
 
   return (
     <div className="flex space-x-4">
@@ -40,7 +52,7 @@ export function GuestIssuerInputs() {
                     value={field.value || ""}
                     onChange={(e) => {
                       field.onChange(e.target.value);
-                      setName(e.target.value);
+                      guest.setName(e.target.value);
                     }}
                   />
                 </FormControl>
@@ -57,12 +69,12 @@ export function GuestIssuerInputs() {
                 <FormControl>
                   <Input
                     {...field}
-                    type="email"
+                    type="guest.email"
                     placeholder="Email"
                     value={field.value || ""}
                     onChange={(e) => {
                       field.onChange(e.target.value);
-                      setEmail(e.target.value);
+                      guest.setEmail(e.target.value);
                     }}
                   />
                 </FormControl>
@@ -78,17 +90,17 @@ export function GuestIssuerInputs() {
             <label className="block text-sm font-medium">Name</label>
             <Input
               placeholder="Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={guest.name}
+              onChange={(e) => guest.setName(e.target.value)}
             />
           </div>
           <div className="flex-grow">
             <label className="block text-sm font-medium">Email</label>
             <Input
-              type="email"
+              type="guest.email"
               placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={guest.email}
+              onChange={(e) => guest.setEmail(e.target.value)}
             />
           </div>
         </>
