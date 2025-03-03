@@ -11,6 +11,7 @@ import { getTagsQueryOptions } from './get-tags';
 export const updateTagInputSchema = z.object({
   name: z.string().min(1, { message: 'Name is required.' }),
   color: z.string().optional(),
+  isPublic: z.boolean().default(false),
 });
 
 export type UpdateTagInput = z.infer<typeof updateTagInputSchema>;
@@ -27,16 +28,16 @@ export const updateTag = ({
 
 type UseUpdateTagOptions = {
   tagId: string;
-  mutationConfig?: MutationConfig<typeof updateTag>;
+  config?: MutationConfig<typeof updateTag>;
 };
 
 export const useUpdateTag = ({
   tagId,
-  mutationConfig,
+  config,
 }: UseUpdateTagOptions) => {
   const queryClient = useQueryClient();
 
-  const { onSuccess, ...restConfig } = mutationConfig || {};
+  const { onSuccess, ...restConfig } = config || {};
 
   return useMutation({
     onSuccess: (res : any, ...args ) => {

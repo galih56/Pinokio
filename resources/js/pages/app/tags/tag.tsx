@@ -37,13 +37,15 @@ export const TagRoute = () => {
 
   return (
     <div className='mt-6'>
-        <DialogOrDrawer 
-          title={"Edit Tag"}
-          description={"Pastikan data yang anda masukan sudah benar sesuai!"}
-          trigger={ <Button variant="outline"> <Edit/> Edit Tag</Button>}
-          >
-            <UpdateTag tagId={tagId}/>
-        </DialogOrDrawer>
+        {
+          tagId && 
+          <DialogOrDrawer 
+            title={"Edit Tag"}
+            description={"Pastikan data yang anda masukan sudah benar sesuai!"}
+            trigger={ <Button variant="outline"> <Edit/> Edit Tag</Button>}
+            >
+              <UpdateTag tagId={tagId}/>
+          </DialogOrDrawer>}
         <TagView tagId={tagId} />
         <div className="mt-8">
           <ErrorBoundary

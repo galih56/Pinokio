@@ -15,23 +15,21 @@ export const ColorPickerPopover = ({
   onChange,
   triggerLabel = "",
 }: ColorPickerPopoverProps) => {
-  const [currentColor, setCurrentColor] = useState(value);
 
   const handleColorChange = (color: string) => {
-    setCurrentColor(color);
     onChange(color); // Propagate the change to the parent component
   };
 
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" style={{ backgroundColor: currentColor }} className={clsx("rounded-xl border-gray-500 border-solid", (triggerLabel ?? ""))}>
+        <Button variant="outline" style={{ backgroundColor: value }} className={clsx("rounded-xl border-gray-500 border-solid", (triggerLabel ?? ""))}>
           {triggerLabel}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-2">
         <CirclePicker
-          color={currentColor}
+          color={value}
           onChangeComplete={(color) => handleColorChange(color.hex)} // Update state and propagate
         />
       </PopoverContent>

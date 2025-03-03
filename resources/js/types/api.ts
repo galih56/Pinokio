@@ -98,6 +98,7 @@ export interface Tag {
     id: string;
     name: string;
     color: string;
+    isPublic: boolean;
     issues?: Issue[];
     createdAt: Date;
 }

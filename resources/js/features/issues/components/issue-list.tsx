@@ -222,7 +222,7 @@ export const IssuesList = ({
                 perPage: meta.perPage,
                 totalCount: meta.totalCount,
                 currentPage: meta.currentPage,
-                rootUrl: '',
+                rootUrl: import.meta.env.VITE_BASE_URL,
               }
             } 
             onPaginationChange={onPageChange}

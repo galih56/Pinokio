@@ -28,9 +28,12 @@ import { z } from "zod";
 import { DialogFooter } from '@/components/ui/dialog';
 import { CirclePicker } from 'react-color';
 import { ColorPickerPopover } from '@/components/ui/color-picker-popover';
+import { Checkbox } from '@/components/ui/checkbox';
+import { useEffect } from 'react';
+import { Spinner } from '@/components/ui/spinner';
 
 type UpdateTagProps = {
-  tagId: string | undefined;
+  tagId: string;
   onSuccess? : ( ) => void;
   onError? : ( ) => void;
 };
@@ -38,13 +41,10 @@ type UpdateTagProps = {
 export const UpdateTag = ({ tagId , onSuccess, onError}: UpdateTagProps) => {
   const { addNotification } = useNotifications();
 
-  if (!tagId) {
-    return null;
-  }
-
   const tagQuery = useTag({ tagId });
   const updateTagMutation = useUpdateTag({
-    mutationConfig: {
+    tagId : tagId,
+    config: {
       onSuccess: onSuccess,
       onError: onError,
     },
@@ -52,18 +52,24 @@ export const UpdateTag = ({ tagId , onSuccess, onError}: UpdateTagProps) => {
 
   const tag = tagQuery.data?.data;
 
-  if (!tag || tagQuery.isPending) {
-    return null;
-  }
-
-
   const form = useForm<z.infer<typeof updateTagInputSchema>>({
     resolver: zodResolver(updateTagInputSchema),
     defaultValues: {
       name: tag?.name,        // Set default value for name
       color: tag?.color || '#ffffff', // Set default color (fallback to white)
+      isPublic : Boolean(tag?.isPublic),
     },
   });
+
+  useEffect(() => {
+    if (tag) {
+      form.reset({
+        name: tag?.name || "",
+        color: tag?.color || "#ffffff",
+        isPublic: Boolean(tag?.isPublic),
+      });
+    }
+  }, [tag, form.reset]);
 
   async function onSubmit(values: z.infer<typeof updateTagInputSchema>) {
     const isValid = await form.trigger();
@@ -78,10 +84,26 @@ export const UpdateTag = ({ tagId , onSuccess, onError}: UpdateTagProps) => {
     updateTagMutation.mutate({ data: values, tagId: tag?.id! });
   }
 
+  if(tagQuery.isPending){
+    return (
+      <div className="flex h-48 w-full items-center justify-center">
+        <Spinner size="lg" />
+      </div>
+    )
+  }
+
+  if (!tag) {
+    return null;
+  }
+  console.log({
+    name: tag?.name,        // Set default value for name
+    color: tag?.color || '#ffffff', // Set default color (fallback to white)
+    isPublic : Boolean(tag?.isPublic),
+  })
   return (
     <Authorization allowedRoles={[ROLES.ADMIN]}>
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-2'>
           {/* Name Field */}
           <FormField
             control={form.control}
@@ -114,7 +136,26 @@ export const UpdateTag = ({ tagId , onSuccess, onError}: UpdateTagProps) => {
               </FormItem>
             )}
           />
-
+          <FormField
+            control={form.control}
+            name="isPublic"
+            render={({ field }) => (
+              <FormItem className="mt-2 flex flex-row items-center space-x-3 rounded-md border p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div>
+                  <FormLabel>Make this tag public?</FormLabel>
+                  <p className="text-sm text-muted-foreground">
+                    Public tags can be used for everyone (On public form).
+                  </p>
+                </div>
+              </FormItem>
+            )}
+          />
           <DialogFooter className="my-4">
             <Button type="submit" isLoading={updateTagMutation.isPending}>
               Submit

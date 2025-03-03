@@ -1,10 +1,11 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 
-// Define the store's state and actions
 interface GuestIssuerState {
+  loggedIn: boolean;
   name: string;
   email: string;
+  setLoggedIn: (loggedIn: boolean) => void;
   setName: (name: string) => void;
   setEmail: (email: string) => void;
   clearUser: () => void;
@@ -13,11 +14,13 @@ interface GuestIssuerState {
 const useGuestIssuerStore = create<GuestIssuerState>()(
   persist(
     (set) => ({
+      loggedIn: false,
       name: "",
       email: "",
+      setLoggedIn: (loggedIn) => set({ loggedIn }),
       setName: (name) => set({ name }),
       setEmail: (email) => set({ email }),
-      clearUser: () => set({ name: "", email: "" }),
+      clearUser: () => set({ name: "", email: "" , loggedIn : false }),
     }),
     {
         name: 'PINOKIO-GUEST-USER',

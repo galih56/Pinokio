@@ -8,7 +8,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Tag } from "@/types/api"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { ArrowUpDown, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, CheckIcon, MoreHorizontal } from "lucide-react"
 import { getTagQueryOptions } from "../api/get-tag"
 import { Link } from '@/components/ui/link';
 import { paths } from '@/apps/dashboard/paths';
@@ -110,6 +110,25 @@ export const TagsList = ({
 
           </div>
         )
+      }
+    },
+    {
+      accessorKey: "Available Guest User",
+      header : 'Available for Guest User',
+      meta : {
+        headerClassName : 'text-center',
+        cellClassName : 'flex justify-center'
+      },
+      cell :  ({ row }) => {
+        const tag = row.original
+
+        if(tag.isPublic){
+          return (
+            <CheckIcon className='h-6 w-6 text-green-700' />
+          )
+        }else{
+          return  null;
+        }
       }
     },
   ]

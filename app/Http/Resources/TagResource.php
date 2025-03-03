@@ -22,6 +22,7 @@ class TagResource extends JsonResource
             'id' => $hashid->encode($this->id), 
             'name' => $this->name,
             'color' => $this->color,
+            'is_public' => $this->is_public,
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at,
         ];

@@ -34,14 +34,13 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
   const currentPage = +(searchParams.get("page") || 1);
   const search = searchParams.get("search") || "";
 
-  const { name, email } = useGuestIssuerStore();
+  const { loggedIn, setLoggedIn, name, email } = useGuestIssuerStore();
   const [searchTerm, setSearchTerm] = useState(search);
   const isIdentityEmpty = !(name && email);
   const [showDialog, setShowDialog] = useState(isIdentityEmpty);
-  const [guestIssuerInfoSaved, setGuestIssuerInfoSaved] = useState(!isIdentityEmpty);
 
   // Ensure query only runs when name & email are confirmed
-  const issuerInfo = guestIssuerInfoSaved ? { name, email } : null;
+  const issuerInfo = loggedIn ? { name, email } : null;
 
   const issuesQuery = usePublicIssues({
     page: currentPage,
@@ -57,7 +56,7 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
 
   const handleFetchIssues = () => {
     if (name && isValidEmail(email)) {
-      setGuestIssuerInfoSaved(true); // Enable query only after confirming details
+      setLoggedIn(true); // Enable query only after confirming details
       setShowDialog(false);
     } else {
       alert("Please enter a valid name and email.");
@@ -117,7 +116,10 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
     {
       accessorKey: "dueDate",
       header: "Due Date",
-      cell: ({ row }) => <span className="text-xs text-nowrap">{formatDate(row.original.dueDate) || "-"}</span>,
+      cell: ({ row }) => {
+        if(!row.original.dueDate) return '-';
+        return ( <span className="text-xs text-nowrap">{formatDate(row.original.dueDate) || "-"}</span>)
+      },
     },
     {
       accessorKey: "status",
@@ -149,7 +151,7 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
     </a>
   );
 
-  if (isIdentityEmpty || !guestIssuerInfoSaved) {
+  if (isIdentityEmpty || !loggedIn) {
     return (
       <div className="flex items-center justify-center w-full min-h-[60vh]">
         <Button onClick={() => setShowDialog(true)}>Please tell us your name and email</Button>
@@ -186,8 +188,18 @@ export const PublicIssues = ({ onIssuePrefetch }: PublicIssuesProps) => {
 
       {issuesQuery.isPending ? (
         <Skeleton className="w-full min-h-[60vh]" />
-      ) : issues.length > 0 ? (
-        <DataTable data={issues} columns={columns} pagination={{ totalPages: meta?.totalPages, currentPage: meta?.currentPage, onPageChange }} />
+      ) : issues.length > 0  && meta?.totalPages ? (
+        <DataTable data={issues} columns={columns} 
+          pagination={
+            meta && { 
+              perPage: meta.perPage,
+              totalCount: meta.totalCount,
+              totalPages: meta?.totalPages, 
+              currentPage: meta?.currentPage,
+              rootUrl : import.meta.env.VITE_BASE_URL 
+            }
+          }  
+          onPaginationChange={onPageChange}/>
       ) : (
         <div className="flex items-center justify-center w-full min-h-[60vh]">
           <p className="text-gray-500">No issues found.</p>

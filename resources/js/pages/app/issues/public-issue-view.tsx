@@ -7,7 +7,7 @@ import {
 } from '@/features/issues/api/get-public-issue';
 import { PublicIssueView } from '@/features/issues/components/public-issue-view';
 import { Button } from '@/components/ui/button';
-import { Undo2Icon } from 'lucide-react';
+import { ListTodoIcon } from 'lucide-react';
 
 export const issueLoader =
   (queryClient: QueryClient) =>
@@ -37,7 +37,7 @@ export const IssueRoute = () => {
   return (
     <>
         <Button variant={'secondary'} onClick={goBack}>
-          <Undo2Icon/>
+          <ListTodoIcon/>
           Back to The Request List
         </Button>
         <PublicIssueView issueId={issueId} />

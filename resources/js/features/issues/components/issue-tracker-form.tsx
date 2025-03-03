@@ -35,13 +35,13 @@ type CreateIssueType = {
 
 export default function IssueTrackerForm({ onSuccess, onError }: CreateIssueType) {
   const { addNotification } = useNotifications()
-  const { email, name } = useGuestIssuerStore()
-  const isIdentityKnown = Boolean(email && name)
+  const { loggedIn, setLoggedIn, email, name } = useGuestIssuerStore()
 
   const { mutate: createIssueMutation, isPending } = useCreatePublicIssue({
     mutationConfig: {
       onSuccess: () => {
         onSuccess?.()
+        setLoggedIn(true);
       },
       onError: (error: any) => {
         onError?.()
@@ -124,7 +124,7 @@ export default function IssueTrackerForm({ onSuccess, onError }: CreateIssueType
             <FormItem>
               <FormLabel>Issue Type</FormLabel>
               <FormControl>
-                <TagCombobox multiple={false} value={field.value} onChange={field.onChange} />
+                <TagCombobox  name={field.name} multiple={false} value={field.value} onChange={field.onChange} />
               </FormControl>
               <FormMessage />
             </FormItem>

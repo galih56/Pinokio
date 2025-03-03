@@ -1,104 +1,112 @@
-"use client"
-
-import { Input } from "@/components/ui/input"
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { useEffect, useCallback, useMemo } from "react"
-import { useFormContext } from "react-hook-form"
-import useGuestIssuerStore from "@/store/useGuestIssuer"
-import useAuth from "@/store/useAuth"
-import debounce from "lodash/debounce"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { z } from "zod"
-
-const guestIssuerSchema = z.object({
-  name: z.string().min(1, "Name is required"),
-  email: z.string().email("Invalid email address"),
-})
+import { Input } from "@/components/ui/input";
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { useEffect } from "react";
+import { useFormContext } from "react-hook-form";
+import useGuestIssuerStore from "@/store/useGuestIssuer";
+import useAuth from "@/store/useAuth";
 
 export function GuestIssuerInputs() {
-  const { authenticated, user } = useAuth()
-  const { name, email, setName, setEmail } = useGuestIssuerStore()
-
-  const formContext = useFormContext()
-  const control = formContext?.control
-  const setValue = formContext?.setValue
-
-  const debouncedSetName = useMemo(() => debounce(setName, 100), [setName])
-  const debouncedSetEmail = useMemo(() => debounce(setEmail, 100), [setEmail])
+  const { authenticated, user } = useAuth();
+  const guest = useGuestIssuerStore();
+  const formContext = useFormContext(); // Check if inside a form
+  const control = formContext?.control;
+  const setValue = formContext?.setValue;
 
   useEffect(() => {
-    return () => {
-      debouncedSetName.cancel()
-      debouncedSetEmail.cancel()
+    if(authenticated && user){
+      guest.setName(user.name);
+      guest.setEmail(user.email);
     }
-  }, [debouncedSetName, debouncedSetEmail])
+
+    if (control) {
+      setValue("name", user.name);
+      setValue("email", user.email);
+    }
+  }, [control])
 
   useEffect(() => {
-    if (authenticated && user) {
-      debouncedSetName(user.name)
-      debouncedSetEmail(user.email)
-
-      if (setValue) {
-        setValue("name", user.name)
-        setValue("email", user.email)
-      }
+    if (control) {
+      setValue("name", guest.name);
+      setValue("email", guest.email);
     }
-  }, [authenticated, user, setValue, debouncedSetName, debouncedSetEmail])
-
-  const handleChange = (field: "name" | "email", value: string) => {
-    if (field === "name") debouncedSetName(value)
-    else debouncedSetEmail(value)
-
-    if (setValue) {
-      setValue(field, value, { shouldValidate: true })
-    }
-  }
+  }, [guest.name, guest.email, control]);
 
   return (
     <div className="flex space-x-4">
       {control ? (
         <>
-          {(["name", "email"] as const).map((field) => (
-            <FormField
-              key={field}
-              control={control}
-              name={field}
-              render={({ field: formField }) => (
-                <FormItem className="flex-grow">
-                  <FormLabel>{field.charAt(0).toUpperCase() + field.slice(1)}</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...formField}
-                      type={field === "email" ? "email" : "text"}
-                      placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                      value={formField.value || ""}
-                      onChange={(e) => {
-                        formField.onChange(e)
-                        handleChange(field, e.target.value)
-                      }}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          ))}
+          <FormField
+            control={control}
+            name="name"
+            render={({ field }) => (
+              <FormItem className="flex-grow">
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    placeholder="Name"
+                    value={field.value || ""}
+                    onChange={(e) => {
+                      field.onChange(e.target.value);
+                      guest.setName(e.target.value);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={control}
+            name="email"
+            render={({ field }) => (
+              <FormItem className="flex-grow">
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input
+                    {...field}
+                    type="guest.email"
+                    placeholder="Email"
+                    value={field.value || ""}
+                    onChange={(e) => {
+                      field.onChange(e.target.value);
+                      guest.setEmail(e.target.value);
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         </>
       ) : (
+        // If NOT inside react-hook-form, use standalone inputs
         <>
-          {(["name", "email"] as const).map((field) => (
-            <div key={field} className="flex-grow">
-              <label className="block text-sm font-medium">{field.charAt(0).toUpperCase() + field.slice(1)}</label>
-              <Input
-                type={field === "email" ? "email" : "text"}
-                placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
-                value={field === "name" ? name : email}
-                onChange={(e) => handleChange(field, e.target.value)}
-              />
-            </div>
-          ))}
+          <div className="flex-grow">
+            <label className="block text-sm font-medium">Name</label>
+            <Input
+              placeholder="Name"
+              value={guest.name}
+              onChange={(e) => guest.setName(e.target.value)}
+            />
+          </div>
+          <div className="flex-grow">
+            <label className="block text-sm font-medium">Email</label>
+            <Input
+              type="guest.email"
+              placeholder="Email"
+              value={guest.email}
+              onChange={(e) => guest.setEmail(e.target.value)}
+            />
+          </div>
         </>
       )}
     </div>
-  )
+  );
 }
