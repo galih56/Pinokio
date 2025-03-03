@@ -6,9 +6,9 @@ import {  DataTable } from '@/components/ui/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 
 import { Issue } from "@/types/api"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { ArrowUpDown, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, MessageSquare, MessageSquareIcon, MoreHorizontal } from "lucide-react"
 import { getIssueQueryOptions } from "../api/get-issue"
 import { Link } from '@/components/ui/link';
 import { paths } from '@/apps/dashboard/paths';
@@ -94,6 +94,19 @@ export const IssuesList = ({
         )
       },
     },
+    
+    {
+      id: "view-comments",
+      cell: ({ row }) => {
+        return (
+          <>
+          <Button variant={'ghost'} >
+            <MessageSquareIcon className='h-6 w-6' />
+          </Button>
+          </>
+        )
+      },
+    },
     {
       accessorKey: "title",
       header : 'Title',
@@ -103,7 +116,15 @@ export const IssuesList = ({
 
         return (
           <div>
-            <p>{issue.title}</p>
+            <Link
+                onMouseEnter={() => {
+                  queryClient.prefetchQuery(getIssueQueryOptions(issue.id));
+                  onIssuePrefetch?.(issue.id);
+                }}
+                to={paths.issue.getHref(issue.id)}
+              >
+                <p>{issue.title}</p>
+            </Link>
             
             {issue.tags && 
             <div className="flex flex-wrap gap-1 mt-1">

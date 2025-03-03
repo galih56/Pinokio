@@ -34,14 +34,18 @@ class IssueService
         $this->issueLogService = $issueLogService;
     }
 
-    public function getRelatedData()
+    
+    public function getRelatedData(array $additionals = [])
     {
-        return [
+        $basic_relations = [
             'tags',
             'files',
             'issuer',
         ];
+
+        return array_merge($basic_relations, $additionals);
     }
+
     
     public function create(array $data): Issue
     {
@@ -198,7 +202,16 @@ class IssueService
         $query = QueryProcessor::applySorts($query, $sorts);
 
         
-        $query->with($this->getRelatedData());
+        $query->with($this->getRelatedData([
+            'comments' => function ($query) {
+                $query->whereDoesntHave('readers', function ($q) {
+                    $q->where('user_id', \Auth::id())
+                    ->whereNotNull('read_at'); // Exclude read comments
+                })
+                ->latest()
+                ->take(3); // Get last 3 unread comments
+            }
+        ]));
         
         return $perPage ? $query->paginate($perPage) : $query->get();
     }
