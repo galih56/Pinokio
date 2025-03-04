@@ -1,41 +1,39 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
-
 import { api } from '@/lib/api-client';
 import { QueryConfig } from '@/lib/react-query';
 import { Issue, Meta } from '@/types/api';
 
 type Issuer = {
-  name : string;
-  email : string;
-}
+  name: string;
+  email: string;
+};
 
 export const getPublicIssues = (
-  page = 1,
-  perPage = 15,
+  page?: number,
+  perPage?: number,
   search?: string,
-  issuer? : Issuer
-): Promise<{
-  data: Issue[];
-  meta?: Meta;
-}> => {
-  return api.get(`/public-issues`, {
-    params: {
-      page,
-      per_page: perPage,
-      search,
-      ...issuer
-    },
-  });
+  issuer?: Issuer
+): Promise<{ data: Issue[]; meta?: Meta }> => {
+  const params: Record<string, any> = { search, ...issuer };
+
+  if (page && page > 0) {
+    params.page = page;
+    params.per_page = perPage;
+  }
+
+  return api.get(`/public-issues`, { params });
 };
 
 export const getPublicIssuesQueryOptions = ({
   page,
   perPage = 15,
-  search, 
+  search = '',
   issuer,
-}: { page?: number; perPage?: number; search?: string, issuer : Issuer }) => {
+}: { page?: number; perPage?: number; search?: string; issuer?: Issuer }) => {
+  const isPaginated = !!page && page > 0;
+
   return queryOptions({
-    queryKey: ['public-issues', { page, perPage, search }],
+    queryKey: ['public-issues', { paginated: isPaginated, page, perPage, search, issuer }],
     queryFn: () => getPublicIssues(page, perPage, search, issuer),
   });
 };
@@ -43,26 +41,24 @@ export const getPublicIssuesQueryOptions = ({
 type UsePublicIssuesOptions = {
   page?: number;
   perPage?: number;
-  search?: string; 
-  issuer : Issuer;
+  search?: string;
+  issuer?: Issuer;
   queryConfig?: QueryConfig<typeof getPublicIssuesQueryOptions>;
 };
 
 export const usePublicIssues = ({
   queryConfig,
-  page = 1,
+  page,
   perPage = 15,
-  search, 
-  issuer
+  search = '',
+  issuer,
 }: UsePublicIssuesOptions) => {
   return useQuery({
-    ...getPublicIssuesQueryOptions({ page, perPage, search, issuer }), 
+    ...getPublicIssuesQueryOptions({ page, perPage, search, issuer }),
     ...queryConfig,
-    select: (data) => {
-      return {
-        data: data.data,
-        meta: data.meta,
-      };
-    },
+    select: (data) => ({
+      data: data.data,
+      meta: data.meta, // `meta` will be undefined if unpaginated
+    }),
   });
 };

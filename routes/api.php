@@ -79,6 +79,7 @@ Route::group([
 ], function () {
     Route::post('/', [CommentController::class, 'store']);
     Route::get('/{id}', [CommentController::class, 'show'])->middleware('decode_id');
+    Route::post('/{id}/read', [CommentController::class, 'markAsRead'])->middleware('decode_id');
     
     Route::get('/', [CommentController::class, 'index']);
     Route::put('/{id}', [CommentController::class, 'update']);

@@ -84,6 +84,8 @@ export interface Issue extends BaseEntity  {
     comments?: Comment[];
     tags?: Tag[];
     history?: IssueHistory[];
+    unreadCommentsCount? : number;
+    unreadComments? : Comment[];
 }
 
 export interface Task { 

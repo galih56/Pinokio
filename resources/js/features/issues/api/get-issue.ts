@@ -9,7 +9,8 @@ export const getIssue = ({
 }: {
   issueId: string;
 }): Promise<{ data: Issue }> => {
-  return api.get(`/issues/${issueId}`);
+  const res = api.get(`/issues/${issueId}`);
+  return res;
 };
 
 export const getIssueQueryOptions = (issueId: string) => {

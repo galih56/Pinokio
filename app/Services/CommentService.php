@@ -61,19 +61,16 @@ class CommentService
             $query->where('user_id', $user->id);
         })->get();
     }
-    
-    /**
-     * Mark a comment as read by a user.
-     *
-     * @param Comment $comment
-     * @param User $user
-     * @return void
-     */
-    public function markAsRead(Comment $comment, User $user)
+
+    public function markAsRead($commentId)
     {
-        $comment->readers()->syncWithoutDetaching([
-            $user->id => ['read_at' => now()],
-        ]);
+        $user = Auth::user();
+        
+        $comment = Comment::findOrFail($commentId);
+
+        $comment->readBy()->syncWithoutDetaching([$user->id]);
+
+        return $comment;
     }
 
     /**

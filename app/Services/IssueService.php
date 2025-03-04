@@ -13,6 +13,8 @@ use Illuminate\Pagination\LengthAwarePaginator;
 use App\Helpers\DatetimeHelper;
 use App\Services\Logs\IssueLogService;
 use App\Helpers\QueryProcessor;
+use Auth;
+
 
 class IssueService
 {
@@ -200,31 +202,58 @@ class IssueService
 
         $query = QueryProcessor::applyFilters($query, $filters);
         $query = QueryProcessor::applySorts($query, $sorts);
-
         
         $query->with($this->getRelatedData([
             'comments' => function ($query) {
-                $query->whereDoesntHave('readers', function ($q) {
-                    $q->where('user_id', \Auth::id())
-                    ->whereNotNull('read_at'); // Exclude read comments
+                $query->whereDoesntHave('reads', function ($q) {
+                    $q->where('reader_id', Auth::id())
+                        ->where('reader_type', 'user');
                 })
                 ->latest()
-                ->take(3); // Get last 3 unread comments
+                ->take(3);
             }
-        ]));
+        ]))->withCount([
+            'comments as unread_comments_count' => function ($query) {
+                $query->whereDoesntHave('reads', function ($q) {
+                    $q->where('reader_id', Auth::id())
+                    ->where('reader_type', 'user');
+                });
+            }
+        ]);
         
         return $perPage ? $query->paginate($perPage) : $query->get();
     }
 
     public function getPublicIssues(array $filters = [], int $perPage = 0, array $sorts = [], $email = ''): Collection | LengthAwarePaginator
     {
+        $issuer =  $this->guestIssuerService->getByEmail($email);
         $query = $this->model->newQuery();
 
         $query = QueryProcessor::applyFilters($query, $filters);
         $query = QueryProcessor::applySorts($query, $sorts);
 
         $query = $query->where('issues.issuer_type', 'guest_issuer');
-        $query->with($this->getRelatedData());
+        
+        $query->with($this->getRelatedData([
+            'comments' => function ($query) {
+                $query->whereDoesntHave('reads', function ($q) {
+                    $q->whereHas('reader', function ($query) {
+                        $query->where('email', $email);
+                    });
+                })
+                ->latest()
+                ->take(3);
+            }
+        ]))->withCount([
+            'comments as unread_comments_count' => function ($query) {
+                $query->whereDoesntHave('reads', function ($q) {
+                    $q->whereHas('reader', function ($query) {
+                        $query->where('email', $email);
+                    });
+                });
+            }
+        ]);
+        
         return $query->paginate($perPage);
     }
 

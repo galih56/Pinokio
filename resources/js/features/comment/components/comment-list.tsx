@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useComments } from "../api/get-comments";
 import { Comment, Issue, Project, Task } from "@/types/api";
 import {
@@ -18,25 +18,20 @@ import { UpdateComment } from "./update-comment";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { formatDateTime } from "@/lib/datetime";
 import clsx from "clsx";
-import DOMPurify from 'dompurify';
+import DOMPurify from "dompurify";
+import { api } from "@/lib/api-client"; // Import API for marking comments as read
 
 export type CommentsListProps = {
   commentableId: string;
   commentableType: string;
-  commentable? : Issue | Project | Task;
 };
-export const CommentList = ({
-  commentableId,
-  commentableType,
-  commentable
-}: CommentsListProps) => {
+
+export const CommentList = ({ commentableId, commentableType }: CommentsListProps) => {
   const [choosenComment, setChoosenComment] = useState<Comment | undefined>();
   const { open, isOpen, close, toggle } = useDisclosure();
   
-  // State for pagination
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Fetch comments using the useComments hook
   const commentsQuery = useComments({
     page: currentPage,
     perPage: 15,
@@ -48,7 +43,6 @@ export const CommentList = ({
   const comments = commentsQuery.data?.data || [];
   const meta = commentsQuery.data?.meta;
 
-  // Virtualization setup with useVirtualizer
   const parentRef = useRef<HTMLDivElement>(null);
   const rowVirtualizer = useVirtualizer({
     count: comments.length,
@@ -57,7 +51,38 @@ export const CommentList = ({
     overscan: 5,
   });
 
-  // Handle pagination changes
+  const commentRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const markAsRead = useCallback(async (commentId: string) => {
+    try {
+      await api.post(`/comments/${commentId}/read`, ); 
+    } catch (error) {
+      console.error("Failed to mark comment as read", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const commentId = entry.target.getAttribute("data-comment-id");
+            if (commentId) {
+              markAsRead(commentId);
+            }
+          }
+        });
+      },
+      { threshold: 0.6 } // Trigger when at least 60% of the comment is visible
+    );
+
+    commentRefs.current.forEach((ref) => {
+      if (ref) observer.observe(ref);
+    });
+
+    return () => observer.disconnect();
+  }, [comments, markAsRead]);
+
   const onPageChange = (newPage: number) => {
     setCurrentPage(newPage);
     queryClient.setQueryData(["comments", { page: newPage }], commentsQuery.data);
@@ -73,27 +98,23 @@ export const CommentList = ({
           ref={parentRef}
           className="relative h-[600px] overflow-auto rounded-md px-6"
         >
-          <div
-            style={{
-              height: `${rowVirtualizer.getTotalSize()}px`,
-            }}
-          >
-            {rowVirtualizer.getVirtualItems().map((virtualRow) => {
+          <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
+            {rowVirtualizer.getVirtualItems().map((virtualRow, index) => {
               const comment = comments[virtualRow.index];
-              let isIssuer =  Boolean((comment.commenter?.type == 'guest_issuer'));
+              let isIssuer = Boolean(comment.commenter?.type === "guest_issuer");
               const sanitizedContent = DOMPurify.sanitize(comment.comment);
+
               return (
-                <div 
+                <div
                   key={virtualRow.key}
-                  className={clsx("w-full flex",
-                    isIssuer ? "justify-start" : "justify-end "
-                  )}>
-                    <div
-                      className={clsx(
-                        "max-w-[85%] bg-white p-4 rounded-lg shadow-md my-4 flex flex-col",
-                      )}>
-                    <div className={clsx(`flex justify-between`)}>
-                      {/* Only show dropdown if the commenter is NOT the issuer */}
+                  ref={(el) => (commentRefs.current[index] = el)}
+                  data-comment-id={comment.id}
+                  className={clsx("w-full flex", isIssuer ? "justify-start" : "justify-end")}
+                >
+                  <div
+                    className={clsx("max-w-[85%] bg-white p-4 rounded-lg shadow-md my-4 flex flex-col")}
+                  >
+                    <div className={clsx("flex justify-between")}>
                       {isIssuer ? (
                         <>
                           <div className="flex flex-row">
@@ -125,22 +146,26 @@ export const CommentList = ({
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </>
-                      ): 
-                      <>
-                        <div></div>
-                        <div className="flex flex-row">
-                          <h3 className="justify-end space-x-1">
-                            <span className="text-gray-700 text-xs">
-                              {formatDateTime(comment.createdAt)}
-                            </span>
-                            <span className="text-base font-bold">
-                              {comment.commenter?.name || "Unknown"}
-                            </span>
-                          </h3>
-                        </div>
-                      </>}
+                      ) : (
+                        <>
+                          <div></div>
+                          <div className="flex flex-row">
+                            <h3 className="justify-end space-x-1">
+                              <span className="text-gray-700 text-xs">
+                                {formatDateTime(comment.createdAt)}
+                              </span>
+                              <span className="text-base font-bold">
+                                {comment.commenter?.name || "Unknown"}
+                              </span>
+                            </h3>
+                          </div>
+                        </>
+                      )}
                     </div>
-                    <div className={clsx("text-sm", isIssuer ? "text-left" : "text-right")} dangerouslySetInnerHTML={{__html : sanitizedContent}} />
+                    <div
+                      className={clsx("text-sm", isIssuer ? "text-left" : "text-right")}
+                      dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+                    />
                   </div>
                 </div>
               );

@@ -11,7 +11,7 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { getTags } from "../api/get-tags";
+import { getTags, useTags } from "../api/get-tags";
 import { Tag } from "@/types/api";
 import { useController } from "react-hook-form";
 import { Badge } from "@/components/ui/badge";
@@ -25,11 +25,7 @@ export function TagCombobox({ name, multiple = true }: TagComboboxProps) {
   const [open, setOpen] = React.useState(false);
   const [selectedTags, setSelectedTags] = React.useState<Tag[]>([]);
 
-  const queries = useQueries({
-    queries: [{ queryKey: ["tags"], queryFn: getTags }],
-  });
-
-  const [tagsQuery] = queries;
+  const tagsQuery = useTags({});
 
   const {
     field, // field props from react-hook-form
@@ -59,14 +55,15 @@ export function TagCombobox({ name, multiple = true }: TagComboboxProps) {
     }
   };
 
-  const isTagSelected = (tagId: string) =>
-    selectedTags.some((tag) => tag.id === tagId);
+  const isTagSelected = (tagId: string) => selectedTags.some((tag) => tag.id === tagId);
+
+  const tags = tagsQuery.data?.data || [];
 
   // Initialize selected tags from the `field.value` provided by react-hook-form
   React.useEffect(() => {
     if (field.value) {
       const valueArray = Array.isArray(field.value) ? field.value : [field.value];
-      setSelectedTags(tagsQuery.data?.data.filter((tag: Tag) =>
+      setSelectedTags(tags.filter((tag: Tag) =>
         valueArray.includes(tag.id)
       ) || []);
     }
@@ -109,7 +106,7 @@ export function TagCombobox({ name, multiple = true }: TagComboboxProps) {
               <CommandList>
                 <CommandEmpty>No tags found.</CommandEmpty>
                 <CommandGroup>
-                  {tagsQuery.data?.data?.map((tag: Tag) => (
+                  {tags?.map((tag: Tag) => (
                     <CommandItem
                       key={tag.id}
                       onSelect={() => toggleTagSelection(tag)}

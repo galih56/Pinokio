@@ -24,4 +24,9 @@ class GuestIssuerService
         $guestIssuer = GuestIssuer::find($id);
         return $guestIssuer;
     }
+
+    public function getByEmail(string $email) : GuestIssuer | null {
+        $guestIssuer = GuestIssuer::where('email',$email)->first();
+        return $guestIssuer;
+    }
 }

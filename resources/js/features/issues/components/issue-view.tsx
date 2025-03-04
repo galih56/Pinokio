@@ -14,11 +14,7 @@ import DOMPurify from 'dompurify';
 import { useCloseIssue } from '../api/close-issue';
 import { useUpdateIssueStatus } from '../api/update-issue-status';
 
-export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
-  if(!issueId){
-    return <h1>Unrecognized Request</h1>
-  }
-
+export const IssueView = ({ issueId }: { issueId: string }) => {
   const updateIssueStatus = useUpdateIssueStatus({ issueId });
   
   const issueQuery = useIssue({
@@ -28,6 +24,10 @@ export const IssueView = ({ issueId }: { issueId: string | undefined }) => {
   const issue = issueQuery?.data?.data;
   adjustActiveBreadcrumbs(`/issues/:id`,`/issues/${issueId}`, issue?.title, [ issue ]);
   
+  if(!issueId){
+    return <h1>Unrecognized Request</h1>
+  }
+
   if (issueQuery.isLoading) {
     return (
       <div className="flex h-48 w-full items-center justify-center">

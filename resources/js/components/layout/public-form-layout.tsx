@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 import useGuestIssuerStore from "@/store/useGuestIssuer";
 
 export const PublicFormTopBar = () => {
-    const { setLoggedIn, setEmail, setName } = useGuestIssuerStore();
+    const { loggedIn, setLoggedIn, setEmail, setName } = useGuestIssuerStore();
     const resetIdentity = () => {
         setLoggedIn(false);
         setEmail('');
@@ -22,10 +22,11 @@ export const PublicFormTopBar = () => {
                 <Undo2Icon className="mr-2 h-4 w-4" />
                 Back to Login Page
             </a>
-            <Button variant={'info'} onClick={resetIdentity}>
-                <RotateCcwIcon className="mr-2 h-4 w-4" />
-                Reset User Info
-            </Button>
+            {loggedIn && 
+                <Button variant={'info'} onClick={resetIdentity}>
+                    <RotateCcwIcon className="mr-2 h-4 w-4" />
+                    Reset User Info
+                </Button>}
         </div>
     )
 }

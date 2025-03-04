@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Comment\StoreCommentRequest;
 use App\Http\Requests\Comment\UpdateCommentRequest;
+use App\Http\Requests\Comment\MarkCommentAsReadRequest;
 use App\Http\Requests\Comment\GetCommentRequest;
 use App\Http\Resources\CommentResource;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -32,23 +33,14 @@ class CommentController extends Controller
         'task' => \App\Models\Task::class,
     ];
 
-    protected $commenterTypes = [
-        'user' => \App\Models\User::class,
-        'guest_issuer' => \App\Models\GuestIssuer::class,
-    ];
-
     public function index(GetCommentRequest $request)
     {
         $query = Comment::query();
     
         // Use Laravel's built-in method to resolve polymorphic types
         if ($request->has('commentable_id') && $request->has('commentable_type')) {
-            $commentableType = Relation::getMorphedModel($request->commentable_type);
-    
-            if ($commentableType) {
-                $query->where('commentable_id', $request->commentable_id)
-                      ->where('commentable_type', $commentableType);
-            }
+            $query->where('commentable_id', $request->input('commentable_id'))
+                    ->where('commentable_type', $request->input('commentable_type'));
         }
     
         // Paginate and return the results
@@ -61,6 +53,7 @@ class CommentController extends Controller
                 'per_page' => $comments->perPage(),
                 'current_page' => $comments->currentPage(),
                 'total_pages' => $comments->lastPage(),
+                'next' => $comments->lastPage(),
             ],
         ]);
     }
@@ -77,11 +70,6 @@ class CommentController extends Controller
 
         try {
             $data = $request->validated();
-            $commentableType = $this->commentableTypes[$request->commentable_type] ?? null;
-
-            if(isset($data['commentable_id']) && $commentableType){
-                $data['commentable_type'] = $commentableType;
-            }
 
             $comment = $this->commentService->createComment($data);
 
@@ -112,10 +100,15 @@ class CommentController extends Controller
      * @param Comment $comment
      * @return \Illuminate\Http\JsonResponse
      */
-    public function markAsRead(Request $request, Comment $comment)
+    public function markAsRead($id, MarkAsReadRequest $request)
     {
-        $user = $request->user();
-        $this->commentService->markAsRead($comment, $user);
+        $readerData = $request->getReaderData();
+
+        if (!$readerData) {
+            return response()->json(['message' => 'Invalid reader'], 400);
+        }
+
+        $this->commentService->markAsRead($id);
 
         return response()->json(['message' => 'Comment marked as read.']);
     }

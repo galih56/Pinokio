@@ -90,10 +90,9 @@ class User extends Authenticatable
     
     public function readComments()
     {
-        return $this->belongsToMany(Comment::class, 'comment_user')
-                    ->withPivot('read_at')
-                    ->withTimestamps();
+        return $this->morphMany(CommentRead::class, 'reader');
     }
+
     public function issueLogs() : MorphMany
     {
         return $this->morphMany(IssueLog::class, 'user');

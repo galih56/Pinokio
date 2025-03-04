@@ -33,4 +33,18 @@ class Comment extends Model
                     ->withPivot('read_at')
                     ->withTimestamps();
     }
+
+    public function reads()
+    {
+        return $this->hasMany(CommentRead::class);
+    }
+
+    public function unreadByUser($userId, $userType)
+    {
+        return $this->whereDoesntHave('reads', function ($query) use ($userId, $userType) {
+            $query->where('reader_id', $userId)
+                  ->where('reader_type', $userType)
+                  ->whereNotNull('read_at'); 
+        });
+    }
 }

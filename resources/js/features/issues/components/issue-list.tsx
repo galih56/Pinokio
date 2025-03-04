@@ -19,6 +19,7 @@ import { formatDate, formatDateTime, formatTime } from '@/lib/datetime';
 import DOMPurify from 'dompurify';
 import { StatusBadge } from '../../../components/ui/status-badge';
 import { Badge } from '@/components/ui/badge';
+import { CountIndicator, CountIndicatorContainer } from '@/components/ui/counter-indicator';
 
 export type IssuesListProps = {
   onIssuePrefetch?: (id: string) => void;
@@ -98,12 +99,14 @@ export const IssuesList = ({
     {
       id: "view-comments",
       cell: ({ row }) => {
+        const issue = row.original;
         return (
-          <>
-          <Button variant={'ghost'} >
-            <MessageSquareIcon className='h-6 w-6' />
-          </Button>
-          </>
+            <Button variant={'ghost'} >
+              <CountIndicatorContainer>
+                <MessageSquareIcon className='h-6 w-6' />
+                <CountIndicator count={issue.unreadCommentsCount ?? 0} />
+              </CountIndicatorContainer>
+            </Button>
         )
       },
     },

@@ -43,7 +43,9 @@ class IssueResource extends JsonResource
             'updated_at' => $this->updated_at,
             'created_at' => $this->created_at,
 
-            'unread_comments' => $this->whenLoaded('comments', function () {
+            // Comments only shows the last 3 unread commments
+            'unread_comments_count' => $this->unread_comments_count,
+            'latest_unread_comments' => $this->whenLoaded('comments', function () {
                 return $this->comments->map(fn($comment) => [
                     'id' => $this->hashid->encode($comment->id),
                     'comment' => $comment->comment,

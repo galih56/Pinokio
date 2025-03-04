@@ -1,34 +1,32 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
-
 import { api } from '@/lib/api-client';
 import { QueryConfig } from '@/lib/react-query';
 import { Issue, Meta } from '@/types/api';
 
-
 export const getIssues = (
-  page = 1,
-  perPage = 15,
+  page?: number,
+  perPage?: number,
   search?: string
-): Promise<{
-  data: Issue[];
-  meta?: Meta;
-}> => {
-  return api.get(`/issues`, {
-    params: {
-      page,
-      per_page: perPage,
-      search,
-    },
-  });
+): Promise<{ data: Issue[]; meta?: Meta }> => {
+  const params: Record<string, any> = { search };
+
+  if (page && page > 0) {
+    params.page = page;
+    params.per_page = perPage;
+  }
+
+  return api.get(`/issues`, { params });
 };
 
 export const getIssuesQueryOptions = ({
   page,
   perPage = 15,
-  search, 
+  search = '',
 }: { page?: number; perPage?: number; search?: string } = {}) => {
+  const isPaginated = !!page && page > 0;
+
   return queryOptions({
-    queryKey: ['issues', { page, perPage, search }],
+    queryKey: ['issues', { paginated: isPaginated, page, perPage, search }],
     queryFn: () => getIssues(page, perPage, search),
   });
 };
@@ -36,24 +34,22 @@ export const getIssuesQueryOptions = ({
 type UseIssuesOptions = {
   page?: number;
   perPage?: number;
-  search?: string; 
+  search?: string;
   queryConfig?: QueryConfig<typeof getIssuesQueryOptions>;
 };
 
 export const useIssues = ({
   queryConfig,
-  page = 1,
+  page,
   perPage = 15,
-  search, 
+  search = '',
 }: UseIssuesOptions) => {
   return useQuery({
-    ...getIssuesQueryOptions({ page, perPage, search }), 
+    ...getIssuesQueryOptions({ page, perPage, search }),
     ...queryConfig,
-    select: (data) => {
-      return {
-        data: data.data,
-        meta: data.meta,
-      };
-    },
+    select: (data) => ({
+      data: data.data,
+      meta: data.meta, // `meta` will be undefined if unpaginated
+    }),
   });
 };
