@@ -1,7 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback, useLayoutEffect } from "react";
 import { useComments } from "../api/get-comments";
-import { Comment, Issue, Project, Task } from "@/types/api";
+import { Comment, Commenter, Issue, Project, Task } from "@/types/api";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,13 +20,15 @@ import { formatDateTime } from "@/lib/datetime";
 import clsx from "clsx";
 import DOMPurify from "dompurify";
 import { api } from "@/lib/api-client"; // Import API for marking comments as read
+import { useMarkCommentAsRead } from "../api/mark-as-read";
 
 export type CommentsListProps = {
   commentableId: string;
   commentableType: string;
+  commenter? : Commenter;
 };
 
-export const CommentList = ({ commentableId, commentableType }: CommentsListProps) => {
+export const CommentList = ({ commentableId, commentableType, commenter }: CommentsListProps) => {
   const [choosenComment, setChoosenComment] = useState<Comment | undefined>();
   const { open, isOpen, close, toggle } = useDisclosure();
   
@@ -53,35 +55,38 @@ export const CommentList = ({ commentableId, commentableType }: CommentsListProp
 
   const commentRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  const markAsRead = useCallback(async (commentId: string) => {
-    try {
-      await api.post(`/comments/${commentId}/read`, ); 
-    } catch (error) {
-      console.error("Failed to mark comment as read", error);
-    }
-  }, []);
+  const { mutate: markAsRead } = useMarkCommentAsRead();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
+    if (!commentRefs.current.length) return; // Ensure refs are populated
+  
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
+          console.log("Entry observed:", entry.target);
           if (entry.isIntersecting) {
+            console.log("Entry is visible:", entry.target);
             const commentId = entry.target.getAttribute("data-comment-id");
             if (commentId) {
-              markAsRead(commentId);
+              console.log("Marking as read:", commentId);
+              markAsRead({ commentId });
             }
           }
         });
       },
-      { threshold: 0.6 } // Trigger when at least 60% of the comment is visible
+      { threshold: 0.6 }
     );
-
-    commentRefs.current.forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-
+  
+    // Delay to ensure refs are properly assigned
+    setTimeout(() => {
+      console.log("Final commentRefs:", commentRefs.current);
+      commentRefs.current.forEach((ref) => {
+        if (ref) observer.observe(ref);
+      });
+    }, 0);
+  
     return () => observer.disconnect();
-  }, [comments, markAsRead]);
+  }, [commentsQuery.isPending, comments, markAsRead]);
 
   const onPageChange = (newPage: number) => {
     setCurrentPage(newPage);
@@ -127,7 +132,7 @@ export const CommentList = ({ commentableId, commentableType }: CommentsListProp
                               </span>
                             </h3>
                           </div>
-                          <DropdownMenu>
+                          {/* <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <Button variant="ghost" size="sm">
                                 <MoreHorizontal className="w-2 h-2" />
@@ -144,7 +149,7 @@ export const CommentList = ({ commentableId, commentableType }: CommentsListProp
                                 Edit
                               </DropdownMenuItem>
                             </DropdownMenuContent>
-                          </DropdownMenu>
+                          </DropdownMenu> */}
                         </>
                       ) : (
                         <>

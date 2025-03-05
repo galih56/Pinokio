@@ -90,7 +90,7 @@ class User extends Authenticatable
     
     public function readComments()
     {
-        return $this->morphMany(CommentRead::class, 'reader');
+        return $this->hasMany(CommentRead::class);
     }
 
     public function issueLogs() : MorphMany

@@ -34,9 +34,4 @@ class GuestIssuer extends Model
     {
         return $this->morphMany(IssueLog::class, 'user');
     }
-
-    public function readComments()
-    {
-        return $this->morphMany(CommentRead::class, 'reader');
-    }
 }

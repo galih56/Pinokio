@@ -20,6 +20,8 @@ class CommentResource extends JsonResource
         return [
             'id' => $hashid->encode($this->id), 
             'comment' => $this->comment,
+            'is_read' => $this->is_read,
+            'is_read_by_others' => $this->is_read_by_others,
             'commenter_id' => $hashid->encode($this->commenter_id), 
             'commenter_type' => class_basename($this->commenter_type),
             'commentable_id' => $hashid->encode($this->commentable_id), 

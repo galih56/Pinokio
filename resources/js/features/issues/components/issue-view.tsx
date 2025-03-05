@@ -13,8 +13,10 @@ import { CloseIssue } from './close-issue';
 import DOMPurify from 'dompurify';
 import { useCloseIssue } from '../api/close-issue';
 import { useUpdateIssueStatus } from '../api/update-issue-status';
+import useGuestIssuerStore from '@/store/useGuestIssuer';
 
 export const IssueView = ({ issueId }: { issueId: string }) => {
+  const guestIssuer = useGuestIssuerStore();
   const updateIssueStatus = useUpdateIssueStatus({ issueId });
   
   const issueQuery = useIssue({
@@ -107,7 +109,7 @@ export const IssueView = ({ issueId }: { issueId: string }) => {
       </div>
       <IssueFiles issueId={issueId} />
       <CreateComment commentableId={issueId} commentableType={'issue'}/>
-      <CommentList commentableId={issueId} commentableType={'issue'} commentable={issue}/>
+      <CommentList commentableId={issueId} commentableType={'issue'}/>
     </div>  
   );
 };

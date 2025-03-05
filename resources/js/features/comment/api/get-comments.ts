@@ -33,10 +33,11 @@ export const getCommentsQueryOptions = ({
   commentableType 
 }: { page?: number; perPage?: number; commentableId?: string;  commentableType?: string  } = {}) => {
   return queryOptions({
-    queryKey: ['comments', { page, perPage, commentableId, commentableType  }],
-    queryFn: () => getComments({page, perPage, commentableId, commentableType}),
+    queryKey: ["comments", page, perPage, commentableId ?? "", commentableType ?? ""], // Flattened
+    queryFn: () => getComments({ page, perPage, commentableId, commentableType }),
   });
 };
+
 
 type UseCommentsOptions = {
   page?: number;
@@ -54,14 +55,12 @@ export const useComments = ({
   commentableType 
 }: UseCommentsOptions) => {
   return useQuery({
-    ...getCommentsQueryOptions({ page, perPage , commentableId, commentableType }), 
+    ...getCommentsQueryOptions({ page, perPage, commentableId, commentableType }), 
     ...queryConfig,
-    select: (data) => {
-      return {
-        data: data.data,
-        meta: data.meta,
-      };
-    },
+    select: (data) => ({
+      data: data.data,
+      meta: data.meta,
+    }),
   });
 };
 
@@ -76,7 +75,7 @@ export const useInfiniteComments = ({
 }) => {
   return useInfiniteQuery({
     initialPageParam: 1,
-    queryKey: ["comments", { perPage, commentableId, commentableType }],
+    queryKey: ["comments", perPage, commentableId ?? "", commentableType ?? ""], // Flattened
     queryFn: ({ pageParam }) =>
       getComments({ page: pageParam, perPage, commentableId, commentableType }),
     getNextPageParam: (lastPage) => {

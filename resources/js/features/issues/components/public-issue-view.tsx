@@ -13,8 +13,10 @@ import DOMPurify from 'dompurify';
 import { CloseIssue } from './close-issue';
 import ActivityLog from '@/components/layout/activity-log';
 import IssueLog from './issue-log';
+import useGuestIssuerStore from '@/store/useGuestIssuer';
 
 export const PublicIssueView = ({ issueId }: { issueId: string | undefined }) => {
+  const guestIssuer = useGuestIssuerStore();
   if(!issueId){
     return <h1>Unrecognized Request</h1>
   }
@@ -61,7 +63,13 @@ export const PublicIssueView = ({ issueId }: { issueId: string | undefined }) =>
           <IssueLog issueId={issueId}  />
         </div>
         <CreateComment  commentableId={issueId} commentableType={'issue'} />
-        <CommentList commentableId={issueId} commentableType={'issue'}/>
+        <CommentList 
+          commentableId={issueId} commentableType={'issue'} 
+          commenter={{
+            name : guestIssuer.name,
+            email : guestIssuer.email,
+            type : 'guest_issuer'
+          }}/>
       </div>  
   );
 };

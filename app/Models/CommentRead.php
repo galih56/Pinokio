@@ -6,15 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 
 class CommentRead extends Model
 {
-    protected $table = 'comment_reads'; 
+    protected $table = 'comment_reads';
+
+    protected $fillable = ['comment_id', 'user_id', 'read_at'];
 
     public function comment()
     {
         return $this->belongsTo(Comment::class);
     }
 
-    public function reader()
+    public function user()
     {
-        return $this->morphTo(); 
+        return $this->belongsTo(User::class);
     }
 }

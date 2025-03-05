@@ -23,29 +23,12 @@ class CommentController extends Controller
     {
         $this->commentService = $commentService;
     }
-    
-    /**
-     * Map keywords to fully qualified class names.
-     */
-    protected $commentableTypes = [
-        'issue' => \App\Models\Issue::class,
-        'project' => \App\Models\Project::class,
-        'task' => \App\Models\Task::class,
-    ];
 
     public function index(GetCommentRequest $request)
     {
-        $query = Comment::query();
-    
-        // Use Laravel's built-in method to resolve polymorphic types
-        if ($request->has('commentable_id') && $request->has('commentable_type')) {
-            $query->where('commentable_id', $request->input('commentable_id'))
-                    ->where('commentable_type', $request->input('commentable_type'));
-        }
-    
-        // Paginate and return the results
-        $comments = $query->with(['commentable', 'commenter'])->paginate($request->per_page ?? 15);
-        
+        $data = $request->validated();
+        $comments = $this->commentService->getComments($data);
+
         return response()->json([
             'data' => CommentResource::collection($comments),
             'meta' => [
@@ -100,7 +83,7 @@ class CommentController extends Controller
      * @param Comment $comment
      * @return \Illuminate\Http\JsonResponse
      */
-    public function markAsRead($id, MarkAsReadRequest $request)
+    public function markAsRead($id, MarkCommentAsReadRequest $request)
     {
         $readerData = $request->getReaderData();
 
@@ -113,32 +96,4 @@ class CommentController extends Controller
         return response()->json(['message' => 'Comment marked as read.']);
     }
     
-    /**
-     * Get unread comments for the authenticated user.
-     *
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function getUnreadComments(Request $request)
-    {
-        $user = $request->user();
-        $unreadComments = $this->commentService->getUnreadComments($user);
-
-        return response()->json($unreadComments);
-    }
-
-    /**
-     * Check if a comment has been read by the authenticated user.
-     *
-     * @param Request $request
-     * @param Comment $comment
-     * @return \Illuminate\Http\JsonResponse
-     */
-    public function isRead(Request $request, Comment $comment)
-    {
-        $user = $request->user();
-        $isRead = $this->commentService->isRead($comment, $user);
-
-        return response()->json(['is_read' => $isRead]);
-    }
 }

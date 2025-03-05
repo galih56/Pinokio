@@ -49,12 +49,47 @@ class CommentService
         }
     }
 
-    /**
-    * Get unread comments for a user.
-    *
-    * @param User $user
-    * @return \Illuminate\Database\Eloquent\Collection
-    */
+    public function getComments($data)
+    {
+        $query = Comment::query();
+    
+        // Filter by commentable entity (Issue, Project, Task)
+        if (isset($data['commentable_id']) && isset($data['commentable_type'])) {
+            $query->where('commentable_id', $data['commentable_id'])
+                  ->where('commentable_type', $data['commentable_type']);
+        }
+    
+        $userId = null;
+    
+    
+        // If authenticated, use user ID (only admins track read state)
+        if (\Auth::check()) {
+            $userId = \Auth::id();
+        }
+    
+        // If the requester is an authenticated user, check their read state
+        if ($userId) {
+            $query = $query->withExists([
+                'reads as is_read' => function ($query) use ($userId) {
+                    $query->where('user_id', $userId);
+                }
+            ]);
+        }
+    
+        $query = $query->withExists([
+            'reads as is_read_by_others' => function ($q) {
+                $q->whereColumn('user_id', '!=', 'comments.commenter_id');
+            }
+        ]);
+        
+        // Eager load relationships
+        $query->with(['commentable', 'commenter']);
+    
+        // Paginate results
+        return $query->paginate($data['per_page'] ?? 15);
+    }
+    
+
     public function getUnreadComments(User $user)
     {
         return Comment::whereDoesntHave('readers', function ($query) use ($user) {

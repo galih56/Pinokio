@@ -43,6 +43,7 @@ class GetCommentRequest extends FormRequest
         return [
             'commentable_id' => 'nullable|integer', 
             'commentable_type' => 'nullable|string|in:issue,project,task', 
+            'email' => 'nullable|email', 
         ];
     }
 
@@ -57,6 +58,8 @@ class GetCommentRequest extends FormRequest
             'commentable_id.integer' => 'The commentable ID must be an integer.',
             'commentable_type.string' => 'The commentable type must be a string.',
             'commentable_type.in' => 'The commentable type must be one of: issue, project, task.',
+            'email.email' => 'The email must be a valid email address.',
+            'email.exists' => 'The provided email does not exist in our records.',
         ];
     }
 }

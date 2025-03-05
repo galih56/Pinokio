@@ -206,8 +206,7 @@ class IssueService
         $query->with($this->getRelatedData([
             'comments' => function ($query) {
                 $query->whereDoesntHave('reads', function ($q) {
-                    $q->where('reader_id', Auth::id())
-                        ->where('reader_type', 'user');
+                    $q->where('user_id', Auth::id());
                 })
                 ->latest()
                 ->take(3);
@@ -215,8 +214,7 @@ class IssueService
         ]))->withCount([
             'comments as unread_comments_count' => function ($query) {
                 $query->whereDoesntHave('reads', function ($q) {
-                    $q->where('reader_id', Auth::id())
-                    ->where('reader_type', 'user');
+                    $q->where('user_id', Auth::id());
                 });
             }
         ]);

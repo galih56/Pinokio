@@ -6,32 +6,18 @@ use Illuminate\Database\Eloquent\Model;
 
 class Comment extends Model
 {
-    public $timestamps = true;
     protected $fillable = [
-        'comment', 'commentable_type', 'commentable_id', 'commenter_type', 'commenter_id' 
+        'comment', 'commentable_type', 'commentable_id', 'commenter_type', 'commenter_id'
     ];
 
-    /**
-     * Get the parent commentable model (Task, Project, Issue).
-     */
     public function commentable()
     {
         return $this->morphTo();
     }
 
-    /**
-     * Get the commenter model (User or GuestIssuer).
-     */
     public function commenter()
     {
         return $this->morphTo();
-    }
-    
-    public function readers()
-    {
-        return $this->belongsToMany(User::class, 'comment_user')
-                    ->withPivot('read_at')
-                    ->withTimestamps();
     }
 
     public function reads()
@@ -39,12 +25,10 @@ class Comment extends Model
         return $this->hasMany(CommentRead::class);
     }
 
-    public function unreadByUser($userId, $userType)
+    public function unreadByUser($userId)
     {
-        return $this->whereDoesntHave('reads', function ($query) use ($userId, $userType) {
-            $query->where('reader_id', $userId)
-                  ->where('reader_type', $userType)
-                  ->whereNotNull('read_at'); 
+        return $this->whereDoesntHave('reads', function ($query) use ($userId) {
+            $query->where('user_id', $userId)->whereNotNull('read_at');
         });
     }
 }
