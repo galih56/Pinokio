@@ -5,6 +5,7 @@ use App\Models\Comment;
 use App\Models\User;
 use App\Models\GuestIssuer;
 use Illuminate\Support\Facades\Log;
+use Auth;
 
 class CommentService
 {  
@@ -102,19 +103,14 @@ class CommentService
         $user = Auth::user();
         
         $comment = Comment::findOrFail($commentId);
-
-        $comment->readBy()->syncWithoutDetaching([$user->id]);
-
+        
+        $comment->reads()->updateOrCreate(
+            ['user_id' => $user->id, 'comment_id' => $commentId],
+            ['read_at' => now()]
+        );
         return $comment;
     }
 
-    /**
-     * Check if a comment has been read by a user.
-     *
-     * @param Comment $comment
-     * @param User $user
-     * @return bool
-     */
     public function isRead(Comment $comment, User $user): bool
     {
         return $comment->readers()

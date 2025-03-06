@@ -8,7 +8,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Issue } from "@/types/api"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { ArrowUpDown, MessageSquare, MessageSquareIcon, MoreHorizontal } from "lucide-react"
+import { ArrowUpDown, MessageSquare, MessageSquareIcon, MoreHorizontal, Scroll } from "lucide-react"
 import { getIssueQueryOptions } from "../api/get-issue"
 import { Link } from '@/components/ui/link';
 import { paths } from '@/apps/dashboard/paths';
@@ -20,6 +20,11 @@ import DOMPurify from 'dompurify';
 import { StatusBadge } from '../../../components/ui/status-badge';
 import { Badge } from '@/components/ui/badge';
 import { CountIndicator, CountIndicatorContainer } from '@/components/ui/counter-indicator';
+import DialogOrDrawer from '@/components/layout/dialog-or-drawer';
+import { CommentList } from '@/features/comment/components/comment-list';
+import { useDisclosure } from '@/hooks/use-disclosure';
+import CreateComment from '@/features/comment/components/create-comment';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 export type IssuesListProps = {
   onIssuePrefetch?: (id: string) => void;
@@ -29,6 +34,8 @@ export const IssuesList = ({
   onIssuePrefetch,
 }: IssuesListProps) => {
   const navigate = useNavigate();
+  const [ choosenIssue, setChoosenIssue ] = useState<Issue | null>();
+  const { isOpen, open, close, toggle } = useDisclosure();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = +(searchParams.get("page") || 1);
   const search = searchParams.get('search') || '';
@@ -101,7 +108,10 @@ export const IssuesList = ({
       cell: ({ row }) => {
         const issue = row.original;
         return (
-            <Button variant={'ghost'} >
+            <Button variant={'ghost'} onClick={() => {
+                setChoosenIssue(issue);
+                open();
+              }}>
               <CountIndicatorContainer>
                 <MessageSquareIcon className='h-6 w-6' />
                 <CountIndicator count={issue.unreadCommentsCount ?? 0} />
@@ -254,6 +264,27 @@ export const IssuesList = ({
           <div className="flex items-center justify-center w-full min-h-[60vh]">
             <p className="text-gray-500">No issues found.</p>
           </div>}
+          {choosenIssue && choosenIssue.id && (
+            <DialogOrDrawer open={isOpen} onOpenChange={toggle} title={"Comments"}>
+              <div className="flex flex-col h-[80vh]"> {/* Modal container fills 80% of viewport height */}
+                
+                <ScrollArea aria-orientation='vertical' className="flex-1 overflow-y-auto">
+                  <CommentList 
+                    commentableId={choosenIssue.id} 
+                    commentableType="issue" 
+                    initialComments={choosenIssue.unreadComments ?? []} 
+                  />
+                </ScrollArea>
+
+                {/* Comment input should stay at the bottom */}
+                <div className="p-4 border-t bg-white">
+                  <CreateComment commentableId={choosenIssue.id} commentableType="issue" />
+                </div>
+                
+              </div>
+            </DialogOrDrawer>
+          )}
+
     </div>
   );
 };

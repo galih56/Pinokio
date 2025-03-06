@@ -15,20 +15,22 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useDisclosure } from "@/hooks/use-disclosure";
 import DialogOrDrawer from "@/components/layout/dialog-or-drawer";
 import { UpdateComment } from "./update-comment";
-import { useVirtualizer } from "@tanstack/react-virtual";
+import { defaultRangeExtractor, observeElementRect, useVirtualizer } from "@tanstack/react-virtual";
 import { formatDateTime } from "@/lib/datetime";
 import clsx from "clsx";
 import DOMPurify from "dompurify";
 import { api } from "@/lib/api-client"; // Import API for marking comments as read
 import { useMarkCommentAsRead } from "../api/mark-as-read";
+import { debounce } from "lodash";
 
 export type CommentsListProps = {
   commentableId: string;
   commentableType: string;
   commenter? : Commenter;
+  initialComments?: Comment[];
 };
 
-export const CommentList = ({ commentableId, commentableType, commenter }: CommentsListProps) => {
+export const CommentList = ({ commentableId, commentableType, initialComments = [] , commenter }: CommentsListProps) => {
   const [choosenComment, setChoosenComment] = useState<Comment | undefined>();
   const { open, isOpen, close, toggle } = useDisclosure();
   
@@ -42,57 +44,92 @@ export const CommentList = ({ commentableId, commentableType, commenter }: Comme
   });
 
   const queryClient = useQueryClient();
-  const comments = commentsQuery.data?.data || [];
+  const fetchedComments = commentsQuery.data?.data || [];
+  
+  // Merge unread comments with fetched comments, avoiding duplicates
+  const comments = [...initialComments, ...fetchedComments].filter(
+    (comment, index, self) => index === self.findIndex((c) => c.id === comment.id)
+  );
+
   const meta = commentsQuery.data?.meta;
 
   const parentRef = useRef<HTMLDivElement>(null);
+  const visibleRangeRef = useRef<[number, number]>([0, 0]);
   const rowVirtualizer = useVirtualizer({
     count: comments.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 80,
+    estimateSize: () => 50,
     overscan: 5,
+    observeElementRect: (instance, callback) => {
+      return observeElementRect(instance, callback);
+    },
+    rangeExtractor: (range) => {
+      visibleRangeRef.current = [range.startIndex, range.endIndex];
+      return defaultRangeExtractor(range);
+    },
   });
 
   const commentRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const { mutate: markAsRead } = useMarkCommentAsRead();
 
-  useLayoutEffect(() => {
-    if (!commentRefs.current.length) return; // Ensure refs are populated
+  const pendingMarkAsRead = useRef<Set<number>>(new Set());
   
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          console.log("Entry observed:", entry.target);
-          if (entry.isIntersecting) {
-            console.log("Entry is visible:", entry.target);
-            const commentId = entry.target.getAttribute("data-comment-id");
-            if (commentId) {
-              console.log("Marking as read:", commentId);
-              markAsRead({ commentId });
-            }
-          }
-        });
-      },
-      { threshold: 0.6 }
+  const processMarkAsRead = debounce(() => {
+  // ✅ Debounced function to limit API calls
+    if (pendingMarkAsRead.current.size === 0) return;
+  
+    console.log(
+      `Sending batch request for comments: ${[...pendingMarkAsRead.current]}`
     );
   
-    // Delay to ensure refs are properly assigned
-    setTimeout(() => {
-      console.log("Final commentRefs:", commentRefs.current);
-      commentRefs.current.forEach((ref) => {
-        if (ref) observer.observe(ref);
-      });
-    }, 0);
+    pendingMarkAsRead.current.forEach((commentId) => {
+      markAsRead({ commentId });
+    });
   
-    return () => observer.disconnect();
-  }, [commentsQuery.isPending, comments, markAsRead]);
+    // Clear the batch after execution
+    pendingMarkAsRead.current.clear();
+  }, 60000); // Runs every 1 minutes
+  
+  useEffect(() => {
+    const visibleItems = rowVirtualizer.getVirtualItems();
+  
+    visibleItems.forEach((item) => {
+      const comment = comments[item.index];
+      console.log(comment && comment.id && !comment.isRead, comment.isRead)
+      if (comment && comment.id && !comment.isRead) {
+        console.log(`Queueing markAsRead for ${comment.id}`);
+        pendingMarkAsRead.current.add(comment.id);
+      }
+    });
+  
+    // Call debounced function (will execute only every 2 minutes)
+    processMarkAsRead();
+  }, [rowVirtualizer.getVirtualItems()]);
 
   const onPageChange = (newPage: number) => {
     setCurrentPage(newPage);
     queryClient.setQueryData(["comments", { page: newPage }], commentsQuery.data);
     commentsQuery.refetch();
   };
+
+  //Scroll to the latest comment
+  useEffect(() => {
+    if (comments.length > 0) {
+      rowVirtualizer.scrollToIndex(comments.length - 1, { align: "end" });
+    }
+    rowVirtualizer.measure()
+  }, [comments.length]);
+
+  if(commentsQuery.isPending && !initialComments){
+    return  <Skeleton className="w-full min-h-[60vh]" />;
+  } else if(!commentsQuery.isPending && comments.length == 0){
+    return (
+      <div className="flex items-center justify-center w-full min-h-[60vh]">
+        <p className="text-gray-500">No comments found.</p>
+      </div>
+    )
+  }
 
   return (
     <div className="flex flex-col">
@@ -101,81 +138,93 @@ export const CommentList = ({ commentableId, commentableType, commenter }: Comme
       ) : comments.length > 0 ? (
         <div
           ref={parentRef}
-          className="relative h-[600px] overflow-auto rounded-md px-6"
+          className="rounded-md px-6 min-h-[60vh]"
         >
-          <div style={{ height: `${rowVirtualizer.getTotalSize()}px` }}>
-            {rowVirtualizer.getVirtualItems().map((virtualRow, index) => {
-              const comment = comments[virtualRow.index];
-              let isIssuer = Boolean(comment.commenter?.type === "guest_issuer");
-              const sanitizedContent = DOMPurify.sanitize(comment.comment);
+          {rowVirtualizer.getVirtualItems().map((virtualRow, index) => {
+            const comment = comments[virtualRow.index];
+            let isIssuer = Boolean(comment.commenter?.type === "guest_issuer");
+            const sanitizedContent = DOMPurify.sanitize(comment.comment);
 
-              return (
+            return (
+              <div
+                key={virtualRow.key}
+                ref={(el) => (commentRefs.current[index] = el)}
+                data-comment-id={comment.id}
+                className={clsx("w-full flex  overflow-hidden", isIssuer ? "justify-start" : "justify-end")}
+              >
                 <div
-                  key={virtualRow.key}
-                  ref={(el) => (commentRefs.current[index] = el)}
-                  data-comment-id={comment.id}
-                  className={clsx("w-full flex", isIssuer ? "justify-start" : "justify-end")}
+                  className={clsx("max-w-[85%] bg-white p-4 rounded-lg shadow-md my-4 flex flex-col")}
                 >
-                  <div
-                    className={clsx("max-w-[85%] bg-white p-4 rounded-lg shadow-md my-4 flex flex-col")}
-                  >
-                    <div className={clsx("flex justify-between")}>
-                      {isIssuer ? (
-                        <>
-                          <div className="flex flex-row">
-                            <h3 className="justify-end space-x-1">
-                              <span className="text-base font-bold">
-                                {comment.commenter?.name || "Unknown"}
-                              </span>
-                              <span className="text-gray-700 text-xs">
-                                {formatDateTime(comment.createdAt)}
-                              </span>
-                            </h3>
-                          </div>
-                          {/* <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreHorizontal className="w-2 h-2" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align={"start"}>
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setChoosenComment(comment);
-                                  open();
-                                }}
-                              >
-                                Edit
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu> */}
-                        </>
-                      ) : (
-                        <>
-                          <div></div>
-                          <div className="flex flex-row">
-                            <h3 className="justify-end space-x-1">
-                              <span className="text-gray-700 text-xs">
-                                {formatDateTime(comment.createdAt)}
-                              </span>
-                              <span className="text-base font-bold">
-                                {comment.commenter?.name || "Unknown"}
-                              </span>
-                            </h3>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                    <div
-                      className={clsx("text-sm", isIssuer ? "text-left" : "text-right")}
-                      dangerouslySetInnerHTML={{ __html: sanitizedContent }}
-                    />
+                  <div className={clsx("flex justify-between")}>
+                    {isIssuer ? (
+                      <>
+                        <div className="flex flex-row">
+                          <h3 className="justify-end space-x-1">
+                            <span className="text-base font-bold">
+                              {comment.commenter?.name || "Unknown"}
+                            </span>
+                            <span className="text-gray-700 text-xs">
+                              {formatDateTime(comment.createdAt)}
+                            </span>
+                          </h3>
+                        </div>
+                        {/* <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="w-2 h-2" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align={"start"}>
+                            <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                setChoosenComment(comment);
+                                open();
+                              }}
+                            >
+                              Edit
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu> */}
+                      </>
+                    ) : (
+                      <>
+                        <div></div>
+                        <div className="flex flex-row">
+                          <h3 className="justify-end space-x-1">
+                            <span className="text-gray-700 text-xs">
+                              {formatDateTime(comment.createdAt)}
+                            </span>
+                            <span className="text-base font-bold">
+                              {comment.commenter?.name || "Unknown"}
+                            </span>
+                          </h3>
+                        </div>
+                      </>
+                    )}
                   </div>
+                  <div
+                    className={clsx("text-sm", isIssuer ? "text-left" : "text-right")}
+                    dangerouslySetInnerHTML={{ __html: sanitizedContent }}
+                  />
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
+          {/* Pagination */}
+          {meta && meta.totalPages > 1 && (
+            <div className="flex justify-end space-x-2 py-4">
+              {Array.from({ length: meta.totalPages }).map((_, index) => (
+                <Button
+                  key={index}
+                  variant={currentPage === index + 1 ? "primary" : "ghost"}
+                  onClick={() => onPageChange(index + 1)}
+                >
+                  {index + 1}
+                </Button>
+              ))}
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex items-center justify-center w-full min-h-[60vh]">
@@ -183,20 +232,6 @@ export const CommentList = ({ commentableId, commentableType, commenter }: Comme
         </div>
       )}
 
-      {/* Pagination */}
-      {meta && meta.totalPages > 1 && (
-        <div className="flex justify-end space-x-2 py-4">
-          {Array.from({ length: meta.totalPages }).map((_, index) => (
-            <Button
-              key={index}
-              variant={currentPage === index + 1 ? "primary" : "ghost"}
-              onClick={() => onPageChange(index + 1)}
-            >
-              {index + 1}
-            </Button>
-          ))}
-        </div>
-      )}
 
       {/* Edit Comment Dialog */}
       {choosenComment && (

@@ -19,7 +19,7 @@ export default function DashboardLayout({
         <SidebarProvider>
             <AppSidebar navigationItems={navigations}/>
             <SidebarInset>
-                <header className="z-49 sticky top-0 bg-background flex h-16 shrink-0 items-center gap-2 justify-between p-4 border-b md:border-none md:rounded-xl">
+                <header className="z-50 sticky top-0 bg-background flex h-16 shrink-0 items-center gap-2 justify-between p-4 border-b md:border-none md:rounded-xl">
                     <div className="flex items-center gap-2">
                         <SidebarTrigger className="-ml-1" />
                         <Separator orientation="vertical" className="mr-2 h-4" />

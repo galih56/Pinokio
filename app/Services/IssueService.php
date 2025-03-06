@@ -232,25 +232,7 @@ class IssueService
 
         $query = $query->where('issues.issuer_type', 'guest_issuer');
         
-        $query->with($this->getRelatedData([
-            'comments' => function ($query) {
-                $query->whereDoesntHave('reads', function ($q) {
-                    $q->whereHas('reader', function ($query) {
-                        $query->where('email', $email);
-                    });
-                })
-                ->latest()
-                ->take(3);
-            }
-        ]))->withCount([
-            'comments as unread_comments_count' => function ($query) {
-                $query->whereDoesntHave('reads', function ($q) {
-                    $q->whereHas('reader', function ($query) {
-                        $query->where('email', $email);
-                    });
-                });
-            }
-        ]);
+        $query->with($this->getRelatedData());
         
         return $query->paginate($perPage);
     }

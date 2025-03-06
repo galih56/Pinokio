@@ -44,7 +44,10 @@ Route::group([
 
 Route::group([
     "prefix" => "public-issues",
-    'middleware' => ['decode_id', 'throttle:public_issues']
+    'middleware' => [
+        'decode_id', 
+        // 'throttle:public_issues'
+    ]
 ], function () {
     Route::get('/', [IssueController::class, 'getPublicIssues']);
     Route::post('/', [IssueController::class, 'storePublicIssue']);

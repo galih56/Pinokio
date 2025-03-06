@@ -10,7 +10,6 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Comment\StoreCommentRequest;
 use App\Http\Requests\Comment\UpdateCommentRequest;
-use App\Http\Requests\Comment\MarkCommentAsReadRequest;
 use App\Http\Requests\Comment\GetCommentRequest;
 use App\Http\Resources\CommentResource;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -83,17 +82,15 @@ class CommentController extends Controller
      * @param Comment $comment
      * @return \Illuminate\Http\JsonResponse
      */
-    public function markAsRead($id, MarkCommentAsReadRequest $request)
+    public function markAsRead($id)
     {
-        $readerData = $request->getReaderData();
-
-        if (!$readerData) {
-            return response()->json(['message' => 'Invalid reader'], 400);
+        try {
+            $this->commentService->markAsRead($id);
+            return ApiResponse::sendResponse(null, null, 'success', 201);
+        } catch (\Exception $ex) {
+            return ApiResponse::rollback($ex);
         }
 
-        $this->commentService->markAsRead($id);
-
-        return response()->json(['message' => 'Comment marked as read.']);
     }
     
 }

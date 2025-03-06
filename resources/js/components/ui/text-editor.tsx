@@ -95,24 +95,10 @@ const extensions = [
 ]
 
 type RichTextEditorProps = {
-  value: string;
-  onChange: (value: string) => void;
+  editor : Editor
 };
 
-export default function RichTextEditor({ value = '', onChange }: RichTextEditorProps) {
-  const editor = useEditor({
-    extensions: extensions,
-    content: value,
-    onUpdate({ editor }) {
-      onChange(editor.getHTML())
-    },
-    editorProps: {
-      attributes: {
-        spellcheck: 'false',
-      },
-    },
-  })
-
+export default function RichTextEditor({ editor }: RichTextEditorProps) {
   return (
     <div className='w-full'>
       <MenuBar editor={editor} />
