@@ -16,7 +16,7 @@ return new class extends Migration
                 $table->id();
                 $table->string('code')->unique()->notNull();
                 $table->string('name')->nullable();
-                $table->string('description')->nullable();
+                $table->text('description')->nullable();
                 $table->timestamps();
             });
         }

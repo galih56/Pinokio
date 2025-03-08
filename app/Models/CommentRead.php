@@ -9,6 +9,7 @@ class CommentRead extends Model
     protected $table = 'comment_reads';
 
     protected $fillable = ['comment_id', 'user_id', 'read_at'];
+    public $timestamps = false;
 
     public function comment()
     {

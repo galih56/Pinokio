@@ -53,6 +53,7 @@ class Issue extends Model
             'related_id'
         );
     }
+    
     public function assignees()
     {
         return $this->morphToMany(User::class, 'assignee', 'assignments', 'issue_id', 'assignee_id')

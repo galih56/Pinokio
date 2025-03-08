@@ -77,6 +77,11 @@ class User extends Authenticatable
     {
         return $this->morphMany(File::class, 'uploader');
     }
+    
+    public function teams()
+    {
+        return $this->belongsToMany(Team::class, 'team_members');
+    }
 
     public function assignments()
     {

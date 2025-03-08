@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\api\AuthController;
 use App\Http\Controllers\api\UserController;
+use App\Http\Controllers\api\TeamController;
 use App\Http\Controllers\api\TagController;
 use App\Http\Controllers\api\IssueController;
 use App\Http\Controllers\api\CommentController;
@@ -106,5 +107,24 @@ Route::group([
         Route::put('/{id}', [TagController::class, 'update']);
         Route::patch('/{id}', [TagController::class, 'update']);
         Route::delete('/{id}', [TagController::class, 'destroy']);
+    });
+});
+
+Route::group([
+    "prefix" => "teams",
+], function () {
+
+    Route::group([
+        'middleware' => [
+            'role:ADMIN,HR','decode_id',
+            'middleware' => 'auth:sanctum'
+        ]
+    ], function () {
+        Route::get('/', [TeamController::class, 'index']);
+        Route::post('/', [TeamController::class, 'store']);
+        Route::get('/{id}', [TeamController::class, 'show']);
+        Route::put('/{id}', [TeamController::class, 'update']);
+        Route::patch('/{id}', [TeamController::class, 'update']);
+        Route::delete('/{id}', [TeamController::class, 'destroy']);
     });
 });
