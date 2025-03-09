@@ -5,21 +5,29 @@ namespace App\Http\Requests\Team;
 use App\Models\TeamRole;
 use App\Services\HashIdService;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateTeamRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true; // Change this if you have authorization logic
+        return auth()->check();
     }
 
     public function rules(): array
     {
         return [
-            'name' => 'sometimes|required|string|max:255|unique:teams,name,' . $this->route('team'),
+            'name' => [
+                'sometimes',
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('teams', 'name')->ignore($this->route('id')), // Ignore current team
+            ],
             'description' => 'nullable|string|max:500',
+            'color' => ['nullable', 'string', 'regex:/^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$/'],
             'members' => 'nullable|array',
-            'members.*' => 'exists:users,id' // Validate user IDs
+            'members.*' => 'exists:users,id' 
         ];
     }
 

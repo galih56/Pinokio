@@ -52,6 +52,32 @@ export const createAppRouter = (queryClient: QueryClient) => {
           ErrorBoundary: AppRootErrorBoundary,
         },
         {
+          path: paths.teams.path,
+          lazy: async () => {
+            const { TeamsRoute, teamsLoader } = await import(
+              '@/pages/app/teams/teams'
+            );
+            return {
+              Component: TeamsRoute,
+              loader: teamsLoader(queryClient),
+            };
+          },
+          ErrorBoundary: AppRootErrorBoundary,
+        },
+        {
+          path: paths.team.path,
+          lazy: async () => {
+            const { TeamRoute, teamLoader } = await import(
+              '@/pages/app/teams/team'
+            );
+            return {
+              Component: TeamRoute,
+              loader: teamLoader(queryClient),
+            };
+          },
+          ErrorBoundary: AppRootErrorBoundary,
+        },
+        {
           path: paths.tags.path,
           lazy: async () => {
             const { TagsRoute, tagsLoader } = await import(

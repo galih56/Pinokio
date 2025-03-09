@@ -57,7 +57,6 @@ export const UpdateTeam = ({ teamId , onSuccess, onError}: UpdateTeamProps) => {
     defaultValues: {
       name: team?.name,        // Set default value for name
       color: team?.color || '#ffffff', // Set default color (fallback to white)
-      isPublic : Boolean(team?.isPublic),
     },
   });
 
@@ -95,13 +94,15 @@ export const UpdateTeam = ({ teamId , onSuccess, onError}: UpdateTeamProps) => {
   if (!team) {
     return null;
   }
-  console.log({
-    name: team?.name,        // Set default value for name
-  })
+  
   return (
     <Authorization allowedRoles={[ROLES.ADMIN]}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-2'>
+          <div className='space-x-2'>
+              <b>Code :</b> 
+              <span className='text-gray-700'>{team.code}</span>
+          </div>
           {/* Name Field */}
           <FormField
             control={form.control}
@@ -131,26 +132,6 @@ export const UpdateTeam = ({ teamId , onSuccess, onError}: UpdateTeamProps) => {
                   />
                 </FormControl>
                 <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="isPublic"
-            render={({ field }) => (
-              <FormItem className="mt-2 flex flex-row items-center space-x-3 rounded-md border p-4">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div>
-                  <FormLabel>Make this team public?</FormLabel>
-                  <p className="text-sm text-muted-foreground">
-                    Public teams can be used for everyone (On public form).
-                  </p>
-                </div>
               </FormItem>
             )}
           />

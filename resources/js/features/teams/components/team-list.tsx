@@ -1,7 +1,7 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { useTeams } from '../api/get-teams';
+import { getTeamsQueryOptions, useTeams } from '../api/get-teams';
 import {  DataTable } from '@/components/ui/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 
@@ -20,7 +20,7 @@ import { useEffect, useState } from 'react';
 import { formatDate } from '@/lib/datetime';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import DialogOrDrawer from '@/components/layout/dialog-or-drawer';
-import { UpdateTeam } from './team-tag';
+import { UpdateTeam } from './update-team';
 
 export type TeamsListProps = {
   onTeamPrefetch?: (id: string) => void;
@@ -37,7 +37,7 @@ export const TeamsList = ({
   const currentPage = +(searchParams.get("page") || 1);
   const search = searchParams.get('search') || '';
 
-  const tagsQuery = useTeams({
+  const teamsQuery = useTeams({
     page: currentPage,
     perPage : 15,
     search,
@@ -64,8 +64,8 @@ export const TeamsList = ({
 
   const queryClient = useQueryClient();
 
-  const tags = tagsQuery.data?.data || [];
-  const meta = tagsQuery.data?.meta;
+  const teams = teamsQuery.data?.data || [];
+  const meta = teamsQuery.data?.meta;
 
   
   const columns: ColumnDef<Team>[] = [ 
@@ -100,14 +100,26 @@ export const TeamsList = ({
       accessorKey: "name",
       header : 'Name',
     },
+    {
+      accessorKey: "color",
+      header : 'Color',
+      cell :  ({ row }) => {
+        const team = row.original
+        return (
+          <div className='w-8 h-8 rounded-xl' style={{backgroundColor : team.color ?? "#fffff"}}>
+
+          </div>
+        )
+      }
+    },
   ]
   const onPageChange = (newPage: number) => {
     queryClient.setQueryData(
-      ['tags', { page: newPage }],
-      tagsQuery.data 
+      ['teams', { page: newPage }],
+      teamsQuery.data 
     ); 
     navigate(`?page=${newPage}`);
-    tagsQuery.refetch();
+    teamsQuery.refetch();
   };
 
   return (
@@ -115,18 +127,18 @@ export const TeamsList = ({
       <div className="mb-4">
           <Input
             type="text"
-            placeholder="Search tags..."
+            placeholder="Search teams..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        {tagsQuery.isPending ?
+        {teamsQuery.isPending ?
         <Skeleton className='w-full min-h-[60vh]'/> 
         : 
-        tags.length > 0 ?
+        teams.length > 0 ?
           <DataTable
-            data={tags}
+            data={teams}
             columns={columns}
             pagination={
               meta && {
@@ -140,7 +152,7 @@ export const TeamsList = ({
             onPaginationChange={onPageChange}
           /> :  
           <div className="flex items-center justify-center w-full min-h-[60vh]">
-            <p className="text-gray-500">No tags found.</p>
+            <p className="text-gray-500">No teams found.</p>
           </div>}
         { choosenTeam &&
           <DialogOrDrawer 
@@ -149,7 +161,13 @@ export const TeamsList = ({
               title={"Edit Team"}
               description={"Pastikan data yang anda masukan sudah benar sesuai!"}
             >
-              <UpdateTeam tagId={choosenTeam?.id} onSuccess={() => { setChoosenTeam(undefined); close(); }}/>
+              <UpdateTeam teamId={choosenTeam?.id} 
+                onSuccess={() => { 
+                  setChoosenTeam(undefined); 
+                  close(); 
+                  teamsQuery.refetch();
+                }}
+              />
           </DialogOrDrawer>}
     </div>
   );

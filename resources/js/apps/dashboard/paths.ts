@@ -16,6 +16,14 @@ export const paths : Paths = {
     path: 'issues/:id',
     getHref: (id?: string) => `/issues/${id}`,
   },
+  teams: {
+    path: 'teams',
+    getHref: () => '/teams',
+  },
+  team: {
+    path: 'teams/:id',
+    getHref: (id?: string) => `/teams/${id}`,
+  },
   tags: {
     path: 'tags',
     getHref: () => '/tags',

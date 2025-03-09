@@ -138,6 +138,16 @@ const CommandShortcut = ({
 }
 CommandShortcut.displayName = "CommandShortcut"
 
+
+interface CommandLoadingProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+const CommandLoading = React.forwardRef<HTMLDivElement, CommandLoadingProps>(({ className, ...props }, ref) => (
+  <div ref={ref} className={cn("py-6 text-center text-sm text-muted-foreground", className)} {...props} />
+))
+
+CommandLoading.displayName = "CommandLoading"
+
+
 export {
   Command,
   CommandDialog,
@@ -148,4 +158,5 @@ export {
   CommandItem,
   CommandShortcut,
   CommandSeparator,
+  CommandLoading,
 }

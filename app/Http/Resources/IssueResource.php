@@ -14,7 +14,7 @@ class IssueResource extends JsonResource
     public function __construct($resource)
     {
         parent::__construct($resource);
-        $this->hashid = new HashIdService(); // Avoid redundant instantiations
+        $this->hashid = new HashIdService(); 
     }
 
     /**

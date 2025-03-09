@@ -17,6 +17,8 @@ import { useNotifications } from "@/components/ui/notifications";
 import { useIsFetching } from "@tanstack/react-query";
 import { ColorPickerPopover } from "@/components/ui/color-picker-popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import { User } from "@/types/api";
+import { UserSearch } from "@/features/users/components/user-search-input";
 
 type CreateTeamType = {
   onSuccess?: Function;
@@ -76,8 +78,28 @@ export default function CreateTeam({ onSuccess, onError }: CreateTeamType) {
           )}
         />
 
+        <FormField
+            name={'members'}
+            render={({ field }) => (
+              <FormItem>
+                  <FormLabel>
+                    Add members
+                    <span className="text-destructive ml-1">*</span>
+                  </FormLabel>
+                <FormControl>
+                  <UserSearch
+                    apiUrl={'/users/search'}
+                    onSelect={(user: User) => {
+                      field.onChange(user)
+                    }}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
         <DialogFooter className="my-4">
-          <Button type="submit" disabled={Boolean(isFetching)}>
+          <Button type="submit" isLoading={createTeamMutation.isPen} disabled={Boolean(isFetching)}>
             Submit
           </Button>
         </DialogFooter>

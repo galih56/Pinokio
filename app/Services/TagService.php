@@ -35,7 +35,7 @@ class TagService
 
         return $perPage ? $query->paginate($perPage) : $query->get();
     }
-    public function getTagById(int $id): ?Tag
+    public function getById(int $id): ?Tag
     {
         $this->model = Tag::findOrFail($id);
         return $this->model;

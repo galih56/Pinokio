@@ -30,6 +30,7 @@ class AppServiceProvider extends ServiceProvider
         Relation::enforceMorphMap([
             'guest_issuer' => \App\Models\GuestIssuer::class,
             'user' => \App\Models\User::class,
+            'team' => \App\Models\Team::class,
             'task' => \App\Models\Task::class,
             'project' => \App\Models\Project::class,
             'issue' => \App\Models\Issue::class,

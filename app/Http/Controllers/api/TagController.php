@@ -86,7 +86,7 @@ class TagController extends Controller
      */
     public function show($id)
     {
-        $tag = $this->tagService->getTagById($id);
+        $tag = $this->tagService->getById($id);
 
         return ApiResponse::sendResponse(new TagResource($tag),'', 'success', 200);
     }

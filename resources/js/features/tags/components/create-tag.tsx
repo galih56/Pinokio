@@ -117,7 +117,7 @@ export default function CreateTag({ onSuccess, onError }: CreateTagType) {
         />
 
         <DialogFooter className="my-4">
-          <Button type="submit" disabled={Boolean(isFetching)}>
+          <Button type="submit"  isLoading={createTagMutation.isPending} disabled={Boolean(isFetching)}>
             Submit
           </Button>
         </DialogFooter>

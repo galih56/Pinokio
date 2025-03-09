@@ -58,7 +58,7 @@ class UserController extends Controller
         $data = $request->all();
 
         try{
-            $user = $this->userService->getTagById($data);
+            $user = $this->userService->getById($data);
 
             DB::commit();
             return ApiResponse::sendResponse(new UserResource($user),'User Create Successful','success', 201);
@@ -72,7 +72,7 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = $this->userService->getTagById($id);
+        $user = $this->userService->getById($id);
 
         return ApiResponse::sendResponse(new UserResource($user),'', 'success', 200);
     }

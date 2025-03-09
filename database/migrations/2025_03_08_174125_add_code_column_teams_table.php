@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('teams', function (Blueprint $table) {
-            $table->string('code', 50)->unique()->after('name');
+            $table->string('color', 50)->nullable()->after('name');
+            $table->string('description')->nullable()->after('name');
+            $table->unsignedBigInteger('creator_id')->after('description');
+            $table->foreign('creator_id')->references('id')->on('users')->cascadeOnDelete();
         });
     }
 
@@ -22,7 +25,11 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('teams', function (Blueprint $table) {
-            $table->dropColumn('code');
+            $table->dropColumn('color');
+            $table->dropColumn('description');
+            
+            $table->dropForeign(['creator_id']); 
+            $table->dropColumn('creator_id');  
         });
     }
 };

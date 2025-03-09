@@ -33,11 +33,11 @@ export const useCreateTeam = ({
   const { onSuccess, ...restConfig } = mutationConfig || {};
 
   return useMutation({
-    onSuccess: (...args : any) => {
+    onSuccess: (data, variables, context) => {
       queryClient.invalidateQueries({
-        queryKey: getTeamsQueryOptions().queryKey,
+        queryKey: ['teams'],
       });
-      onSuccess?.(args);
+      onSuccess?.(data, variables, context);
     },
     ...restConfig,
     mutationFn: createTeam,

@@ -37,19 +37,33 @@ export const useUpdateTeam = ({
 }: UseUpdateTeamOptions) => {
   const queryClient = useQueryClient();
 
-  const { onSuccess, ...restConfig } = config || {};
+  const { onSuccess, onError, ...restConfig } = config || {};
 
   return useMutation({
+    ...restConfig,
+    mutationFn: updateTeam,
+    onMutate: async ({ data, teamId}) => {
+      await queryClient.cancelQueries({ queryKey: ['teams'] });
+
+      const previousTeams = queryClient.getQueryData<Team[]>(['teams']);
+
+      queryClient.setQueryData<Team[]>(['teams'], (oldTeams) => {
+        if (!oldTeams) return [];
+
+        return oldTeams.map((team) =>
+          team.id === teamId ? { ...team, ...data } : team
+        );
+      });
+
+      return { previousTeams };
+    },
     onSuccess: (res : any, ...args ) => {
       queryClient.refetchQueries({
-        queryKey: getTeamQueryOptions(teamId).queryKey,
-      });
-      queryClient.refetchQueries({
-        queryKey: getTeamsQueryOptions().queryKey,
+        queryKey: ['teams'],
       });
       onSuccess?.(res, ...args);
     },
-    ...restConfig,
-    mutationFn: updateTeam,
+    onError
   });
 };
+

@@ -10,26 +10,28 @@ export const getTeams = (
 ): Promise<{ data: Team[]; meta?: Meta }> => {
   const params: Record<string, any> = { search };
 
-  if (page && page > 0) {
+  if (page !== undefined && perPage !== undefined) {
     params.page = page;
     params.per_page = perPage;
   }
 
-  return api.get(`/tags`, { params });
+  return api.get(`/teams`, { params });
 };
+
 
 export const getTeamsQueryOptions = ({
   page,
-  perPage = 15,
+  perPage,
   search = '',
 }: { page?: number; perPage?: number; search?: string } = {}) => {
-  const isPaginated = !!page && page > 0;
+  const isPaginated = page !== undefined && perPage !== undefined;
 
   return queryOptions({
-    queryKey: ['tags', { paginated: isPaginated, page, perPage, search }],
+    queryKey: ['teams', { paginated: isPaginated, page, perPage, search }],
     queryFn: () => getTeams(page, perPage, search),
   });
 };
+
 
 type UseTeamsOptions = {
   page?: number;
@@ -41,7 +43,7 @@ type UseTeamsOptions = {
 export const useTeams = ({
   queryConfig,
   page,
-  perPage = 15,
+  perPage,
   search = '',
 }: UseTeamsOptions) => {
   return useQuery({
@@ -49,7 +51,7 @@ export const useTeams = ({
     ...queryConfig,
     select: (data) => ({
       data: data.data,
-      meta: data.meta, // Will be undefined if unpaginated
+      meta: data.meta, // Undefined if unpaginated
     }),
   });
 };

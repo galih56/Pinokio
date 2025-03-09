@@ -28,6 +28,8 @@ export type AuthResponse = {
 };
 
 export interface User extends BaseEntity {
+    id?: string;
+    avatar?: string;
     name: string;
     username?: string;
     email: string;
@@ -61,8 +63,7 @@ export interface GuestIssuer {
 export interface Team extends BaseEntity  {
     id?: string;
     name: string;
-    email: string;
-    issues?: Issue[];
+    color: string;
 }
 
 export interface Issue extends BaseEntity  {

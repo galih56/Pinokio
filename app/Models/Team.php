@@ -3,28 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 
 class Team extends Model
 {
-    protected $fillable = ['name'];
-    
-    protected $fillable = ['name', 'description', 'code'];
+    protected $fillable = ['name', 'description', 'code', 'color','creator_id'];
 
     public static function boot()
     {
         parent::boot();
-
-        static::creating(function ($team) {
-            $team->code = self::generateUniqueCode($team->name);
-        });
-    }
-
-    public static function generateUniqueCode($name)
-    {
-        $slug = Str::slug($name, '-'); // Convert name to URL-friendly slug
-        $count = self::where('code', 'LIKE', "{$slug}%")->count();
-
-        return $count ? "{$slug}-" . ($count + 1) : $slug;
     }
     
     public function assignments()
@@ -40,5 +27,9 @@ class Team extends Model
     public function users()
     {
         return $this->belongsToMany(User::class, 'team_members');
+    }
+    
+    public function creator(){
+        return $this->belongsTo(User::class, 'user_id');
     }
 }

@@ -4,49 +4,77 @@ namespace App\Services;
 
 use App\Models\Team;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Facades\DB;
 use Exception;
+use App\Helpers\QueryProcessor;
+use App\Helpers\ColorGenerator;
+use Auth;
 
 class TeamService
 {
-    /**
-     * Get all teams.
-     */
-    public function getAll(): Collection
+    protected $model;
+
+    public function __construct(
+        Team $model,
+    )
     {
-        return Team::all();
+        $this->model = $model;
     }
 
-    /**
-     * Find a team by ID.
-     */
-    public function findById(int $id): Team
+
+    public function getRelatedData(array $additionals = [])
     {
-        return Team::findOrFail($id);
+        $basic_relations = [
+            'assignments',
+        ];
+
+        return array_merge($basic_relations, $additionals);
     }
 
-    /**
-     * Create a new team.
-     */
+    public function get(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
+    {
+        $query = $this->model->newQuery();
+
+        $query = QueryProcessor::applyFilters($query, $filters);
+        $query = QueryProcessor::applySorts($query, $sorts);
+        
+        $query->with($this->getRelatedData());
+        
+        return $perPage ? $query->paginate($perPage) : $query->get();
+    }
+
+    public function getById(int $id): Team
+    {        
+        $this->model = Team::with($this->getRelatedData())->find($id);
+        return $this->model;
+    }
+
+    private function colorExists(string $name, string $color): bool
+    {
+        return Team::where('name', $name)->where('color', $color)->exists();
+    }
+
     public function create(array $data): Team
     {
-        return Team::create($data);
+        $data['creator_id'] = Auth::id();
+    
+        do {
+            $data['color'] = ColorGenerator::generateHex();
+        } while ($this->colorExists($data['name'], $data['color']));
+    
+        $this->model = $this->model->create($data);
+        return $this->model;
     }
 
-    /**
-     * Update a team.
-     */
     public function update(int $id, array $data): Team
     {
-        $team = Team::findOrFail($id);
-        $team->update($data);
-        return $team;
+        $this->model = Team::findOrFail($id);
+        $this->model->update($data);
+        return $this->model;
     }
 
-    /**
-     * Delete a team.
-     */
     public function delete(int $id): bool
     {
         $team = Team::findOrFail($id);

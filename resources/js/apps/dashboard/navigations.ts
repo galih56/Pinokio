@@ -1,4 +1,4 @@
-import { BugIcon, HomeIcon, IdCardIcon, Network, SettingsIcon, TimerIcon, Users2Icon } from 'lucide-react';
+import { BugIcon, HomeIcon, IdCardIcon, Network, SettingsIcon, TimerIcon, Users2Icon, UsersIcon } from 'lucide-react';
 import { paths } from './paths';
 import { NavigationItem } from '@/types/ui';
 
@@ -13,6 +13,12 @@ export const navigations : NavigationItem[] = [
       title: 'Issues',
       url : paths.issues.getHref(),
       icon: BugIcon,
+      roles: ['ADMIN'], 
+    },
+    {
+      title: 'Teams',
+      url : paths.teams.getHref(),
+      icon: UsersIcon,
       roles: ['ADMIN'], 
     },
     {

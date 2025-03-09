@@ -58,7 +58,7 @@ class TeamController extends Controller
         $data = $request->all();
 
         try{
-            $user = $this->teamService->getTagById($data);
+            $user = $this->teamService->create($data);
 
             DB::commit();
             return ApiResponse::sendResponse(new TeamResource($user),'Team Create Successful','success', 201);
@@ -72,7 +72,7 @@ class TeamController extends Controller
      */
     public function show($id)
     {
-        $user = $this->teamService->getTagById($id);
+        $user = $this->teamService->getById($id);
 
         return ApiResponse::sendResponse(new TeamResource($user),'', 'success', 200);
     }
@@ -85,7 +85,7 @@ class TeamController extends Controller
     {
         DB::beginTransaction();
         try{
-            $user = $this->teamService->update($id, $request->all());
+            $user = $this->teamService->update($id, $request->validated());
 
             DB::commit();
             return ApiResponse::sendResponse( $user , 'Team Successful','success',201);
