@@ -32,8 +32,9 @@ Route::group([
 ], function () {
     
     Route::group([
-        'middleware' => ['role:ADMIN,HR','decode_id']
+        'middleware' => ['role:ADMIN','decode_id']
     ], function () {
+        Route::get('/', [UserController::class, 'search']);
         Route::get('/', [UserController::class, 'index']);
         Route::post('/', [UserController::class, 'store']);
         Route::get('/{id}', [UserController::class, 'show']);
@@ -67,7 +68,7 @@ Route::group([
     Route::get('/{id}/logs', [IssueController::class, 'getIssueLogs']);
     
     Route::group([
-        'middleware' => ['role:ADMIN,HR','decode_id', 'auth:sanctum']
+        'middleware' => ['role:ADMIN','decode_id', 'auth:sanctum']
     ], function () {
         Route::get('/{id}', [IssueController::class, 'show']);
         Route::put('/{id}', [IssueController::class, 'update']);
@@ -98,7 +99,7 @@ Route::group([
     Route::get('/', [TagController::class, 'index']);
     Route::group([
         'middleware' => [
-            'role:ADMIN,HR','decode_id',
+            'role:ADMIN','decode_id',
             'middleware' => 'auth:sanctum'
         ]
     ], function () {
@@ -116,7 +117,7 @@ Route::group([
 
     Route::group([
         'middleware' => [
-            'role:ADMIN,HR','decode_id',
+            'role:ADMIN','decode_id',
             'middleware' => 'auth:sanctum'
         ]
     ], function () {

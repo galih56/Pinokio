@@ -36,6 +36,11 @@ class UserService
 
         return $perPage ? $query->paginate($perPage) : $query->get();
     }
+
+    public function searchUser(string $keyword){
+        return User::where('name',$keyword)->orWhere('email',$keyword)->limit(10)->get();
+    }
+
     public function getUserById(int $id): ?User
     {
         $this->model = User::findOrFail($id);

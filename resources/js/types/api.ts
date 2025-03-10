@@ -64,6 +64,7 @@ export interface Team extends BaseEntity  {
     id?: string;
     name: string;
     color: string;
+    members : User[]
 }
 
 export interface Issue extends BaseEntity  {

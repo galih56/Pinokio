@@ -67,6 +67,14 @@ class UserController extends Controller
         }
     }
 
+    public function search(Request $request)
+    {
+        $keyword = $request->input('keyword');
+        $data = $this->userService->searchUser($keyword);
+
+        return ApiResponse::sendResponse(UserResource::collection($data),'', 'success', 200);
+    }
+
     /**
      * Display the specified resource.
      */
