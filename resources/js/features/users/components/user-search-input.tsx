@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import { useEffect, useState } from "react"
 import { Check, ChevronsUpDown, Loader2, UserIcon } from "lucide-react"
 
 import {
@@ -16,72 +16,47 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button"
 import { useDebounce } from "@/hooks/use-debounce"
 import { User } from "@/types/api"
+import { searchUsers } from "../api/search-user"
 
 
 interface UserSearchProps {
-  onSelect?: (user: User) => void
-  placeholder?: string
-  apiUrl?: string
+  onSelect?: (user: User) => void;
+  placeholder?: string;
 }
 
-export function UserSearch({
-  onSelect,
-  placeholder = "Search users...",
-  apiUrl = "/api/users/search",
-}: UserSearchProps) {
-  const [open, setOpen] = React.useState(false)
-  const [searchQuery, setSearchQuery] = React.useState("")
-  const [selectedUser, setSelectedUser] = React.useState<User | null>(null)
-  const [users, setUsers] = React.useState<User[]>([])
-  const [loading, setLoading] = React.useState(false)
-  const [error, setError] = React.useState<string | null>(null)
+export function UserSearch({ onSelect, placeholder = "Search users..." }: UserSearchProps) {
+  const [open, setOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Debounce search query to avoid excessive API calls
-  const debouncedSearchQuery = useDebounce(searchQuery, 300)
+  // Debounce search query to reduce API calls
+  const debouncedSearchQuery = useDebounce(searchQuery, 300);
 
-  // Fetch users from API when search query changes
-  React.useEffect(() => {
-    const fetchUsers = async () => {
-      if (!debouncedSearchQuery && debouncedSearchQuery !== "") return
+  // Fetch users when search query changes
+  useEffect(() => {
+    if (!debouncedSearchQuery.trim()) return; // Avoid empty searches
 
-      setLoading(true)
-      setError(null)
+    setLoading(true);
+    setError(null);
 
-      try {
-        // Add the search query as a query parameter
-        const queryParams = new URLSearchParams()
-        if (debouncedSearchQuery) {
-          queryParams.append("q", debouncedSearchQuery)
-        }
-
-        const response = await fetch(`${apiUrl}?${queryParams.toString()}`)
-
-        if (!response.ok) {
-          throw new Error("Failed to fetch users")
-        }
-
-        const data = await response.json()
-        setUsers(data)
-      } catch (err) {
-        console.error("Error fetching users:", err)
-        setError("Failed to load users. Please try again.")
-        setUsers([])
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchUsers()
-  }, [debouncedSearchQuery, apiUrl])
+    searchUsers(debouncedSearchQuery)
+      .then((data) => setUsers(data))
+      .catch(() => {
+        setError("Failed to load users. Please try again.");
+        setUsers([]);
+      })
+      .finally(() => setLoading(false));
+  }, [debouncedSearchQuery]);
 
   // Handle user selection
   const handleSelect = (user: User) => {
-    setSelectedUser(user)
-    setOpen(false)
-    if (onSelect) {
-      onSelect(user)
-    }
-  }
+    setSelectedUser(user);
+    setOpen(false);
+    onSelect?.(user);
+  };
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -91,7 +66,7 @@ export function UserSearch({
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      <PopoverContent className="w-full p-0">
+      <PopoverContent className="w-full p-2">
         <Command>
           <CommandInput placeholder={placeholder} value={searchQuery} onValueChange={setSearchQuery} />
           <CommandList>
@@ -108,14 +83,7 @@ export function UserSearch({
               <CommandEmpty>
                 <div className="flex flex-col items-center justify-center py-6 text-center">
                   <span className="text-sm text-destructive">{error}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="mt-2"
-                    onClick={() => {
-                      setSearchQuery(debouncedSearchQuery)
-                    }}
-                  >
+                  <Button variant="ghost" size="sm" className="mt-2" onClick={() => setSearchQuery(debouncedSearchQuery)}>
                     Retry
                   </Button>
                 </div>
@@ -146,6 +114,5 @@ export function UserSearch({
         </Command>
       </PopoverContent>
     </Popover>
-  )
+  );
 }
-
