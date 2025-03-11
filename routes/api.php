@@ -34,7 +34,7 @@ Route::group([
     Route::group([
         'middleware' => ['role:ADMIN','decode_id']
     ], function () {
-        Route::get('/', [UserController::class, 'search']);
+        Route::get('/search', [UserController::class, 'search']);
         Route::get('/', [UserController::class, 'index']);
         Route::post('/', [UserController::class, 'store']);
         Route::get('/{id}', [UserController::class, 'show']);

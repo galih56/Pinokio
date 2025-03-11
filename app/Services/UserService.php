@@ -38,7 +38,11 @@ class UserService
     }
 
     public function searchUser(string $keyword){
-        return User::where('name',$keyword)->orWhere('email',$keyword)->limit(10)->get();
+        $keyword = "%".strtolower($keyword)."%" ; // Add wildcards and convert to lowercase
+
+        return User::whereRaw("LOWER(name) LIKE ?", [$keyword])
+                ->orWhereRaw("LOWER(email) LIKE ?", [$keyword])
+                ->limit(10)->get();
     }
 
     public function getUserById(int $id): ?User

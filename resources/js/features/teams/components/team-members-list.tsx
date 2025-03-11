@@ -17,7 +17,7 @@ interface TeamMembersListProps {
 export function TeamMembersList({
   members,
   isEditable = false,
-  onRemoveMember,
+onRemoveMember,
   maxHeight = 300,
   emptyMessage = "No team members yet",
 }: TeamMembersListProps) {
