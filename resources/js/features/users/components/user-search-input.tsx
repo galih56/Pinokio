@@ -48,51 +48,58 @@ export function UserSearch({ onSelect, placeholder = "Search users..." }: UserSe
         </Button>
       </PopoverTrigger>
       <PopoverContent className="p-0" align="start">
-        <Command shouldFilter={false}>
+        <Command shouldFilter={false} aria-disabled={'false'} disablePointerSelection={false}>
           <CommandInput placeholder={placeholder} value={searchQuery} onValueChange={setSearchQuery} className="h-9" />
 
-          {isLoading ? (
-            <div className="flex items-center justify-center py-6">
-              <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-              <span className="ml-2 text-sm text-muted-foreground">Loading users...</span>
-            </div>
-          ) : (
-            <CommandList className="max-h-[300px] overflow-auto">
-              {isError && (
-                <CommandEmpty>
-                  <div className="flex flex-col items-center justify-center py-6 text-center">
-                    <span className="text-sm text-destructive">Failed to load users.</span>
-                    <Button variant="ghost" size="sm" className="mt-2" onClick={() => refetch()}>
-                      Retry
-                    </Button>
+        
+          <CommandList className="overflow-auto" aria-disabled={'false'} >
+              <CommandItem >
+                <div className="flex items-center gap-2">
+                    <UserIcon className="h-5 w-5" />
+                
+                  <div className="flex flex-col">
+                    <span className="text-sm">TESTING</span>
+                    <span className="text-xs text-muted-foreground">testing@gmail.com</span>
                   </div>
-                </CommandEmpty>
-              )}
+                </div>
+                <Check className="ml-auto h-4 w-4" />
+              </CommandItem>
+            {isLoading && (
+              <div className="flex items-center justify-center py-6">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <span className="ml-2 text-sm text-muted-foreground">Loading users...</span>
+              </div>
+            )} 
+            {!isLoading && isError && (
+              <CommandEmpty>
+                <div className="flex flex-col items-center justify-center py-6 text-center">
+                  <span className="text-sm text-destructive">Failed to load users.</span>
+                  <Button variant="ghost" size="sm" className="mt-2" onClick={() => refetch()}>
+                    Retry
+                  </Button>
+                </div>
+              </CommandEmpty>
+            )}
 
-              {users.length === 0 && !isLoading && !isError && <CommandEmpty>No users found.</CommandEmpty>}
+            {users.length === 0 && !isLoading && !isError && <CommandEmpty>No users found.</CommandEmpty>}
 
-              {users.length > 0 && (
-                <CommandGroup heading="Users">
-                  {users.map((user,i) => (
-                    <CommandItem key={user.id+'-'+i} disabled={false} value={user.id} onSelect={() => handleSelect(user.id)}>
-                      <div className="flex items-center gap-2">
-                        {user.avatar ? (
-                          <img src={user.avatar} alt={user.name} className="h-6 w-6 rounded-full" />
-                        ) : (
-                          <UserIcon className="h-5 w-5" />
-                        )}
-                        <div className="flex flex-col">
-                          <span className="text-sm">{user.name}</span>
-                          <span className="text-xs text-muted-foreground">{user.email}</span>
-                        </div>
-                      </div>
-                      {selectedUser?.id === user.id && <Check className="ml-auto h-4 w-4" />}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
-              )}
-            </CommandList>
-          )}
+            {users.map((user,i) => (
+              <CommandItem key={user.id+'-'+i} disabled={false} aria-disabled={'false'} value={user.id} onSelect={() => handleSelect(user.id)}>
+                <div className="flex items-center gap-2">
+                  {user.avatar ? (
+                    <img src={user.avatar} alt={user.name} className="h-6 w-6 rounded-full" />
+                  ) : (
+                    <UserIcon className="h-5 w-5" />
+                  )}
+                  <div className="flex flex-col">
+                    <span className="text-sm">{user.name}</span>
+                    <span className="text-xs text-muted-foreground">{user.email}</span>
+                  </div>
+                </div>
+                {selectedUser?.id === user.id && <Check className="ml-auto h-4 w-4" />}
+              </CommandItem>
+            ))}
+          </CommandList>
         </Command>
       </PopoverContent>
     </Popover>
