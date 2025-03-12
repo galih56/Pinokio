@@ -2,22 +2,19 @@
 
 namespace App\Http\Controllers\api;
 
-use App\Exceptions\RecordExistsException;
-use App\Helpers\ApiResponse;
-use App\Http\Controllers\Controller;
-use App\Http\Requests\User\StoreUserRequest;
-use App\Http\Requests\User\UpdateUserRequest;
-use App\Http\Resources\UserResource;
-use App\Services\UserService;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use App\Http\Requests\UserRole\StoreUserRoleRequest;
+use App\Http\Requests\UserRole\UpdateUserRoleRequest;
+use App\Http\Resources\UserRoleResource;
 use Illuminate\Support\Facades\DB;
 
-class UserController extends Controller
+class UserRoleController extends Controller
 {
     
-    private UserService $userService;
+    private UserRoleService $userService;
     
-    public function __construct(UserService $userService)
+    public function __construct(UserRoleService $userService)
     {
         $this->userService = $userService;
     }
@@ -31,7 +28,7 @@ class UserController extends Controller
         $prepare_search = [];
         if ($search) {
             $prepare_search[] = [
-                'users:name,email:like' => $search,
+                'user_roles:name:like' => $search,
             ];
         }
         $sorts = [];
@@ -42,7 +39,7 @@ class UserController extends Controller
 
         if($per_page){
             $users = [
-                'data' => UserResource::collection($data->items()),  // The actual resource data
+                'data' => UserRoleResource::collection($data->items()),  // The actual resource data
                 'meta' => [
                     'current_page' => $data->currentPage(),
                     'per_page' => $data->perPage(),
@@ -53,7 +50,7 @@ class UserController extends Controller
                 
             return response()->json($users,200);
         }else{
-            $users = UserResource::collection($data);
+            $users = UserRoleResource::collection($data);
             return ApiResponse::sendResponse($users,'','success', 200);
         }
 
@@ -62,7 +59,7 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreUserRequest $request)
+    public function store(StoreUserRoleRequest $request)
     {
         DB::beginTransaction();
 
@@ -70,7 +67,7 @@ class UserController extends Controller
             $user = $this->userService->create($request->all());
 
             DB::commit();
-            return ApiResponse::sendResponse(new UserResource($user),'User Create Successful','success', 201);
+            return ApiResponse::sendResponse(new UserRoleResource($user),'UserRole Create Successful','success', 201);
         }catch(\Exception $ex){
             return ApiResponse::rollback($ex);
         }
@@ -79,9 +76,9 @@ class UserController extends Controller
     public function search(Request $request)
     {
         $keyword = $request->input('keyword');
-        $data = $this->userService->searchUser($keyword);
+        $data = $this->userService->searchUserRole($keyword);
 
-        return ApiResponse::sendResponse(UserResource::collection($data),'', 'success', 200);
+        return ApiResponse::sendResponse(UserRoleResource::collection($data),'', 'success', 200);
     }
 
     /**
@@ -89,23 +86,23 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = $this->userService->getUserById($id);
+        $user = $this->userService->getUserRoleById($id);
 
-        return ApiResponse::sendResponse(new UserResource($user),'', 'success', 200);
+        return ApiResponse::sendResponse(new UserRoleResource($user),'', 'success', 200);
     }
 
 
     /**
      * Update the specified resource in storage.
      */
-    public function update($id, UpdateUserRequest $request)
+    public function update($id, UpdateUserRoleRequest $request)
     {
         DB::beginTransaction();
         try{
             $user = $this->userService->update($id, $request->all());
 
             DB::commit();
-            return ApiResponse::sendResponse( $user , 'User Successful','success',201);
+            return ApiResponse::sendResponse( $user , 'UserRole Successful','success',201);
 
         }catch(\Exception $ex){
             return ApiResponse::rollback($ex);
@@ -117,14 +114,14 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $this->userService->deleteUser($id);
+        $this->userService->deleteUserRole($id);
         
-        return ApiResponse::sendResponse('User Delete Successful','',204);
+        return ApiResponse::sendResponse('UserRole Delete Successful','',204);
     }
 
-    public function getUserRoles()
+    public function getUserRoleRoles()
     {
-        $data = $this->userService->getUserRoles();
+        $data = $this->userService->getUserRoleRoles();
 
         return ApiResponse::sendResponse($data,'','success', 200);
     }

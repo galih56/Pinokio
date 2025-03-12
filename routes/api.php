@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\api\AuthController;
 use App\Http\Controllers\api\UserController;
 use App\Http\Controllers\api\TeamController;
+use App\Http\Controllers\api\UserRoleController;
 use App\Http\Controllers\api\TagController;
 use App\Http\Controllers\api\IssueController;
 use App\Http\Controllers\api\CommentController;
@@ -24,7 +25,6 @@ function(){
 
 
 
-Route::get('/user_roles', [UserController::class, 'getUserRoles']);
 
 Route::group([
     "prefix" => "users",
@@ -127,5 +127,25 @@ Route::group([
         Route::put('/{id}', [TeamController::class, 'update']);
         Route::patch('/{id}', [TeamController::class, 'update']);
         Route::delete('/{id}', [TeamController::class, 'destroy']);
+    });
+});
+
+
+Route::group([
+    "prefix" => "user_roles",
+], function () {
+
+    Route::group([
+        'middleware' => [
+            'role:ADMIN','decode_id',
+            'middleware' => 'auth:sanctum'
+        ]
+    ], function () {
+        Route::get('/', [UserRoleController::class, 'index']);
+        Route::post('/', [UserRoleController::class, 'store']);
+        Route::get('/{id}', [UserRoleController::class, 'show']);
+        Route::put('/{id}', [UserRoleController::class, 'update']);
+        Route::patch('/{id}', [UserRoleController::class, 'update']);
+        Route::delete('/{id}', [UserRoleController::class, 'destroy']);
     });
 });

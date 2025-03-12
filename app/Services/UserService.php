@@ -26,7 +26,7 @@ class UserService
         $this->model = $model;
     }
 
-    public function getAllUsers(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
+    public function get(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
     {
         $query = $this->model->newQuery();
 

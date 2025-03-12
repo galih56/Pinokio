@@ -24,24 +24,16 @@ export const UserView = ({ userId }: { userId: string }) => {
   if (!user) return null;
 
   return (
-      <div className="mt-6 px-6 space-y-2">
+      <div className="px-4 space-y-2">
           <div className="grid grid-cols-2 gap-6">
-              <Card className="col-span-1 shadow-sm">
-                  <CardHeader>
-                      <CardTitle>User Information</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                      <div className="space-y-1 my-2">
-                          <p className="text-sm font-medium leading-none">Username</p>
-                          <p className="text-sm text-muted-foreground">{user.username}</p>
-                      </div>
-                      <div className="space-y-1 my-2">
-                          <p className="text-sm font-medium leading-none">Email</p>
-                          <p className="text-sm text-muted-foreground">{user.email}</p>
-                      </div>
-                  </CardContent>
-              </Card>
-
+                <div className="space-y-1 my-2">
+                    <p className="text-sm font-medium leading-none">Username</p>
+                    <p className="text-sm text-muted-foreground">{user.username}</p>
+                </div>
+                <div className="space-y-1 my-2">
+                    <p className="text-sm font-medium leading-none">Email</p>
+                    <p className="text-sm text-muted-foreground">{user.email}</p>
+                </div>
           </div>
       </div>
   );

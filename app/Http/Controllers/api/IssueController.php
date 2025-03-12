@@ -132,8 +132,9 @@ class IssueController extends Controller
 
     public function store(StoreIssueRequest $request)
     {
+        DB::beginTransaction();
         try {
-            $issue = $this->issueService->create($request->validated());
+            $issue = $this->issueService->create($request->all());
 
             return ApiResponse::sendResponse($issue, 'Issue Create Successful', 'success', 201);
         } catch (\Exception $ex) {
