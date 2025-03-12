@@ -12,20 +12,20 @@ import {
 } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createTagInputSchema, useCreateTag } from "../api/create-tag";
+import { createUserRoleInputSchema, useCreateUserRole } from "../api/create-user-role";
 import { useNotifications } from "@/components/ui/notifications";
 import { useIsFetching } from "@tanstack/react-query";
 import { ColorPickerPopover } from "@/components/ui/color-picker-popover";
 import { Checkbox } from "@/components/ui/checkbox";
 
-type CreateTagType = {
+type CreateUserRoleType = {
   onSuccess?: Function;
   onError?: Function;
 };
 
-export default function CreateTag({ onSuccess, onError }: CreateTagType) {
+export default function CreateUserRole({ onSuccess, onError }: CreateUserRoleType) {
   const { addNotification } = useNotifications();
-  const createTagMutation = useCreateTag({
+  const createUserRoleMutation = useCreateUserRole({
     mutationConfig: {
       onSuccess: () => {
         onSuccess?.();
@@ -37,15 +37,15 @@ export default function CreateTag({ onSuccess, onError }: CreateTagType) {
   });
 
   const isFetching = useIsFetching();
-  const form = useForm<z.infer<typeof createTagInputSchema>>({
-    resolver: zodResolver(createTagInputSchema),
+  const form = useForm<z.infer<typeof createUserRoleInputSchema>>({
+    resolver: zodResolver(createUserRoleInputSchema),
     defaultValues: {
       color: "#ffffff",
       isPublic: false, // Default to false
     },
   });
 
-  async function onSubmit(values: z.infer<typeof createTagInputSchema>) {
+  async function onSubmit(values: z.infer<typeof createUserRoleInputSchema>) {
     const isValid = await form.trigger();
     if (!isValid) {
       addNotification({
@@ -55,7 +55,7 @@ export default function CreateTag({ onSuccess, onError }: CreateTagType) {
       });
       return;
     }
-    createTagMutation.mutate(values);
+    createUserRoleMutation.mutate(values);
   }
 
   return (
@@ -82,7 +82,7 @@ export default function CreateTag({ onSuccess, onError }: CreateTagType) {
           name="color"
           render={({ field }) => (
             <FormItem className="mt-4 flex items-center space-x-4">
-              <FormLabel>Choose a Tag Color:</FormLabel>
+              <FormLabel>Choose a UserRole Color:</FormLabel>
               <FormControl>
                 <ColorPickerPopover
                   value={field.value ?? ""}
@@ -94,30 +94,8 @@ export default function CreateTag({ onSuccess, onError }: CreateTagType) {
           )}
         />
 
-        {/* Public Tag Checkbox */}
-        <FormField
-          control={form.control}
-          name="isPublic"
-          render={({ field }) => (
-            <FormItem className="flex flex-row items-center space-x-3 rounded-md border p-4">
-              <FormControl>
-                <Checkbox
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              </FormControl>
-              <div>
-                <FormLabel>Make this tag public?</FormLabel>
-                <p className="text-sm text-muted-foreground">
-                  Public tags can be used for everyone (On public form).
-                </p>
-              </div>
-            </FormItem>
-          )}
-        />
-
         <DialogFooter className="my-4">
-          <Button type="submit"  isLoading={createTagMutation.isPending} disabled={Boolean(isFetching)}>
+          <Button type="submit"  isLoading={createUserRoleMutation.isPending} disabled={Boolean(isFetching)}>
             Submit
           </Button>
         </DialogFooter>

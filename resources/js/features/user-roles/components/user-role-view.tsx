@@ -1,19 +1,19 @@
 
 
 import { Spinner } from '@/components/ui/spinner';
-import { useTag } from '../api/get-tag';
+import { useUserRole } from '../api/get-user-role';
 
-export const TagView = ({ tagId }: { tagId: string | undefined }) => {
+export const User RoleView = ({ userRoleId }: { userRoleId: string | undefined }) => {
   
-  if(!tagId){
+  if(!userRoleId){
     return <h1>Unrecognized Request</h1>
   }
   
-  const tagQuery = useTag({
-    tagId,
+  const userRoleQuery = useUserRole({
+    userRoleId,
   });
 
-  if (tagQuery.isLoading) {
+  if (userRoleQuery.isLoading) {
     return (
       <div className="flex h-48 w-full items-center justify-center">
         <Spinner size="lg" />
@@ -21,8 +21,8 @@ export const TagView = ({ tagId }: { tagId: string | undefined }) => {
     );
   }
 
-  const tag = tagQuery?.data?.data;
-  if (!tag) return null;
+  const userRole = userRoleQuery?.data?.data;
+  if (!userRole) return null;
 
   return (
     <div className="mt-6 flex flex-col px-6 space-y-2">
@@ -31,9 +31,9 @@ export const TagView = ({ tagId }: { tagId: string | undefined }) => {
             <div className="space-y-1">
               <p className="text-sm font-medium leading-none">Name</p>
               <p className="text-sm text-muted-foreground">
-                {tag.name} 
+                {userRole.name} 
                 <br />
-                {tag.code ?? <span className='text-red'>No Tag Code Found</span>}
+                {userRole.code ?? <span className='text-red'>No User Role Code Found</span>}
               </p>
             </div>
           </div>

@@ -3,20 +3,20 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { MutationConfig } from '@/lib/react-query';
 
-import { getTagsQueryOptions } from './get-tags';
+import { getUserRolesQueryOptions } from './get-user-roles';
 
-export type DeleteTagDTO = {
-  tagId: string;
+export type DeleteUserRoleDTO = {
+  userRoleId: string;
 };
 
-export const deleteTag = ({
-  tagId,
-}: DeleteTagDTO) => {
-  return api.delete(`/tags/${tagId}`);
+export const deleteUserRole = ({
+  userRoleId,
+}: DeleteUserRoleDTO) => {
+  return api.delete(`/user_roles/${userRoleId}`);
 };
 
 type UseDeleteEmpoyeeOptions = {
-  mutationConfig?: MutationConfig<typeof deleteTag>;
+  mutationConfig?: MutationConfig<typeof deleteUserRole>;
 };
 
 export const useDeleteEmpoyee = ({
@@ -29,11 +29,11 @@ export const useDeleteEmpoyee = ({
   return useMutation({
     onSuccess: (...args : any) => {
       queryClient.invalidateQueries({
-        queryKey: getTagsQueryOptions().queryKey,
+        queryKey: getUserRolesQueryOptions().queryKey,
       });
       onSuccess?.(...args);
     },
     ...restConfig,
-    mutationFn: deleteTag,
+    mutationFn: deleteUserRole,
   });
 };

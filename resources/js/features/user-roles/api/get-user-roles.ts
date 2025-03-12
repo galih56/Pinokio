@@ -1,13 +1,13 @@
 import { queryOptions, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { QueryConfig } from '@/lib/react-query';
-import { Tag, Meta } from '@/types/api';
+import { UserRole, Meta } from '@/types/api';
 
-export const getTags = (
+export const getUserRoles = (
   page?: number,
   perPage?: number,
   search?: string
-): Promise<{ data: Tag[]; meta?: Meta }> => {
+): Promise<{ data: UserRole[]; meta?: Meta }> => {
   const params: Record<string, any> = { search };
 
   if (page && page > 0) {
@@ -15,10 +15,10 @@ export const getTags = (
     params.per_page = perPage;
   }
 
-  return api.get(`/tags`, { params });
+  return api.get(`/user_roles`, { params });
 };
 
-export const getTagsQueryOptions = ({
+export const getUserRolesQueryOptions = ({
   page,
   perPage = 15,
   search = '',
@@ -26,26 +26,26 @@ export const getTagsQueryOptions = ({
   const isPaginated = !!page && page > 0;
 
   return queryOptions({
-    queryKey: ['tags', { paginated: isPaginated, page, perPage, search }],
-    queryFn: () => getTags(page, perPage, search),
+    queryKey: ['user_roles', { paginated: isPaginated, page, perPage, search }],
+    queryFn: () => getUserRoles(page, perPage, search),
   });
 };
 
-type UseTagsOptions = {
+type UseUserRolesOptions = {
   page?: number;
   perPage?: number;
   search?: string;
-  queryConfig?: QueryConfig<typeof getTagsQueryOptions>;
+  queryConfig?: QueryConfig<typeof getUserRolesQueryOptions>;
 };
 
-export const useTags = ({
+export const useUserRoles = ({
   queryConfig,
   page,
   perPage = 15,
   search = '',
-}: UseTagsOptions) => {
+}: UseUserRolesOptions) => {
   return useQuery({
-    ...getTagsQueryOptions({ page, perPage, search }),
+    ...getUserRolesQueryOptions({ page, perPage, search }),
     ...queryConfig,
     select: (data) => ({
       data: data.data,

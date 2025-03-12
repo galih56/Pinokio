@@ -16,11 +16,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { useNotifications } from '@/components/ui/notifications';
 import { Authorization, ROLES } from '@/lib/authorization';
-import { useTag } from '../api/get-tag';
+import { useUserRole } from '../api/get-user-role';
 import {
-  updateTagInputSchema,
-  useUpdateTag,
-} from '../api/update-tag';
+  updateUserRoleInputSchema,
+  useUpdateUserRole,
+} from '../api/update-user-role';
 import { useIsFetching } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,46 +32,44 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useEffect } from 'react';
 import { Spinner } from '@/components/ui/spinner';
 
-type UpdateTagProps = {
-  tagId: string;
+type UpdateUserRoleProps = {
+  userRoleId: string;
   onSuccess? : ( ) => void;
   onError? : ( ) => void;
 };
 
-export const UpdateTag = ({ tagId , onSuccess, onError}: UpdateTagProps) => {
+export const UpdateUserRole = ({ userRoleId , onSuccess, onError}: UpdateUserRoleProps) => {
   const { addNotification } = useNotifications();
 
-  const tagQuery = useTag({ tagId });
-  const updateTagMutation = useUpdateTag({
-    tagId : tagId,
+  const userRoleQuery = useUserRole({ userRoleId });
+  const updateUserRoleMutation = useUpdateUserRole({
+    userRoleId : userRoleId,
     config: {
       onSuccess: onSuccess,
       onError: onError,
     },
   });
 
-  const tag = tagQuery.data?.data;
+  const userRole = userRoleQuery.data?.data;
 
-  const form = useForm<z.infer<typeof updateTagInputSchema>>({
-    resolver: zodResolver(updateTagInputSchema),
+  const form = useForm<z.infer<typeof updateUserRoleInputSchema>>({
+    resolver: zodResolver(updateUserRoleInputSchema),
     defaultValues: {
-      name: tag?.name,        // Set default value for name
-      color: tag?.color || '#ffffff', // Set default color (fallback to white)
-      isPublic : Boolean(tag?.isPublic),
+      name: userRole?.name,    
+      color: userRole?.color || '#ffffff', 
     },
   });
 
   useEffect(() => {
-    if (tag) {
+    if (userRole) {
       form.reset({
-        name: tag?.name || "",
-        color: tag?.color || "#ffffff",
-        isPublic: Boolean(tag?.isPublic),
+        name: userRole?.name || "",
+        color: userRole?.color || "#ffffff",
       });
     }
-  }, [tag, form.reset]);
+  }, [userRole, form.reset]);
 
-  async function onSubmit(values: z.infer<typeof updateTagInputSchema>) {
+  async function onSubmit(values: z.infer<typeof updateUserRoleInputSchema>) {
     const isValid = await form.trigger();
     if (!isValid) {
       addNotification({
@@ -81,10 +79,10 @@ export const UpdateTag = ({ tagId , onSuccess, onError}: UpdateTagProps) => {
       });
       return;
     }
-    updateTagMutation.mutate({ data: values, tagId: tag?.id! });
+    updateUserRoleMutation.mutate({ data: values, userRoleId: userRole?.id! });
   }
 
-  if(tagQuery.isPending){
+  if(userRoleQuery.isPending){
     return (
       <div className="flex h-48 w-full items-center justify-center">
         <Spinner size="lg" />
@@ -92,14 +90,10 @@ export const UpdateTag = ({ tagId , onSuccess, onError}: UpdateTagProps) => {
     )
   }
 
-  if (!tag) {
+  if (!userRole) {
     return null;
   }
-  console.log({
-    name: tag?.name,        // Set default value for name
-    color: tag?.color || '#ffffff', // Set default color (fallback to white)
-    isPublic : Boolean(tag?.isPublic),
-  })
+  
   return (
     <Authorization allowedRoles={[ROLES.ADMIN]}>
       <Form {...form}>
@@ -118,46 +112,8 @@ export const UpdateTag = ({ tagId , onSuccess, onError}: UpdateTagProps) => {
               </FormItem>
             )}
           />
-
-          {/* Color Picker Field */}
-          <FormField
-            control={form.control}
-            name="color"
-            render={({ field }) => (
-              <FormItem className="mt-4 flex items-center space-x-4 space-y-0">
-              <FormLabel className="whitespace-nowrap">Choose a Tag Color : </FormLabel>
-                <FormControl>
-                  <ColorPickerPopover
-                    value={field.value ?? ""}
-                    onChange={field.onChange}
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="isPublic"
-            render={({ field }) => (
-              <FormItem className="mt-2 flex flex-row items-center space-x-3 rounded-md border p-4">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div>
-                  <FormLabel>Make this tag public?</FormLabel>
-                  <p className="text-sm text-muted-foreground">
-                    Public tags can be used for everyone (On public form).
-                  </p>
-                </div>
-              </FormItem>
-            )}
-          />
           <DialogFooter className="my-4">
-            <Button type="submit" isLoading={updateTagMutation.isPending}>
+            <Button type="submit" isLoading={updateUserRoleMutation.isPending}>
               Submit
             </Button>
           </DialogFooter>

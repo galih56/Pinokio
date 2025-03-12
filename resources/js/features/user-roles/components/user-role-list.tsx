@@ -1,15 +1,15 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { useTags } from '../api/get-tags';
+import { useUserRoles } from '../api/get-user-roles';
 import {  DataTable } from '@/components/ui/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 
-import { Tag } from "@/types/api"
+import { UserRole } from "@/types/api"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { ArrowUpDown, CheckIcon, MoreHorizontal } from "lucide-react"
-import { getTagQueryOptions } from "../api/get-tag"
+import { getUserRoleQueryOptions } from "../api/get-user-role"
 import { Link } from '@/components/ui/link';
 import { paths } from '@/apps/dashboard/paths';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,24 +20,24 @@ import { useEffect, useState } from 'react';
 import { formatDate } from '@/lib/datetime';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import DialogOrDrawer from '@/components/layout/dialog-or-drawer';
-import { UpdateTag } from './update-tag';
+import { UpdateUserRole } from './update-user-role';
 
-export type TagsListProps = {
-  onTagPrefetch?: (id: string) => void;
+export type UserRolesListProps = {
+  onUserRolePrefetch?: (id: string) => void;
 };
 
-export const TagsList = ({
-  onTagPrefetch,
-}: TagsListProps) => {
+export const UserRolesList = ({
+  onUserRolePrefetch,
+}: UserRolesListProps) => {
   const navigate = useNavigate();
-  const [ choosenTag, setChoosenTag ] = useState<Tag | undefined>();
+  const [ choosenUserRole, setChoosenUserRole ] = useState<UserRole | undefined>();
   const { open, isOpen, close ,toggle } = useDisclosure();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = +(searchParams.get("page") || 1);
   const search = searchParams.get('search') || '';
 
-  const tagsQuery = useTags({
+  const userRolesQuery = useUserRoles({
     page: currentPage,
     perPage : 15,
     search,
@@ -64,15 +64,15 @@ export const TagsList = ({
 
   const queryClient = useQueryClient();
 
-  const tags = tagsQuery.data?.data || [];
-  const meta = tagsQuery.data?.meta;
+  const userRoles = userRolesQuery.data?.data || [];
+  const meta = userRolesQuery.data?.meta;
 
   
-  const columns: ColumnDef<Tag>[] = [ 
+  const columns: ColumnDef<UserRole>[] = [ 
     {
       id: "actions",
       cell: ({ row }) => {
-          const tag = row.original
+          const userRole = row.original
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -85,7 +85,7 @@ export const TagsList = ({
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem
                 onClick={() => {
-                  setChoosenTag(tag);
+                  setChoosenUserRole(userRole);
                   open()
                 }}
               >
@@ -104,41 +104,22 @@ export const TagsList = ({
       accessorKey: "color",
       header : 'Color',
       cell :  ({ row }) => {
-        const tag = row.original
+        const userRole = row.original
         return (
-          <div className='w-8 h-8 rounded-xl' style={{backgroundColor : tag.color ?? "#fffff"}}>
+          <div className='w-8 h-8 rounded-xl' style={{backgroundColor : userRole.color ?? "#fffff"}}>
 
           </div>
         )
       }
     },
-    {
-      accessorKey: "Available Guest User",
-      header : 'Available for Guest User',
-      meta : {
-        headerClassName : 'text-center',
-        cellClassName : 'flex justify-center'
-      },
-      cell :  ({ row }) => {
-        const tag = row.original
-
-        if(tag.isPublic){
-          return (
-            <CheckIcon className='h-6 w-6 text-green-700' />
-          )
-        }else{
-          return  null;
-        }
-      }
-    },
   ]
   const onPageChange = (newPage: number) => {
     queryClient.setQueryData(
-      ['tags', { page: newPage }],
-      tagsQuery.data 
+      ['userRoles', { page: newPage }],
+      userRolesQuery.data 
     ); 
     navigate(`?page=${newPage}`);
-    tagsQuery.refetch();
+    userRolesQuery.refetch();
   };
 
   return (
@@ -146,18 +127,18 @@ export const TagsList = ({
       <div className="mb-4">
           <Input
             type="text"
-            placeholder="Search tags..."
+            placeholder="Search userRoles..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        {tagsQuery.isPending ?
+        {userRolesQuery.isPending ?
         <Skeleton className='w-full min-h-[60vh]'/> 
         : 
-        tags.length > 0 ?
+        userRoles.length > 0 ?
           <DataTable
-            data={tags}
+            data={userRoles}
             columns={columns}
             pagination={
               meta && {
@@ -171,16 +152,16 @@ export const TagsList = ({
             onPaginationChange={onPageChange}
           /> :  
           <div className="flex items-center justify-center w-full min-h-[60vh]">
-            <p className="text-gray-500">No tags found.</p>
+            <p className="text-gray-500">No userRoles found.</p>
           </div>}
-        { choosenTag &&
+        { choosenUserRole &&
           <DialogOrDrawer 
               open={isOpen}
               onOpenChange={toggle}
-              title={"Edit Tag"}
+              title={"Edit UserRole"}
               description={"Pastikan data yang anda masukan sudah benar sesuai!"}
             >
-              <UpdateTag tagId={choosenTag?.id} onSuccess={() => { setChoosenTag(undefined); close(); }}/>
+              <UpdateUserRole userRoleId={choosenUserRole?.id} onSuccess={() => { setChoosenUserRole(undefined); close(); }}/>
           </DialogOrDrawer>}
     </div>
   );

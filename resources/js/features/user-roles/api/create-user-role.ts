@@ -3,31 +3,31 @@ import { z } from 'zod';
 
 import { api } from '@/lib/api-client';
 import { MutationConfig } from '@/lib/react-query';
-import { Tag } from '@/types/api';
+import { UserRole } from '@/types/api';
 import { subYears } from 'date-fns';
 
-import { getTagsQueryOptions } from './get-tags';
+import { getUserRolesQueryOptions } from './get-user_roles';
 
 
-export const createTagInputSchema = z.object({
+export const createUserRoleInputSchema = z.object({
   name: z.string().min(1, { message: 'Name is required.' }),
   color: z.string().optional(),
   isPublic: z.boolean().default(false),
 });
 
-export type CreateTagInput = z.infer<typeof createTagInputSchema>;
+export type CreateUserRoleInput = z.infer<typeof createUserRoleInputSchema>;
 
-export const createTag = (data : CreateTagInput): Promise<Tag> => {
-  return api.post(`/tags`, data);
+export const createUserRole = (data : CreateUserRoleInput): Promise<UserRole> => {
+  return api.post(`/user_roles`, data);
 };
 
-type UseCreateTagOptions = {
-  mutationConfig?: MutationConfig<typeof createTag>;
+type UseCreateUserRoleOptions = {
+  mutationConfig?: MutationConfig<typeof createUserRole>;
 };
 
-export const useCreateTag = ({
+export const useCreateUserRole = ({
   mutationConfig,
-}: UseCreateTagOptions = {}) => {
+}: UseCreateUserRoleOptions = {}) => {
   const queryClient = useQueryClient();
 
   const { onSuccess, ...restConfig } = mutationConfig || {};
@@ -35,11 +35,11 @@ export const useCreateTag = ({
   return useMutation({
     onSuccess: (...args : any) => {
       queryClient.invalidateQueries({
-        queryKey: getTagsQueryOptions().queryKey,
+        queryKey: getUserRolesQueryOptions().queryKey,
       });
       onSuccess?.(args);
     },
     ...restConfig,
-    mutationFn: createTag,
+    mutationFn: createUserRole,
   });
 };

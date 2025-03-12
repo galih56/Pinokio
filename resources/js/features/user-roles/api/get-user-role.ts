@@ -2,34 +2,34 @@ import { useQuery, queryOptions } from '@tanstack/react-query';
 
 import { api } from '@/lib/api-client';
 import { QueryConfig } from '@/lib/react-query';
-import { Tag } from '@/types/api';
+import { UserRole } from '@/types/api';
 
-export const getTag = ({
-  tagId,
+export const getUserRole = ({
+  userRoleId,
 }: {
-  tagId: string;
-}): Promise<{ data: Tag }> => {
-  return api.get(`/tags/${tagId}`);
+  userRoleId: string;
+}): Promise<{ data: UserRole }> => {
+  return api.get(`/user_roles/${userRoleId}`);
 };
 
-export const getTagQueryOptions = (tagId: string) => {
+export const getUserRoleQueryOptions = (userRoleId: string) => {
   return queryOptions({
-    queryKey: ['tags', tagId],
-    queryFn: () => getTag({ tagId }),
+    queryKey: ['user_roles', userRoleId],
+    queryFn: () => getUserRole({ userRoleId }),
   });
 };
 
-type UseTagOptions = {
-  tagId: string;
-  queryConfig?: QueryConfig<typeof getTagQueryOptions>;
+type UseUserRoleOptions = {
+  userRoleId: string;
+  queryConfig?: QueryConfig<typeof getUserRoleQueryOptions>;
 };
 
-export const useTag = ({
-  tagId,
+export const useUserRole = ({
+  userRoleId,
   queryConfig,
-}: UseTagOptions) => {
+}: UseUserRoleOptions) => {
   return useQuery({
-    ...getTagQueryOptions(tagId),
+    ...getUserRoleQueryOptions(userRoleId),
     ...queryConfig,
   });
 };
