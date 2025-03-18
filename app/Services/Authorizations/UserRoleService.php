@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\Authorization;
+namespace App\Services\Authorizations;
 
 use App\Models\UserRole;
 use Illuminate\Database\Eloquent\Collection;
@@ -17,13 +17,20 @@ class UserRoleService
         $this->model = $model;
     }
 
+    public function getRelatedData(array $additionals = [])
+    {
+        $basic_relations = [
+            'users',
+        ];
+
+        return array_merge($basic_relations, $additionals);
+    }
     public function get(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
     {
         $query = $this->model->newQuery();
 
         $query = QueryProcessor::applyFilters($query, $filters);
         $query = QueryProcessor::applySorts($query, $sorts);
-        $query->with($this->getRelatedData());
 
         return $perPage ? $query->paginate($perPage) : $query->get();
     }
@@ -31,6 +38,11 @@ class UserRoleService
     public function create(array $data)
     {
         return $this->model->create($data);
+    }
+
+    public function getById(int $id): ?UserRole
+    {
+        return $this->model::with($this->getRelatedData())->findOrFail($id);
     }
 
     public function update(int $id, array $data)
@@ -53,14 +65,6 @@ class UserRoleService
     {
         $user = $this->model->find($userId);
         $user->role_id = $roleId;
-        $user->save();
-        return $user;
-    }
-
-    public function removeFromUser(int $userId)
-    {
-        $user = $this->model->find($userId);
-        $user->role_id = null;
         $user->save();
         return $user;
     }

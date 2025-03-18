@@ -98,6 +98,12 @@ export const UpdateUserRole = ({ userRoleId , onSuccess, onError}: UpdateUserRol
     <Authorization allowedRoles={[ROLES.ADMIN]}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-2'>
+          <div>
+            <p>
+              <b>Code : </b>
+              <span> {userRole.code} </span>
+            </p>
+          </div>
           {/* Name Field */}
           <FormField
             control={form.control}

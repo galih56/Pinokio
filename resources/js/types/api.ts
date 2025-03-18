@@ -39,6 +39,7 @@ export interface User extends BaseEntity {
 
 export interface UserRole {
     id?: string;
+    code: string;
     name: string;
     description?: string;
     users?: User[];

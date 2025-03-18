@@ -1,4 +1,9 @@
-import { BugIcon, HomeIcon, IdCardIcon, Network, SettingsIcon, TimerIcon, Users2Icon, UsersIcon } from 'lucide-react';
+import { 
+  BugIcon, HomeIcon, IdCardIcon, 
+  Network, 
+  SettingsIcon, User2Icon, 
+  UsersIcon , ListTodoIcon
+} from 'lucide-react';
 import { paths } from './paths';
 import { NavigationItem } from '@/types/ui';
 
@@ -13,6 +18,12 @@ export const navigations : NavigationItem[] = [
       title: 'Issues',
       url : paths.issues.getHref(),
       icon: BugIcon,
+      roles: ['ADMIN'], 
+    },
+    {
+      title: 'Tasks',
+      url : paths.tasks.getHref(),
+      icon: ListTodoIcon,
       roles: ['ADMIN'], 
     },
     {
@@ -31,6 +42,12 @@ export const navigations : NavigationItem[] = [
           title: 'Users',
           url : paths.users.getHref(),
           icon: IdCardIcon,
+          roles: ['ADMIN'], 
+        },
+        {
+          title: 'User Roles',
+          url : paths.userRoles.getHref(),
+          icon: User2Icon,
           roles: ['ADMIN'], 
         },
         {

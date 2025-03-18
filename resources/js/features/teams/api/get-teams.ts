@@ -9,7 +9,7 @@ export const getTeams = (
   search?: string
 ): Promise<{ data: Team[]; meta?: Meta }> => {
   const params: Record<string, any> = { search };
-
+  
   if (page !== undefined && perPage !== undefined) {
     params.page = page;
     params.per_page = perPage;

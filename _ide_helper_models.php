@@ -16,6 +16,33 @@ namespace App\Models{
  * 
  *
  * @property int $id
+ * @property int $assignee_id
+ * @property string $assignee_type
+ * @property int $assignable_id
+ * @property string $assignable_type
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \Illuminate\Database\Eloquent\Model|\Eloquent $assignable
+ * @property-read \Illuminate\Database\Eloquent\Model|\Eloquent $assignee
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Assignment newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Assignment newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Assignment query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Assignment whereAssignableId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Assignment whereAssignableType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Assignment whereAssigneeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Assignment whereAssigneeType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Assignment whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Assignment whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Assignment whereUpdatedAt($value)
+ */
+	class Assignment extends \Eloquent {}
+}
+
+namespace App\Models{
+/**
+ * 
+ *
+ * @property int $id
  * @property string $comment
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
@@ -25,8 +52,6 @@ namespace App\Models{
  * @property int|null $commenter_id
  * @property-read \Illuminate\Database\Eloquent\Model|\Eloquent|null $commentable
  * @property-read \Illuminate\Database\Eloquent\Model|\Eloquent|null $commenter
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $readers
- * @property-read int|null $readers_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CommentRead> $reads
  * @property-read int|null $reads_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Comment newModelQuery()
@@ -50,12 +75,12 @@ namespace App\Models{
  *
  * @property int $id
  * @property int $comment_id
- * @property int $user_id
  * @property string|null $read_at
- * @property \Illuminate\Support\Carbon|null $created_at
- * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string|null $created_at
+ * @property string|null $updated_at
+ * @property int $user_id
  * @property-read \App\Models\Comment $comment
- * @property-read \Illuminate\Database\Eloquent\Model|\Eloquent $reader
+ * @property-read \App\Models\User|null $user
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommentRead newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommentRead newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|CommentRead query()
@@ -136,8 +161,6 @@ namespace App\Models{
  * @property-read int|null $issue_logs_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Issue> $issues
  * @property-read int|null $issues_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CommentRead> $readComments
- * @property-read int|null $read_comments_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GuestIssuer newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GuestIssuer newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|GuestIssuer query()
@@ -183,6 +206,17 @@ namespace App\Models{
 /**
  * 
  *
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRole newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRole newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRole query()
+ */
+	class ProjectRole extends \Eloquent {}
+}
+
+namespace App\Models{
+/**
+ * 
+ *
  * @property int $id
  * @property string $name
  * @property \Illuminate\Support\Carbon|null $created_at
@@ -212,15 +246,51 @@ namespace App\Models{
  * @property string $name
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property string|null $color
+ * @property string|null $description
+ * @property int $creator_id
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Assignment> $assignments
+ * @property-read int|null $assignments_count
+ * @property-read \App\Models\User|null $creator
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TeamMember> $members
+ * @property-read int|null $members_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $users
+ * @property-read int|null $users_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereColor($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereCreatorId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereDescription($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereUpdatedAt($value)
  */
 	class Team extends \Eloquent {}
+}
+
+namespace App\Models{
+/**
+ * 
+ *
+ * @property int $id
+ * @property int $team_id
+ * @property int $user_id
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Team $team
+ * @property-read \App\Models\User $user
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TeamMember newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TeamMember newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TeamMember query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TeamMember whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TeamMember whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TeamMember whereTeamId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TeamMember whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TeamMember whereUserId($value)
+ */
+	class TeamMember extends \Eloquent {}
 }
 
 namespace App\Models{
@@ -237,6 +307,8 @@ namespace App\Models{
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property int|null $role_id
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Assignment> $assignments
+ * @property-read int|null $assignments_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Comment> $comments
  * @property-read int|null $comments_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\File> $files
@@ -250,6 +322,8 @@ namespace App\Models{
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CommentRead> $readComments
  * @property-read int|null $read_comments_count
  * @property-read \App\Models\UserRole|null $role
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Team> $teams
+ * @property-read int|null $teams_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Sanctum\PersonalAccessToken> $tokens
  * @property-read int|null $tokens_count
  * @method static \Database\Factories\UserFactory factory($count = null, $state = [])

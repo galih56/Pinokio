@@ -26,56 +26,56 @@ import { useNotifications } from '@/components/ui/notifications';
 import { Authorization, ROLES } from '@/lib/authorization';
 import { DatePicker } from '@/components/ui/date-picker/date-picker';
 
-import { useIssue } from '../api/get-issue';
+import { useTask } from '../api/get-task';
 import {
-  updateIssueInputSchema,
-  useUpdateIssue,
-} from '../api/update-issue';
+  updateTaskInputSchema,
+  useUpdateTask,
+} from '../api/update-task';
 import { useIsFetching, useQueries } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from "zod";
 import { DialogFooter } from '@/components/ui/dialog';
 
-type UpdateIssueProps = {
-  issueId: string | undefined;
+type UpdateTaskProps = {
+  taskId: string | undefined;
 };
 
-export const UpdateIssue = ({ issueId }: UpdateIssueProps) => {
+export const UpdateTask = ({ taskId }: UpdateTaskProps) => {
   const { addNotification } = useNotifications();
 
-  if(!issueId){
+  if(!taskId){
     return null
   }
 
-  const issueQuery = useIssue({ issueId });
-  const updateIssueMutation = useUpdateIssue({
+  const taskQuery = useTask({ taskId });
+  const updateTaskMutation = useUpdateTask({
     mutationConfig: {
       onSuccess: () => {
         addNotification({
           type: 'success',
-          title: 'Issue Updated',
+          title: 'Task Updated',
           toast: true
         });
       },
     },
   });
-  const issue = issueQuery.data?.data;
+  const task = taskQuery.data?.data;
 
-  if(!issue || issueQuery.isPending){
+  if(!task || taskQuery.isPending){
     return null
   }
 
   const isFetching = useIsFetching();
-  const form = useForm<z.infer<typeof updateIssueInputSchema>>({
-    resolver: zodResolver(updateIssueInputSchema),
+  const form = useForm<z.infer<typeof updateTaskInputSchema>>({
+    resolver: zodResolver(updateTaskInputSchema),
     defaultValues : {
-      code : issue?.code,
-      name : issue?.name,
+      code : task?.code,
+      name : task?.name,
     }
   })
 
-  async function onSubmit(values: z.infer<typeof updateIssueInputSchema>) {
+  async function onSubmit(values: z.infer<typeof updateTaskInputSchema>) {
     const isValid = await form.trigger();
     if (!isValid) {
       addNotification({
@@ -85,7 +85,7 @@ export const UpdateIssue = ({ issueId }: UpdateIssueProps) => {
       });
       return;
     }
-    updateIssueMutation.mutate({ data : values, issueId : issue?.id!})
+    updateTaskMutation.mutate({ data : values, taskId : task?.id!})
   }
 
   return (

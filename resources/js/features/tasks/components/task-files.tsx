@@ -1,16 +1,16 @@
 import { FileList } from "@/features/files/components/file-list"
-import { useIssueFiles } from "../api/get-issue-files"
+import { useTaskFiles } from "../api/get-issue-files"
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-type IssueFilesProps = {
+type TaskFilesProps = {
     issueId : string;
 }
 
-export const IssueFiles = ({
+export const TaskFiles = ({
     issueId
-} : IssueFilesProps) => {
-    const filesQuery = useIssueFiles({
+} : TaskFilesProps) => {
+    const filesQuery = useTaskFiles({
         issueId : issueId
     });
 
@@ -31,7 +31,7 @@ export const IssueFiles = ({
                 : files.length > 0? <FileList data={files}/>
                 : (
                     <div className="flex items-center justify-center w-full min-h-[10vh]">
-                    <p className="text-gray-500">No files uploaded.</p>
+                        <p className="text-gray-500">No files uploaded.</p>
                     </div>
                 )}
             </CardContent>

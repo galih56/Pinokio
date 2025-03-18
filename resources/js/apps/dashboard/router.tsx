@@ -52,6 +52,32 @@ export const createAppRouter = (queryClient: QueryClient) => {
           ErrorBoundary: AppRootErrorBoundary,
         },
         {
+          path: paths.tasks.path,
+          lazy: async () => {
+            const { TasksRoute, tasksLoader } = await import(
+              '@/pages/app/tasks/tasks'
+            );
+            return {
+              Component: TasksRoute,
+              loader: tasksLoader(queryClient),
+            };
+          },
+          ErrorBoundary: AppRootErrorBoundary,
+        },
+        {
+          path: paths.task.path,
+          lazy: async () => {
+            const { TaskRoute, taskLoader } = await import(
+              '@/pages/app/tasks/task'
+            );
+            return {
+              Component: TaskRoute,
+              loader: taskLoader(queryClient),
+            };
+          },
+          ErrorBoundary: AppRootErrorBoundary,
+        },
+        {
           path: paths.teams.path,
           lazy: async () => {
             const { TeamsRoute, teamsLoader } = await import(
@@ -125,6 +151,32 @@ export const createAppRouter = (queryClient: QueryClient) => {
             return {
               Component: UserRoute,
               loader: userLoader(queryClient),
+            };
+          },
+          ErrorBoundary: AppRootErrorBoundary,
+        },
+        {
+          path: paths.userRoles.path,
+          lazy: async () => {
+            const { UserRolesRoute, userRolesLoader } = await import(
+              '@/pages/app/user-roles/user-roles'
+            );
+            return {
+              Component: UserRolesRoute,
+              loader: userRolesLoader(queryClient),
+            };
+          },
+          ErrorBoundary: AppRootErrorBoundary,
+        },
+        {
+          path: paths.userRole.path,
+          lazy: async () => {
+            const { UserRoleRoute, userRoleLoader } = await import(
+              '@/pages/app/user-roles/user-role'
+            );
+            return {
+              Component: UserRoleRoute,
+              loader: userRoleLoader(queryClient),
             };
           },
           ErrorBoundary: AppRootErrorBoundary,

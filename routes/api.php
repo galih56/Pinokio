@@ -7,6 +7,7 @@ use App\Http\Controllers\api\TeamController;
 use App\Http\Controllers\api\UserRoleController;
 use App\Http\Controllers\api\TagController;
 use App\Http\Controllers\api\IssueController;
+use App\Http\Controllers\api\TaskController;
 use App\Http\Controllers\api\CommentController;
 
 Route::group([ 
@@ -76,6 +77,21 @@ Route::group([
         Route::patch('/{id}', [IssueController::class, 'update']);
         Route::delete('/{id}', [IssueController::class, 'destroy']);
     });
+});
+
+Route::group([
+    "prefix" => "tasks",
+    'middleware' => ['role:ADMIN','decode_id', 'auth:sanctum']
+], function () {
+    Route::post('/', [TaskController::class, 'store']);
+    Route::get('/', [TaskController::class, 'index']);
+    Route::get('/{id}/files', [TaskController::class, 'getFiles']);
+    Route::get('/{id}/logs', [TaskController::class, 'getTaskLogs']);
+    Route::get('/{id}', [TaskController::class, 'show']);
+    Route::put('/{id}', [TaskController::class, 'update']);
+    Route::put('/{id}/status', [TaskController::class, 'updateTaskStatus']);
+    Route::patch('/{id}', [TaskController::class, 'update']);
+    Route::delete('/{id}', [TaskController::class, 'destroy']);
 });
 
 Route::group([

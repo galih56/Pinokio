@@ -97,20 +97,16 @@ export const UserRolesList = ({
       },
     },
     {
+      accessorKey: "code",
+      header : 'Code',
+    },
+    {
       accessorKey: "name",
       header : 'Name',
     },
     {
-      accessorKey: "color",
-      header : 'Color',
-      cell :  ({ row }) => {
-        const userRole = row.original
-        return (
-          <div className='w-8 h-8 rounded-xl' style={{backgroundColor : userRole.color ?? "#fffff"}}>
-
-          </div>
-        )
-      }
+      accessorKey: "createdAt",
+      header : 'Created At',
     },
   ]
   const onPageChange = (newPage: number) => {
@@ -154,11 +150,11 @@ export const UserRolesList = ({
           <div className="flex items-center justify-center w-full min-h-[60vh]">
             <p className="text-gray-500">No userRoles found.</p>
           </div>}
-        { choosenUserRole &&
+        { choosenUserRole?.id &&
           <DialogOrDrawer 
               open={isOpen}
               onOpenChange={toggle}
-              title={"Edit UserRole"}
+              title={"Edit User Role"}
               description={"Pastikan data yang anda masukan sudah benar sesuai!"}
             >
               <UpdateUserRole userRoleId={choosenUserRole?.id} onSuccess={() => { setChoosenUserRole(undefined); close(); }}/>

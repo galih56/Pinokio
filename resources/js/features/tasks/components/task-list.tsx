@@ -1,15 +1,15 @@
 import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
-import { useIssues } from '../api/get-issues';
+import { useTasks } from '../api/get-tasks';
 import {  DataTable } from '@/components/ui/data-table';
 import { ColumnDef } from '@tanstack/react-table';
 
-import { Issue } from "@/types/api"
+import { Task } from "@/types/api"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { ArrowUpDown, MoreHorizontal } from "lucide-react"
-import { getIssueQueryOptions } from "../api/get-issue"
+import { getTaskQueryOptions } from "../api/get-task"
 import { Link } from '@/components/ui/link';
 import { paths } from '@/apps/dashboard/paths';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,19 +19,19 @@ import { formatDate } from '@/lib/datetime';
 import DOMPurify from 'dompurify';
 import { StatusBadge } from './status-badge';
 
-export type IssuesListProps = {
-  onIssuePrefetch?: (id: string) => void;
+export type TasksListProps = {
+  onTaskPrefetch?: (id: string) => void;
 };
 
-export const IssuesList = ({
-  onIssuePrefetch,
-}: IssuesListProps) => {
+export const TasksList = ({
+  onTaskPrefetch,
+}: TasksListProps) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = +(searchParams.get("page") || 1);
   const search = searchParams.get('search') || '';
 
-  const issuesQuery = useIssues({
+  const tasksQuery = useTasks({
     page: currentPage,
     search,
   });
@@ -57,15 +57,15 @@ export const IssuesList = ({
 
   const queryClient = useQueryClient();
 
-  const issues = issuesQuery.data?.data || [];
-  const meta = issuesQuery.data?.meta;
+  const tasks = tasksQuery.data?.data || [];
+  const meta = tasksQuery.data?.meta;
 
   
-  const columns: ColumnDef<Issue>[] = [ 
+  const columns: ColumnDef<Task>[] = [ 
     {
       id: "actions",
       cell: ({ row }) => {
-          const issue = row.original
+          const task = row.original
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -78,10 +78,10 @@ export const IssuesList = ({
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
                 <Link
                     onMouseEnter={() => {
-                      queryClient.prefetchQuery(getIssueQueryOptions(issue.id));
-                      onIssuePrefetch?.(issue.id);
+                      queryClient.prefetchQuery(getTaskQueryOptions(task.id));
+                      onTaskPrefetch?.(task.id);
                     }}
-                    to={paths.issue.getHref(issue.id)}
+                    to={paths.task.getHref(task.id)}
                   >
                     <DropdownMenuItem>
                       View
@@ -97,20 +97,20 @@ export const IssuesList = ({
       accessorKey: "name",
       header : 'Name',
       cell : ({row}) => {
-        const issue = row.original;
-        if(!issue.issuer) return '-';
+        const task = row.original;
+        if(!task.taskr) return '-';
         
-        return issue.issuer.name
+        return task.taskr.name
       }
     },
     {
       accessorKey: "email",
       header : 'Email',
       cell : ({row}) => {
-        const issue = row.original;
-        if(!issue.issuer) return '-';
+        const task = row.original;
+        if(!task.taskr) return '-';
         
-        return issue.issuer.email
+        return task.taskr.email
       }
     },
     {
@@ -121,8 +121,8 @@ export const IssuesList = ({
       accessorKey: "description",
       header: "Description",
       cell: ({ row }) => {
-        const issue = row.original;
-        const sanitizedContent = DOMPurify.sanitize(issue?.description ?? '');
+        const task = row.original;
+        const sanitizedContent = DOMPurify.sanitize(task?.description ?? '');
         
         const [expanded, setExpanded] = useState(false);
         const shortContent = sanitizedContent.length > 100 
@@ -153,28 +153,28 @@ export const IssuesList = ({
       accessorKey: "dueDate",
       header : 'Due Date',
       cell : ({row}) => {
-        const issue = row.original;
-        if(!issue.dueDate) return '-';
+        const task = row.original;
+        if(!task.dueDate) return '-';
         
-        return formatDate(issue.dueDate)
+        return formatDate(task.dueDate)
       }
     },
     {
       accessorKey: "status",
       header : 'Status',
       cell : ({row}) => {
-        const issue = row.original;
-        return <StatusBadge status={issue.status}/>
+        const task = row.original;
+        return <StatusBadge status={task.status}/>
       }
     },
   ]
   const onPageChange = (newPage: number) => {
     queryClient.setQueryData(
-      ['issues', { page: newPage }],
-      issuesQuery.data 
+      ['tasks', { page: newPage }],
+      tasksQuery.data 
     ); 
     navigate(`?page=${newPage}`);
-    issuesQuery.refetch();
+    tasksQuery.refetch();
   };
 
   return (
@@ -182,17 +182,17 @@ export const IssuesList = ({
       <div className="mb-4">
           <Input
             type="text"
-            placeholder="Search issues..."
+            placeholder="Search tasks..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
 
-        {issuesQuery.isPending ? 
+        {tasksQuery.isPending ? 
          <Skeleton className='w-full min-h-[60vh]'/> 
-         : issues.length > 0 ?
+         : tasks.length > 0 ?
           <DataTable
-            data={issues}
+            data={tasks}
             columns={columns}
             pagination={
               meta && {
@@ -206,7 +206,7 @@ export const IssuesList = ({
             onPaginationChange={onPageChange}
           />: 
           <div className="flex items-center justify-center w-full min-h-[60vh]">
-            <p className="text-gray-500">No issues found.</p>
+            <p className="text-gray-500">No tasks found.</p>
           </div>}
     </div>
   );

@@ -16,6 +16,14 @@ export const paths : Paths = {
     path: 'issues/:id',
     getHref: (id?: string) => `/issues/${id}`,
   },
+  tasks: {
+    path: 'tasks',
+    getHref: () => '/tasks',
+  },
+  task: {
+    path: 'tasks/:id',
+    getHref: (id?: string) => `/tasks/${id}`,
+  },
   teams: {
     path: 'teams',
     getHref: () => '/teams',
@@ -39,6 +47,14 @@ export const paths : Paths = {
   user: {
     path: 'users/:id',
     getHref: (id?: string) => `/users/${id}`,
+  },
+  userRoles: {
+    path: 'user-roles',
+    getHref: () => '/user-roles',
+  },
+  userRole: {
+    path: 'useroles/:id',
+    getHref: (id?: string) => `/user-roles/${id}`,
   },
   setting: {
     path: 'setting',

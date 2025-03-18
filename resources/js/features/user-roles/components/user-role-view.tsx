@@ -3,7 +3,7 @@
 import { Spinner } from '@/components/ui/spinner';
 import { useUserRole } from '../api/get-user-role';
 
-export const User RoleView = ({ userRoleId }: { userRoleId: string | undefined }) => {
+export const UserRoleView = ({ userRoleId }: { userRoleId: string | undefined }) => {
   
   if(!userRoleId){
     return <h1>Unrecognized Request</h1>

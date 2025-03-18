@@ -58,7 +58,7 @@ class TeamService
 
     public function create(array $data): Team
     {
-        $data['creator_id'] = Auth::id();
+        $data['created_by'] = Auth::id();
     
         do {
             $data['color'] = ColorGenerator::generateHex();

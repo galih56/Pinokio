@@ -6,7 +6,7 @@ use App\Services\HashIdService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UserResource extends JsonResource
+class UserRoleResource extends JsonResource
 {
     /**
      * Transform the resource into an array.

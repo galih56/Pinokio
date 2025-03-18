@@ -8,15 +8,17 @@ use App\Http\Requests\UserRole\StoreUserRoleRequest;
 use App\Http\Requests\UserRole\UpdateUserRoleRequest;
 use App\Http\Resources\UserRoleResource;
 use Illuminate\Support\Facades\DB;
+use App\Services\Authorizations\UserRoleService;
+use App\Helpers\ApiResponse;
 
 class UserRoleController extends Controller
 {
     
-    private UserRoleService $userService;
+    private UserRoleService $userRoleService;
     
-    public function __construct(UserRoleService $userService)
+    public function __construct(UserRoleService $userRoleService)
     {
-        $this->userService = $userService;
+        $this->userRoleService = $userRoleService;
     }
 
     /**
@@ -35,7 +37,7 @@ class UserRoleController extends Controller
         $per_page = $request->query('per_page') ?? 0;
 
 
-        $data = $this->userService->get($prepare_search, $per_page, $sorts);
+        $data = $this->userRoleService->get($prepare_search, $per_page, $sorts);
 
         if($per_page){
             $users = [
@@ -64,7 +66,7 @@ class UserRoleController extends Controller
         DB::beginTransaction();
 
         try{
-            $user = $this->userService->create($request->all());
+            $user = $this->userRoleService->create($request->all());
 
             DB::commit();
             return ApiResponse::sendResponse(new UserRoleResource($user),'UserRole Create Successful','success', 201);
@@ -76,7 +78,7 @@ class UserRoleController extends Controller
     public function search(Request $request)
     {
         $keyword = $request->input('keyword');
-        $data = $this->userService->searchUserRole($keyword);
+        $data = $this->userRoleService->searchUserRole($keyword);
 
         return ApiResponse::sendResponse(UserRoleResource::collection($data),'', 'success', 200);
     }
@@ -86,7 +88,7 @@ class UserRoleController extends Controller
      */
     public function show($id)
     {
-        $user = $this->userService->getUserRoleById($id);
+        $user = $this->userRoleService->getById($id);
 
         return ApiResponse::sendResponse(new UserRoleResource($user),'', 'success', 200);
     }
@@ -99,7 +101,7 @@ class UserRoleController extends Controller
     {
         DB::beginTransaction();
         try{
-            $user = $this->userService->update($id, $request->all());
+            $user = $this->userRoleService->update($id, $request->all());
 
             DB::commit();
             return ApiResponse::sendResponse( $user , 'UserRole Successful','success',201);
@@ -114,14 +116,14 @@ class UserRoleController extends Controller
      */
     public function destroy($id)
     {
-        $this->userService->deleteUserRole($id);
+        $this->userRoleService->deleteUserRole($id);
         
         return ApiResponse::sendResponse('UserRole Delete Successful','',204);
     }
 
     public function getUserRoleRoles()
     {
-        $data = $this->userService->getUserRoleRoles();
+        $data = $this->userRoleService->getUserRoleRoles();
 
         return ApiResponse::sendResponse($data,'','success', 200);
     }

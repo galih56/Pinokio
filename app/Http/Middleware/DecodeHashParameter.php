@@ -20,7 +20,8 @@ class DecodeHashParameter
             // Decrypt the parameter value and set it back into the route
             $decryptedValue = (new HashidService())->decode($request->route($param));
             $request->route()->setParameter($param, $decryptedValue);
-            if($decryptedValue == null) {
+
+            if($decryptedValue === null) {
                 throw new \UnexpectedValueException('Request is unrecognized.');
             } 
         }

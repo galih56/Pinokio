@@ -7,7 +7,7 @@ use Illuminate\Support\Str;
 
 class Team extends Model
 {
-    protected $fillable = ['name', 'description', 'code', 'color','creator_id'];
+    protected $fillable = ['name', 'description', 'code', 'color','created_by'];
 
     public static function boot()
     {
