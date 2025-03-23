@@ -27,3 +27,4 @@ database/migrations/2025_03_12_132259_create_project_roles_table.php
 app/Services/Authorizations/TeamRoleService.php
 app/Services/Authorizations/ProjectRoleService.php
 app/Models/ProjectRole.php
+package-lock.json
