@@ -18,6 +18,7 @@ import { PasswordInput } from '@/components/ui/password-input';
 
 const registerInputSchema = z.object({
   email: z.string().email(),
+  username: z.string().min(6),
   password: z.string().min(6),
   passwordConfirmation: z.string().min(6),
   name: z.string(),
@@ -102,6 +103,21 @@ export const RegisterForm = ({ onSuccess, onError }: RegisterFormProps) => {
             )}
           />
           
+          {/* Name Field */}
+          <FormField
+            control={form.control}
+            name="username"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className='leading-7'>Username</FormLabel>
+                <FormControl>
+                  <Input placeholder="Username" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           {/* Email Field */}
           <FormField
             control={form.control}

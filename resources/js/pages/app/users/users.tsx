@@ -35,7 +35,6 @@ export const UsersRoute = () => {
           open={isOpen}
           onOpenChange={toggle}
           title={"Create User"}
-          description={"Pastikan data yang anda masukan sudah benar sesuai!"}
           trigger={ <Button variant="outline">Create User</Button>}
           >
             <CreateUser onSuccess={close}/>

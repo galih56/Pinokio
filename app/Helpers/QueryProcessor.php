@@ -10,29 +10,43 @@ use App\Helpers\DatetimeHelper;
 
 class QueryProcessor
 {
-    public static function applyFilters(Builder $query, array $filters): Builder
+    /*
+        * Load child tasks recursively with depth control.
+        *
+        * @param Builder $query
+        * @param array $filters
+        * @param int $childrenDepth 
+    */
+    public static function applyFilters(Builder $query, array $filters, int $childrenDepth = 1): Builder
     {
         foreach ($filters as $filterGroup) {
-            $query->where(function ($q) use ($filterGroup) {
+            $query->where(function ($q) use ($filterGroup, $childrenDepth) {
                 foreach ($filterGroup as $field => $value) {
                     if (strpos($field, 'with:') === 0) {
-                        self::applyRelatedFilter($q, $field, $value, 'orWhereHas');
+                        if (strpos($field, 'with:children') === 0) {
+                            // Apply children depth loading
+                            $q->with(['childrenWithDepth' => fn($childQuery) => $childQuery->childrenWithDepth($childrenDepth)]);
+                        } else {
+                            self::applyRelatedFilter($q, $field, $value, 'orWhereHas');
+                        }
                     } else {
+                        // Normal filtering
                         $segments = explode(':', $field);
                         $table_name = $segments[0];
-                        $columns = explode(',', $segments[1]); // Columns to compare (e.g., 'name,description')
-                        $operator = $segments[2] ?? '='; // Default operator '='
-
+                        $columns = explode(',', $segments[1]); 
+                        $operator = $segments[2] ?? '=';
+    
                         foreach ($columns as $column) {
-                            self::applyCondition($q, 'orWhere',$column, $value,  $operator);
+                            self::applyCondition($q, 'orWhere', $column, $value, $operator);
                         }
                     }
                 }
             });
         }
-
+    
         return $query;
     }
+    
 
     public static function applySorts(Builder $query, array $sorts = []): Builder
     {

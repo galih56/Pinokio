@@ -12,25 +12,24 @@ export const navigations : NavigationItem[] = [
       title : 'Home',
       url : paths.home.getHref(),
       icon: HomeIcon,
-      roles: ['ADMIN'],
     },
     {
       title: 'Issues',
       url : paths.issues.getHref(),
       icon: BugIcon,
-      roles: ['ADMIN'], 
     },
+    /*
     {
       title: 'Tasks',
       url : paths.tasks.getHref(),
       icon: ListTodoIcon,
       roles: ['ADMIN'], 
     },
+    */
     {
       title: 'Teams',
       url : paths.teams.getHref(),
       icon: UsersIcon,
-      roles: ['ADMIN'], 
     },
     {
       title: 'Setting',

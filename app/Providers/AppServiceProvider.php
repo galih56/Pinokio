@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\RateLimiter;
 
 use Illuminate\Support\Facades\Validator;
 use App\Helpers\DateTimeHelper;
-
+use App\Services\HashidService;
 use Illuminate\Database\Eloquent\Relations\Relation;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +19,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        $this->app->singleton(HashidService::class, function ($app) {
+            return new HashidService();
+        });
     }
 
     /**

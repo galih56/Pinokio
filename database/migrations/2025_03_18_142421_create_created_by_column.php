@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('teams', function (Blueprint $table) {
-            $table->rename('creator_id','created_by');
+            $table->dropForeign(['creator_id']); 
+            $table->dropColumn('creator_id'); 
+            $table->unsignedBigInteger('created_by')->after('description');
+            $table->foreign('created_by')->references('id')->on('users')->cascadeOnDelete();
         });
+
         Schema::table('tasks', function (Blueprint $table) {
             $table->unsignedBigInteger('created_by')->after('description');
             $table->foreign('created_by')->references('id')->on('users')->cascadeOnDelete();
@@ -26,8 +30,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('teams', function (Blueprint $table) {
-            $table->rename('created_by','creator_id');
+            $table->dropForeign(['created_by']); 
+            $table->dropColumn('created_by'); 
+            $table->unsignedBigInteger('creator_id')->after('description');
+            $table->foreign('creator_id')->references('id')->on('users')->cascadeOnDelete();
         });
+
         Schema::table('tasks', function (Blueprint $table) {
             $table->dropForeign(['created_by']); 
             $table->dropColumn('created_by'); 

@@ -9,18 +9,19 @@ import { subYears } from 'date-fns';
 import { getTasksQueryOptions } from './get-tasks';
 
 
+
 export const createTaskInputSchema = z.object({
-  projectId: z.string().optional(),
-  reporterId: z.string().optional(),
   name: z.string({ message: "Please tell us your name." }).min(1, { message: "Please tell us your name." }),
   email: z.string({ message: "Please tell us your email." }).min(1, { message: "Please tell us your email." }),
   title: z.string().min(1, { message: "Title is required." }),
   description: z.string().optional(),
   dueDate: z.date().optional(),
   files: z.array(z.instanceof(File)).optional(), 
-  tagId: z.string().min(1, 'Task type is required').refine(value => value !== '', {
-    message: 'Please select a task type',
-  }),
+  tagIds: z.array(z.string().min(1))
+    .min(1, 'At least one issue type is required')
+    .refine(values => values.every(v => v !== ''), {
+      message: 'Please select valid issue types',
+    })
 });
 export type CreateTaskInput = z.infer<typeof createTaskInputSchema>;
 

@@ -122,6 +122,19 @@ export default function CreateUser({
           />
           <FormField
             control={form.control}
+            name="username"
+            render={({ field , formState : { errors }  }) => (    
+              <FormItem className='my-3'>
+                  <FormLabel>Email</FormLabel>
+                  <FormControl>
+                      <Input {...field} placeholder="Username" type="text"/>
+                  </FormControl>
+                  <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
             name="password"
             render={({ field }) => (
               <FormItem className='my-3'>

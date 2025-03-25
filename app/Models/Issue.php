@@ -45,13 +45,17 @@ class Issue extends Model
     
     public function tasks()
     {
-        return $this->morphedByMany(
-            Task::class,
-            'related',
-            'file_associations',
-            'file_id',
-            'related_id'
-        );
+        return $this->hasMany(Task::class, 'task_id');
+    }
+    
+    public function logs()
+    {
+        return $this->hasMany(\App\Models\Logs\IssueLog::class, 'issue_id');
+    }
+    
+    public function projects()
+    {
+        return $this->hasMany(Project::class, 'project_id');
     }
     
     public function assignees()

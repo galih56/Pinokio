@@ -22,15 +22,7 @@ type CreateTeamType = {
 // Extend the schema to include members array
 const extendedCreateTeamSchema = createTeamInputSchema.extend({
   members: z
-    .array(
-      z.object({
-        id: z.string(),
-        name: z.string(),
-        email: z.string().email(),
-        avatar: z.string().optional(),
-        role: z.string().optional(),
-      }),
-    )
+    .array( z.string())
     .min(1, "Please add at least one team member"),
 })
 
@@ -62,7 +54,6 @@ export default function CreateTeam({ onSuccess, onError }: CreateTeamType) {
     resolver: zodResolver(extendedCreateTeamSchema),
     defaultValues: {
       color: "#ffffff",
-      isPublic: false,
       members: [],
     },
   })
@@ -104,7 +95,7 @@ export default function CreateTeam({ onSuccess, onError }: CreateTeamType) {
           name="color"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Team Color</FormLabel>
+              <FormLabel>Team Color </FormLabel>
               <FormControl>
                 <ColorPickerPopover value={field.value} onChange={field.onChange} />
               </FormControl>
@@ -125,7 +116,7 @@ export default function CreateTeam({ onSuccess, onError }: CreateTeamType) {
                   name="members"
                   apiUrl="/users/search"
                   placeholder="Search for users to add"
-                  onChange={field.onChange}
+                  onChange={(members) => field.onChange(members.map(member => member.id))}
                 />
               </FormControl>
               <FormMessage />

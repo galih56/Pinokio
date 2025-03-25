@@ -38,7 +38,7 @@ export const TeamsRoute = () => {
             dialogContentClassName="max-w-xs"
           >
             <div className='p-2'>
-              <CreateTeam onSuccess={close} onError={close}/>
+              <CreateTeam onSuccess={close}/>
             </div>
         </DialogOrDrawer>
         <div className='w-full my-2 p4'>

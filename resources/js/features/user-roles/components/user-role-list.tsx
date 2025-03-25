@@ -123,7 +123,7 @@ export const UserRolesList = ({
       <div className="mb-4">
           <Input
             type="text"
-            placeholder="Search userRoles..."
+            placeholder="Search user roles..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -155,7 +155,6 @@ export const UserRolesList = ({
               open={isOpen}
               onOpenChange={toggle}
               title={"Edit User Role"}
-              description={"Pastikan data yang anda masukan sudah benar sesuai!"}
             >
               <UpdateUserRole userRoleId={choosenUserRole?.id} onSuccess={() => { setChoosenUserRole(undefined); close(); }}/>
           </DialogOrDrawer>}

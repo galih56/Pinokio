@@ -30,7 +30,6 @@ export function UserSearch({ onSelect, placeholder = "Search users..." }: UserSe
 
   // Handle user selection
   const handleSelect = (userId: string) => {
-    console.log(userId)
     const user = users.find((u) => u.id === userId);
     if (user) {
       setSelectedUser(user);
@@ -38,7 +37,7 @@ export function UserSearch({ onSelect, placeholder = "Search users..." }: UserSe
       onSelect?.(user);
     }
   };
-  
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -50,20 +49,7 @@ export function UserSearch({ onSelect, placeholder = "Search users..." }: UserSe
       <PopoverContent className="p-0" align="start">
         <Command shouldFilter={false} aria-disabled={'false'} disablePointerSelection={false}>
           <CommandInput placeholder={placeholder} value={searchQuery} onValueChange={setSearchQuery} className="h-9" />
-
-        
           <CommandList className="overflow-auto" aria-disabled={'false'} >
-              <CommandItem >
-                <div className="flex items-center gap-2">
-                    <UserIcon className="h-5 w-5" />
-                
-                  <div className="flex flex-col">
-                    <span className="text-sm">TESTING</span>
-                    <span className="text-xs text-muted-foreground">testing@gmail.com</span>
-                  </div>
-                </div>
-                <Check className="ml-auto h-4 w-4" />
-              </CommandItem>
             {isLoading && (
               <div className="flex items-center justify-center py-6">
                 <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />

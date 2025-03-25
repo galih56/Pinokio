@@ -5,13 +5,13 @@ import { useState } from "react";
 import clsx from "clsx";
 
 type ColorPickerPopoverProps = {
-  value: string; // Current color value
+  value?: string; // Current color value
   onChange: (color: string) => void; // Callback to update the color
   triggerLabel?: string; // Label for the Popover trigger
 };
 
 export const ColorPickerPopover = ({
-  value,
+  value='',
   onChange,
   triggerLabel = "",
 }: ColorPickerPopoverProps) => {

@@ -159,7 +159,6 @@ export const TeamsList = ({
               open={isOpen}
               onOpenChange={toggle}
               title={"Edit Team"}
-              description={"Pastikan data yang anda masukan sudah benar sesuai!"}
             >
               <UpdateTeam teamId={choosenTeam?.id} 
                 onSuccess={() => { 

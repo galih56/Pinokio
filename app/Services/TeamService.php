@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Team;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -11,6 +12,7 @@ use Exception;
 use App\Helpers\QueryProcessor;
 use App\Helpers\ColorGenerator;
 use Auth;
+use App\Services\HashidService;
 
 class TeamService
 {
@@ -60,10 +62,12 @@ class TeamService
     {
         $data['created_by'] = Auth::id();
     
-        do {
-            $data['color'] = ColorGenerator::generateHex();
-        } while ($this->colorExists($data['name'], $data['color']));
-    
+        if(empty($data['color'])){
+            do {
+                $data['color'] = ColorGenerator::generateHex();
+            } while ($this->colorExists($data['name'], $data['color']));
+        }
+
         $this->model = $this->model->create($data);
         return $this->model;
     }
@@ -79,5 +83,13 @@ class TeamService
     {
         $team = Team::findOrFail($id);
         return $team->delete();
+    }
+
+    public function attachUsersToTeam(array $members){
+        $hashidService = new HashidService();
+
+        $this->model = $this->model->find($id);
+        $members = User::find($members);
+        $this->model->members()->attach($members);
     }
 }

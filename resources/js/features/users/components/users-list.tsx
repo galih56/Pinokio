@@ -86,9 +86,13 @@ export function UsersList() {
     {
       accessorKey: "role",
       header: "Role",
+      meta : {
+        headerClassName : 'text-center',
+        cellClassName : 'text-center',
+      },
       cell: ({ row }) => {
         const user = row.original;
-        if (!user.role) return "-";
+        if (!user.role) return "";
 
         let badgeVariant: VariantType = "info";
         switch (user?.role.code) {

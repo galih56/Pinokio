@@ -25,6 +25,21 @@ import { DropzoneOptions } from "react-dropzone";
 import { GuestIssuerInputs } from "./guest-issuer-inputs";
 import RichTextEditor from "@/components/ui/text-editor";
 import { CreateIssueInput, createIssueInputSchema, useCreateIssue } from "../api/create-issue";
+import { Editor } from '@tiptap/react';
+import StarterKit from '@tiptap/starter-kit';
+import Link from '@tiptap/extension-link';
+import { useEffect, useState } from "react";
+
+// Editor extensions
+const extensions = [
+  StarterKit,
+  Link.configure({
+    autolink: true,
+    openOnClick: true,
+    linkOnPaste: true,
+    shouldAutoLink: (url) => url.startsWith('https://') || url.startsWith('http://'),
+  }),
+];
 
 type CreateIssueType = {
   onSuccess? : Function;
@@ -67,6 +82,30 @@ export default function CreateIssue({
     resolver: zodResolver(createIssueInputSchema)
   })
   
+
+  // Instantiate Editor outside of component state
+  const [editor] = useState(
+    new Editor({
+      extensions,
+      content: '',
+      editorProps: {
+        attributes: {
+          spellcheck: 'false',
+        },
+      },
+    })
+  );
+
+  // Sync editor content with form state
+  useEffect(() => {
+    editor.on('update', () => {
+      form.setValue('description', editor.getHTML(), { shouldValidate: true });
+    });
+
+    return () => {
+      editor.destroy();
+    };
+  }, [editor, form]);
 
   async function onSubmit(values: z.infer<typeof createIssueInputSchema>) {
     const isValid = await form.trigger();
@@ -150,7 +189,7 @@ export default function CreateIssue({
                 <FormItem className="mt-2">
                   <FormLabel>Description</FormLabel>
                   <FormControl>
-                    <RichTextEditor  {...field}/>     
+                    <RichTextEditor editor={editor} />   
                   </FormControl>
                   <FormMessage />
                 </FormItem>

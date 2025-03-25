@@ -8,6 +8,14 @@ use App\Http\Requests\BaseRequest;
 
 class StoreIssueRequest extends BaseRequest
 {
+    protected HashidService $hashidService;
+
+    public function __construct(HashidService $hashidService)
+    {
+        parent::__construct();
+        $this->hashidService = $hashidService;
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -18,12 +26,10 @@ class StoreIssueRequest extends BaseRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
-         return  [
+        return [
             'ip_address' => 'nullable|ip',
             'project_id' => 'nullable|string', 
             'reporter_id' => 'nullable|string', 
@@ -46,51 +52,36 @@ class StoreIssueRequest extends BaseRequest
      */
     protected function prepareForValidation(): void
     {
-        $hashidService = new HashidService();
+        try {
+            if ($this->filled('tag_id')) {
+                $this->merge(['tag_id' => $this->hashidService->decode($this->input('tag_id'))]);
+            }
 
-        if ($this->has('tag_id')) {
-            $this->merge([
-                'tag_id' => $hashidService->decode($this->input('tag_id')),
-            ]);
+            if ($this->filled('tag_ids') && is_array($this->input('tag_ids'))) {
+                $decodedTagIds = array_map(fn($tag_id) => $this->hashidService->decode($tag_id), $this->input('tag_ids'));
+                $this->merge(['tag_ids' => $decodedTagIds]);
+            }
+
+            if ($this->filled('project_id')) {
+                $this->merge(['project_id' => $this->hashidService->decode($this->input('project_id'))]);
+            }
+
+            if ($this->filled('reporter_id')) {
+                $this->merge(['reporter_id' => $this->hashidService->decode($this->input('reporter_id'))]);
+            }
+        } catch (\Exception $e) {
+            // Prevent breaking request if decoding fails
+            $this->merge(['tag_id' => null, 'tag_ids' => [], 'project_id' => null, 'reporter_id' => null]);
         }
 
-        if ($this->has('tag_ids')) {
-            $decryptedtag_ids = array_map(
-                fn($tag_id) => $hashidService->decode($tag_id),
-                $this->input('tag_ids', [])
-            );
-            $this->merge(['tag_ids' => $decryptedtag_ids]);
-        }
-
-        if ($this->has('project_id')) {
-            $this->merge([
-                'project_id' => $hashidService->decode($this->input('project_id')),
-            ]);
-        }
-
-        if ($this->has('reporter_id')) {
-            $this->merge([
-                'reporter_id' => $hashidService->decode($this->input('reporter_id')),
-            ]);
-        }
-
-        if (auth()->check()) {
-            $this->merge([
-                'ip_address' => $this->ip(),
-                'issuer_type' => 'User'
-            ]);
-        }else{
-            $this->merge([
-                'ip_address' => $this->ip(),
-                'issuer_type' => 'guest_issuer'
-            ]);
-        }
+        $this->merge([
+            'ip_address' => $this->ip(),
+            'issuer_type' => auth()->check() ? 'User' : 'guest_issuer'
+        ]);
     }
 
     /**
      * Get the custom error messages for validation.
-     *
-     * @return array
      */
     public function messages(): array
     {

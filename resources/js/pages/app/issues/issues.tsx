@@ -34,7 +34,6 @@ export const IssuesRoute = () => {
           open={isOpen}
           onOpenChange={toggle}
           title={"Create Issue"}
-          description={"Pastikan data yang anda masukan sudah benar sesuai!"}
           trigger={ <Button variant="outline">Create Issue</Button>}
           >
             <CreateIssue onSuccess={close} onError={close}/>

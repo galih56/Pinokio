@@ -202,13 +202,48 @@ namespace App\Models\Logs{
 	class IssueLog extends \Eloquent {}
 }
 
+namespace App\Models\Logs{
+/**
+ * 
+ *
+ * @property int $id
+ * @property int $task_id
+ * @property string $action
+ * @property string $action_details
+ * @property int $user_id
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskLog newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskLog newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskLog query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskLog whereAction($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskLog whereActionDetails($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskLog whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskLog whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskLog whereTaskId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskLog whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TaskLog whereUserId($value)
+ */
+	class TaskLog extends \Eloquent {}
+}
+
 namespace App\Models{
 /**
  * 
  *
+ * @property int $id
+ * @property string $name
+ * @property string $code
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRole newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRole newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRole query()
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRole whereCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRole whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRole whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRole whereName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|ProjectRole whereUpdatedAt($value)
  */
 	class ProjectRole extends \Eloquent {}
 }
@@ -249,18 +284,20 @@ namespace App\Models{
  * @property string|null $color
  * @property string|null $description
  * @property int $creator_id
+ * @property int $created_by
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Assignment> $assignments
  * @property-read int|null $assignments_count
  * @property-read \App\Models\User|null $creator
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TeamMember> $members
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $members
  * @property-read int|null $members_count
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $users
- * @property-read int|null $users_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TeamMember> $team_members
+ * @property-read int|null $team_members_count
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team query()
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereColor($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereCreatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereCreatorId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereDescription($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|Team whereId($value)
@@ -279,6 +316,7 @@ namespace App\Models{
  * @property int $user_id
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property int $team_role_id
  * @property-read \App\Models\Team $team
  * @property-read \App\Models\User $user
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TeamMember newModelQuery()
@@ -287,6 +325,7 @@ namespace App\Models{
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TeamMember whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TeamMember whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TeamMember whereTeamId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder<static>|TeamMember whereTeamRoleId($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TeamMember whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder<static>|TeamMember whereUserId($value)
  */
@@ -322,6 +361,8 @@ namespace App\Models{
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CommentRead> $readComments
  * @property-read int|null $read_comments_count
  * @property-read \App\Models\UserRole|null $role
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TeamMember> $team_members
+ * @property-read int|null $team_members_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Team> $teams
  * @property-read int|null $teams_count
  * @property-read \Illuminate\Database\Eloquent\Collection<int, \Laravel\Sanctum\PersonalAccessToken> $tokens

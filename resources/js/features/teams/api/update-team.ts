@@ -5,13 +5,9 @@ import { api } from '@/lib/api-client';
 import { MutationConfig } from '@/lib/react-query';
 import { Team } from '@/types/api';
 
-import { getTeamQueryOptions } from './get-team';
-import { getTeamsQueryOptions } from './get-teams';
-
 export const updateTeamInputSchema = z.object({
   name: z.string().min(1, { message: 'Name is required.' }),
   color: z.string().optional(),
-  isPublic: z.boolean().default(false),
 });
 
 export type UpdateTeamInput = z.infer<typeof updateTeamInputSchema>;

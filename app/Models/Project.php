@@ -33,4 +33,12 @@ class Project extends Model
     {
         return $this->morphMany(File::class, 'related', 'related_type', 'related_id');
     }
+
+    public function issue(){
+        return $this->belongsTo(Issue::class, 'issue_id');
+    }
+
+    public function tasks(){
+        return $this->hasMany(Task::class, 'task_id');
+    }
 }

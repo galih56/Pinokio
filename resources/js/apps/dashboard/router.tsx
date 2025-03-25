@@ -51,6 +51,7 @@ export const createAppRouter = (queryClient: QueryClient) => {
           },
           ErrorBoundary: AppRootErrorBoundary,
         },
+        /*
         {
           path: paths.tasks.path,
           lazy: async () => {
@@ -77,6 +78,7 @@ export const createAppRouter = (queryClient: QueryClient) => {
           },
           ErrorBoundary: AppRootErrorBoundary,
         },
+        */
         {
           path: paths.teams.path,
           lazy: async () => {

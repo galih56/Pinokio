@@ -32,42 +32,7 @@ class TaskController extends Controller
 
         return ApiResponse::sendResponse(TaskResource::collection($tasks), null, 'success', 200);
     }
-
-    public function getPublicTasks(GetPublicTasksRequest $request){
-        $search = $request->query('search');
-        $email = $request->query('email');
-
-
-        $prepare_search = [];
-        if ($search) {
-            $prepare_search[] = [
-                'tasks:title,description:like' => $search,
-                'with:tags:name:like' => $search,
-            ];
-        }
-        
-        $sorts = [];
-        $per_page = $request->query('per_page') ?? 0;
-
-        $data = $this->taskService->getPublicTasks($prepare_search, $per_page, $sorts, $email);
-
-        if ($per_page) {
-            $tasks = [
-                'data' => TaskResource::collection($data->items()),
-                'meta' => [
-                    'current_page' => $data->currentPage(),
-                    'per_page' => $data->perPage(),
-                    'total_count' => $data->total(),
-                    'total_pages' => $data->lastPage(),
-                ],
-            ];
-            return response()->json($tasks, 200);
-        } else {
-            $tasks = TaskResource::collection($data);
-            return ApiResponse::sendResponse($tasks, '', 'success', 200);
-        }
-    }
-
+    
     /**
      * Display a listing of the resource.
      */
@@ -87,7 +52,7 @@ class TaskController extends Controller
 
         $per_page = $request->query('per_page') ?? 0;
 
-        $data = $this->taskService->getAllTasks($prepare_search, $per_page);
+        $data = $this->taskService->get($prepare_search, $per_page);
 
         if ($per_page) {
             $tasks = [

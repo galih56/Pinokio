@@ -178,7 +178,6 @@ export const TagsList = ({
               open={isOpen}
               onOpenChange={toggle}
               title={"Edit Tag"}
-              description={"Pastikan data yang anda masukan sudah benar sesuai!"}
             >
               <UpdateTag tagId={choosenTag?.id} onSuccess={() => { setChoosenTag(undefined); close(); }}/>
           </DialogOrDrawer>}

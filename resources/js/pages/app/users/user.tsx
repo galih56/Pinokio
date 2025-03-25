@@ -39,7 +39,6 @@ export const UserRoute = () => {
     <div className='mt-6'>
         <DialogOrDrawer 
           title={"Edit User"}
-          description={"Pastikan data yang anda masukan sudah benar sesuai!"}
           trigger={ <Button variant="outline"> <Edit/> Edit User</Button>}
           >
             <UpdateUser userId={userId}/>

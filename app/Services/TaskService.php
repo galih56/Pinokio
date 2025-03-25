@@ -28,7 +28,6 @@ class TaskService
     )
     {
         $this->model = $model;
-        $this->guestTaskrService = $guestTaskrService;
         $this->fileService = $fileService;
         $this->taskLogService = $taskLogService;
     }
@@ -44,7 +43,72 @@ class TaskService
         return array_merge($basic_relations, $additionals);
     }
 
+    public function get(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
+    {
+        $query = $this->model->newQuery();
+
+        $query = QueryProcessor::applyFilters($query, $filters);
+        $query = QueryProcessor::applySorts($query, $sorts);
+        
+        $query->with($this->getRelatedData([
+            'comments' => function ($query) {
+                $query->whereDoesntHave('reads', function ($q) {
+                    $q->where('user_id', Auth::id());
+                })
+                ->latest()
+                ->take(3);
+            },
+        ]))->withCount([
+            'comments as unread_comments_count' => function ($query) {
+                $query->whereDoesntHave('reads', function ($q) {
+                    $q->where('user_id', Auth::id());
+                });
+            }
+        ]);
+        
+        return $perPage ? $query->paginate($perPage) : $query->get();
+    }
     
+    public function getWithChildren(array $filters = [], int $perPage = 0, array $sorts = [], int $depth = 0): Collection | LengthAwarePaginator
+    {
+        $query = $this->model->newQuery();
+
+        $query = QueryProcessor::applyFilters($query, $filters);
+        $query = QueryProcessor::applySorts($query, $sorts);
+        
+        // ✅ Apply childrenWithDepth only if depth > 0
+        if ($depth > 0) {
+            $query->with(['children' => function ($q) use ($depth) {
+                $q->childrenWithDepth($depth);
+            }]);
+        }
+
+        $query->with($this->getRelatedData([
+            'comments' => function ($query) {
+                $query->whereDoesntHave('reads', function ($q) {
+                    $q->where('user_id', Auth::id());
+                })
+                ->latest()
+                ->take(3);
+            },
+            'comments' => function ($query) {
+                $query->whereDoesntHave('reads', function ($q) {
+                    $q->where('user_id', Auth::id());
+                })
+                ->latest()
+                ->take(3);
+            },
+        ]))->withCount([
+            'comments as unread_comments_count' => function ($query) {
+                $query->whereDoesntHave('reads', function ($q) {
+                    $q->where('user_id', Auth::id());
+                });
+            }
+        ]);
+        
+        return $perPage ? $query->paginate($perPage) : $query->get();
+    }
+
     public function create(array $data): Task
     {
         try {
@@ -122,29 +186,15 @@ class TaskService
     public function updateStatus(int $id, array $data): Task
     {
         try {
-            $taskr = null;
-            if ($data['taskr_type'] == 'guest_taskr') {
-                // If the user is a guest, create or fetch the GuestTaskr
-                $taskr =  $this->guestTaskrService->getOrCreateGuestTaskr($data['email'], $data['name'], $data['ip_address']);
-                $taskrType = 'guest_taskr';
-                                
-                $this->model = $this->model->where('id',$id)->where('taskr_type', $taskrType)->firstOrFail();
-                $this->model->status = 'closed';
-                $this->model->save();
-            } else {
-                // If the user is authenticated, set the taskr as the User
-                $taskr = auth()->user();
-                $taskrType = 'user';
+            $user = Auth::user();
 
-                $this->model = $this->model->find($id);
-                $this->model->status = $data['status'];
-                $this->model->save();
-            }
+            $this->model = $this->model->find($id);
+            $this->model->status = $data['status'];
+            $this->model->save();
             
             $this->taskLogService->create([
                 'task_id' => $this->model->id,
-                'user_id' => $taskr->id,
-                'user_type' => $taskrType,
+                'user_id' => $user->id,
                 'action' => 'status_change',
                 'action_details' => json_encode(['previous_status' =>  $this->model->getOriginal('status'), 'new_status' => 'closed']),
             ]);
@@ -178,46 +228,6 @@ class TaskService
         }
     }
 
-    public function get(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
-    {
-        $query = $this->model->newQuery();
-
-        $query = QueryProcessor::applyFilters($query, $filters);
-        $query = QueryProcessor::applySorts($query, $sorts);
-        
-        $query->with($this->getRelatedData([
-            'comments' => function ($query) {
-                $query->whereDoesntHave('reads', function ($q) {
-                    $q->where('user_id', Auth::id());
-                })
-                ->latest()
-                ->take(3);
-            }
-        ]))->withCount([
-            'comments as unread_comments_count' => function ($query) {
-                $query->whereDoesntHave('reads', function ($q) {
-                    $q->where('user_id', Auth::id());
-                });
-            }
-        ]);
-        
-        return $perPage ? $query->paginate($perPage) : $query->get();
-    }
-
-    public function getPublicTasks(array $filters = [], int $perPage = 0, array $sorts = [], $email = ''): Collection | LengthAwarePaginator
-    {
-        $taskr =  $this->guestTaskrService->getByEmail($email);
-        $query = $this->model->newQuery();
-
-        $query = QueryProcessor::applyFilters($query, $filters);
-        $query = QueryProcessor::applySorts($query, $sorts);
-
-        $query = $query->where('tasks.taskr_type', 'guest_taskr');
-        
-        $query->with($this->getRelatedData());
-        
-        return $query->paginate($perPage);
-    }
 
     public function getById(int $id): ?Task
     {

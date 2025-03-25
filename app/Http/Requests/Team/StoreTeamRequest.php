@@ -7,6 +7,11 @@ use App\Services\HashIdService;
 
 class StoreTeamRequest extends FormRequest
 {
+    public function __construct(protected HashIdService $hashidService)
+    {
+        parent::__construct();
+    }
+
     public function authorize(): bool
     {
         return auth()->check(); 
@@ -20,6 +25,27 @@ class StoreTeamRequest extends FormRequest
             'members' => 'nullable|array',
             'members.*' => 'exists:users,id' 
         ];
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('members') && is_array($this->input('members'))) {
+            try {
+                $members = $this->input('members');
+                
+                $decodedMemberIds = [];
+                if($members){
+                    for ($i=0; $i < count($members); $i++) { 
+                        $id = $members[$i];
+                        $id = $this->hashidService->decode($id);
+                        if($id) $decodedMemberIds[] = $id;
+                    }
+                }
+                $this->merge(['members' => $decodedMemberIds]);
+            } catch (\Exception $e) {
+                $this->merge(['members' => []]); // Prevent breaking validation if decryption fails
+            }
+        }
     }
 
     public function messages(): array

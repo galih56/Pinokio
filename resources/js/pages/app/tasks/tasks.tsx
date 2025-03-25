@@ -34,7 +34,6 @@ export const TasksRoute = () => {
           open={isOpen}
           onOpenChange={toggle}
           title={"Create Task"}
-          description={"Pastikan data yang anda masukan sudah benar sesuai!"}
           trigger={ <Button variant="outline">Create Task</Button>}
           >
             <CreateTask onSuccess={close} onError={close}/>

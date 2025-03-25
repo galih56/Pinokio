@@ -80,7 +80,7 @@ class User extends Authenticatable
     
     public function teams()
     {
-        return $this->belongsToMany(Team::class, 'team_members');
+        return $this->belongsToMany(Team::class, 'team_members','user_id', 'team_id');
     }
 
     public function assignments()
@@ -103,4 +103,8 @@ class User extends Authenticatable
         return $this->morphMany(IssueLog::class, 'user');
     }
 
+    public function team_members()
+    {
+        return $this->hasMany(TeamMember::class, 'user_id');
+    }
 }

@@ -18,7 +18,11 @@ export const updateIssueInputSchema = z.object({
   status: z.enum(['open', 'idle', 'in progress', 'resolved', 'closed']),
   priority: z.enum(['low', 'medium', 'high', 'critical']),
   dueDate: z.date().optional(),
-  tags: z.array(z.object({})).optional(),
+  tagIds: z.array(z.string().min(1))
+    .min(1, 'At least one issue type is required')
+    .refine(values => values.every(v => v !== ''), {
+      message: 'Please select valid issue types',
+    }),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -32,7 +36,7 @@ export const updateIssue = ({
   data: UpdateIssueInput;
   issueId: string;
 }): Promise<Issue> => {
-  return api.patch(`/issues/${issueId}`, data);
+  return api.put(`/issues/${issueId}`, data);
 };
 
 type UseUpdateIssueOptions = {

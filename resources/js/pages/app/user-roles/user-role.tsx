@@ -41,7 +41,6 @@ export const UserRoleRoute = () => {
           userRoleId && 
           <DialogOrDrawer 
             title={"Edit User Role"}
-            description={"Pastikan data yang anda masukan sudah benar sesuai!"}
             trigger={ <Button variant="outline"> <Edit/> Edit User Role</Button>}
             >
               <UpdateUserRole userRoleId={userRoleId}/>

@@ -41,7 +41,6 @@ export const TagRoute = () => {
           tagId && 
           <DialogOrDrawer 
             title={"Edit Tag"}
-            description={"Pastikan data yang anda masukan sudah benar sesuai!"}
             trigger={ <Button variant="outline"> <Edit/> Edit Tag</Button>}
             >
               <UpdateTag tagId={tagId}/>
