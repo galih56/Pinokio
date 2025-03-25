@@ -1,19 +1,11 @@
-import { useMutation, useQueryClient } from  '@tanstack/react-query';
-import { z } from 'zod';
-
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api-client';
 import { MutationConfig } from '@/lib/react-query';
-import {eTask } from '@/types/api';
+import { Task } from '@/types/api';
+import { getTaskQueryOptions } from './get-task';
 
-import { geeTaskQueryOptions } from './get-task';
-
-
-export const closeTask = ({
-  taskId,
-}: {
-  taskId: string;
-}): PromiseeTask> => {
-  return api.put(`/tasks/${taskId}/close`, { status : 'closed' });
+export const closeTask = async (taskId: string): Promise<Task> => {
+  return api.put(`/tasks/${taskId}/close`, { status: 'closed' });
 };
 
 type UseCloseTaskOptions = {
@@ -21,22 +13,19 @@ type UseCloseTaskOptions = {
   mutationConfig?: MutationConfig<typeof closeTask>;
 };
 
-export const useCloseTask = ({
-  taskId,
-  mutationConfig,
-}: UseCloseTaskOptions) => {
+export const useCloseTask = ({ taskId, mutationConfig }: UseCloseTaskOptions) => {
   const queryClient = useQueryClient();
 
   const { onSuccess, ...restConfig } = mutationConfig || {};
 
   return useMutation({
-    onSuccess: (res : any, ...args ) => {
+    mutationFn: () => closeTask(taskId),
+    onSuccess: (res: Task, ...args) => {
       queryClient.refetchQueries({
-        queryKey: geeTaskQueryOptions(taskId).queryKey,
+        queryKey: getTaskQueryOptions(taskId).queryKey,
       });
       onSuccess?.(res, ...args);
     },
     ...restConfig,
-    mutationFn: closeTask,
   });
 };
