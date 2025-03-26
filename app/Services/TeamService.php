@@ -30,6 +30,7 @@ class TeamService
     {
         $basic_relations = [
             'assignments',
+            'members'
         ];
 
         return array_merge($basic_relations, $additionals);
@@ -69,6 +70,11 @@ class TeamService
         }
 
         $this->model = $this->model->create($data);
+
+        if($data['members']){
+            $this->attachUsersToTeam($this->model, $data['members']);
+        }
+
         return $this->model;
     }
 
@@ -85,10 +91,9 @@ class TeamService
         return $team->delete();
     }
 
-    public function attachUsersToTeam(array $members){
+    public function attachUsersToTeam(Team $model, array $members){
         $hashidService = new HashidService();
 
-        $this->model = $this->model->find($id);
         $members = User::find($members);
         $this->model->members()->attach($members);
     }

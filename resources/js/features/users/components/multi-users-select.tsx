@@ -11,7 +11,6 @@ import { useFormContext } from "react-hook-form"
 
 interface MultiUserSelectProps {
   name: string
-  apiUrl: string
   placeholder?: string
   maxHeight?: number
   onChange?: (users: User[]) => void
@@ -20,7 +19,6 @@ interface MultiUserSelectProps {
 
 export function MultiUserSelect({
   name,
-  apiUrl,
   placeholder = "Search for users...",
   maxHeight = 300,
   onChange,
@@ -33,7 +31,7 @@ export function MultiUserSelect({
   React.useEffect(() => {
     setValue(name, selectedUsers)
     onChange?.(selectedUsers)
-  }, [selectedUsers, name, setValue, onChange])
+  }, [selectedUsers, name])
 
   // Add user to selection
   const handleSelectUser = (user: User) => {
@@ -60,7 +58,6 @@ export function MultiUserSelect({
 
       {/* User search input */}
       <UserSearch
-        apiUrl={apiUrl}
         placeholder={placeholder}
         onSelect={handleSelectUser}
       />

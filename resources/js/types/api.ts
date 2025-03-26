@@ -64,6 +64,7 @@ export interface GuestIssuer {
 export interface Team extends BaseEntity  {
     id: string;
     name: string;
+    description: string;
     color: string;
     members : User[]
 }

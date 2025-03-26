@@ -8,6 +8,7 @@ import { subYears } from 'date-fns';
 
 import { getTagsQueryOptions } from './get-tags';
 
+export type CreateTagDTO = Omit<Tag, "id" | "issues" | "createdAt">;
 
 export const createTagInputSchema = z.object({
   name: z.string().min(1, { message: 'Name is required.' }),

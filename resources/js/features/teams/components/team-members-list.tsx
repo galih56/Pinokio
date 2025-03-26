@@ -21,7 +21,7 @@ onRemoveMember,
   maxHeight = 300,
   emptyMessage = "No team members yet",
 }: TeamMembersListProps) {
-  if (members.length === 0) {
+  if (members === undefined || members.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center p-6 text-center border rounded-md bg-muted/20">
         <UserIcon className="w-10 h-10 text-muted-foreground mb-2" />

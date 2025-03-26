@@ -20,7 +20,7 @@ import { useEffect, useState } from 'react';
 import { formatDate } from '@/lib/datetime';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import DialogOrDrawer from '@/components/layout/dialog-or-drawer';
-import { UpdateTeam } from './update-team';
+import UpdateTeam from './update-team';
 
 export type TeamsListProps = {
   onTeamPrefetch?: (id: string) => void;
@@ -160,7 +160,7 @@ export const TeamsList = ({
               onOpenChange={toggle}
               title={"Edit Team"}
             >
-              <UpdateTeam teamId={choosenTeam?.id} 
+              <UpdateTeam data={choosenTeam} 
                 onSuccess={() => { 
                   setChoosenTeam(undefined); 
                   close(); 

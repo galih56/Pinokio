@@ -13,6 +13,8 @@ import { useIsFetching } from "@tanstack/react-query"
 import { ColorPickerPopover } from "@/components/ui/color-picker-popover"
 import { Checkbox } from "@/components/ui/checkbox"
 import { MultiUserSelect } from "@/features/users/components/multi-users-select"
+import { UserSearch } from "@/features/users/components/user-search-input"
+import { Textarea } from "@/components/ui/textarea"
 
 type CreateTeamType = {
   onSuccess?: Function
@@ -31,19 +33,9 @@ export default function CreateTeam({ onSuccess, onError }: CreateTeamType) {
   const createTeamMutation = useCreateTeam({
     mutationConfig: {
       onSuccess: () => {
-        addNotification({
-          type: "success",
-          title: "Team created successfully",
-          toast: true,
-        })
         onSuccess?.()
       },
       onError: (error) => {
-        addNotification({
-          type: "error",
-          title: "Failed to create team",
-          toast: true,
-        })
         onError?.()
       },
     },
@@ -114,7 +106,6 @@ export default function CreateTeam({ onSuccess, onError }: CreateTeamType) {
               <FormControl>
                 <MultiUserSelect
                   name="members"
-                  apiUrl="/users/search"
                   placeholder="Search for users to add"
                   onChange={(members) => field.onChange(members.map(member => member.id))}
                 />
@@ -122,8 +113,21 @@ export default function CreateTeam({ onSuccess, onError }: CreateTeamType) {
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> 
 
+        <FormField
+          control={form.control}
+          name="description"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Description</FormLabel>
+              <FormControl>
+                <Textarea {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
         <DialogFooter className="pt-4">
           <Button type="submit" isLoading={createTeamMutation.isPending} disabled={Boolean(isFetching)}>
             Create Team

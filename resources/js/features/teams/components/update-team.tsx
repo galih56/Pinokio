@@ -11,11 +11,17 @@ import { updateTeamInputSchema, useUpdateTeam } from "../api/update-team"
 import { useNotifications } from "@/components/ui/notifications"
 import { ColorPickerPopover } from "@/components/ui/color-picker-popover"
 import { MultiUserSelect } from "@/features/users/components/multi-users-select"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Team, User } from "@/types/api"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { PenIcon, Users2Icon } from "lucide-react"
+import { TeamMembersList } from "./team-members-list"
+import { useTeam } from "../api/get-team"
+import { Textarea } from "@/components/ui/textarea"
 
 type UpdateTeamProps = {
-  team: Team;
+  data: Team;
   onSuccess?: () => void;
   onError?: () => void;
 }
@@ -25,47 +31,48 @@ const extendedUpdateTeamSchema = updateTeamInputSchema.extend({
   members: z.array(z.string()).min(1, "Please add at least one team member"),
 })
 
-export default function UpdateTeam({ team, onSuccess, onError }: UpdateTeamProps) {
-  const { addNotification } = useNotifications()
+export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps) {
+  const { addNotification } = useNotifications();
+  const [activeTab, setActiveTab] = useState("details");
+  const teamQuery = useTeam({
+    teamId : data.id
+  })
+  
+  const team = teamQuery.data?.data || null;
+
   const updateTeamMutation = useUpdateTeam({
-    teamId: team.id,
+    teamId: data.id,
     config: {
       onSuccess: () => {
-        addNotification({
-          type: "success",
-          title: "Team updated successfully",
-          toast: true,
-        })
         onSuccess?.()
       },
       onError: () => {
-        addNotification({
-          type: "error",
-          title: "Failed to update team",
-          toast: true,
-        })
         onError?.()
       },
     },
   })
-
+  const memberIds = (data.members ? data.members.map((m) => m.id) : []);
+  
   const form = useForm<z.infer<typeof extendedUpdateTeamSchema>>({
     resolver: zodResolver(extendedUpdateTeamSchema),
     defaultValues: {
-      name: team.name,
-      color: team.color || "#ffffff",
-      members: team.members.map((m) => m.id), // Extract IDs
+      name: data.name,
+      description: data.description,
+      color: data.color || "#ffffff",
+      members: memberIds, // Extract IDs
     },
   })
 
   useEffect(() => {
-    // Sync team data when it changes
-    form.reset({
-      name: team.name,
-      color: team.color || "#ffffff",
-      members: team.members.map((m) => m.id),
-    })
-  }, [team, form])
+    if (team) {
+      form.reset({
+        name: team.name,
+        description: team.description ?? "",  // Ensure it’s never undefined
+        color: team.color || "#ffffff",
+        members: team.members ? team.members.map((m) => m.id) : [],
+      });
+    }
+  }, [team, form]);
 
   async function onSubmit(values: z.infer<typeof extendedUpdateTeamSchema>) {
     const isValid = await form.trigger()
@@ -77,69 +84,94 @@ export default function UpdateTeam({ team, onSuccess, onError }: UpdateTeamProps
       })
       return
     }
-    updateTeamMutation.mutate({ id: team.id, ...values }) // Send ID along with updated values
+    updateTeamMutation.mutate({ 
+      teamId : data.id,
+      data : values
+    }) 
   }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Name Field */}
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Team Name</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="Enter team name" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+    <Tabs defaultValue="details" value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <TabsList className="grid w-full grid-cols-2">
+        <TabsTrigger value="details" className="flex items-center gap-2">
+          <PenIcon className="h-4 w-4" />
+          Team Details
+        </TabsTrigger>
+        <TabsTrigger value="members" className="flex items-center gap-2">
+          <Users2Icon className="h-4 w-4" />
+          Team Members
+        </TabsTrigger>
+      </TabsList>
 
-        {/* Color Field */}
-        <FormField
-          control={form.control}
-          name="color"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Team Color</FormLabel>
-              <FormControl>
-                <ColorPickerPopover value={field.value} onChange={field.onChange} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Team Members Field */}
-        <FormField
-          control={form.control}
-          name="members"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Team Members</FormLabel>
-              <FormControl>
-                <MultiUserSelect
-                  name="members"
-                  apiUrl="/users/search"
-                  placeholder="Search for users to add"
-                  defaultValue={team.members} // Prefill existing members
-                  onChange={(members) => field.onChange(members.map((m) => m.id))}
+      <TabsContent value="details" className="mt-4">
+        <Card>
+          <CardHeader>
+            <CardTitle>Team Details</CardTitle>
+            <CardDescription>Update your data's basic information</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                {/* Name Field */}
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Team Name</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="Enter data name" />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
                 />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
 
-        <DialogFooter className="pt-4">
-          <Button type="submit" isLoading={updateTeamMutation.isPending}>
-            Update Team
-          </Button>
-        </DialogFooter>
-      </form>
-    </Form>
+                {/* Color Field */}
+                <FormField
+                  control={form.control}
+                  name="color"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Team Color </FormLabel>
+                      <FormControl>
+                        <ColorPickerPopover value={field.value} onChange={field.onChange} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <DialogFooter className="pt-4">
+                  <Button type="submit" isLoading={updateTeamMutation.isPending}>
+                    Update Team
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
+          </CardContent>
+        </Card>
+      </TabsContent>
+      <TabsContent value="members" className="mt-4">
+        <TeamMembersList 
+          members={data.members} 
+          isEditable={true}
+          emptyMessage="No data members yet. Add members using the search above."
+          />
+      </TabsContent>
+    </Tabs>
   )
 }

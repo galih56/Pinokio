@@ -8,6 +8,8 @@ import { Tag } from '@/types/api';
 import { getTagQueryOptions } from './get-tag';
 import { getTagsQueryOptions } from './get-tags';
 
+export type UpdateTagDTO = Partial<Omit<Tag, "issues" | "createdAt">>;
+
 export const updateTagInputSchema = z.object({
   name: z.string().min(1, { message: 'Name is required.' }),
   color: z.string().optional(),

@@ -4,15 +4,13 @@ import { z } from 'zod';
 import { api } from '@/lib/api-client';
 import { MutationConfig } from '@/lib/react-query';
 import { Team } from '@/types/api';
-import { subYears } from 'date-fns';
-import { getTeamsQueryOptions } from './get-teams';
 
 
 
 export const createTeamInputSchema = z.object({
   name: z.string().min(1, { message: 'Name is required.' }),
+  description: z.string().optional(),
   color: z.string().optional(),
-  isPublic: z.boolean().default(false),
 });
 
 export type CreateTeamInput = z.infer<typeof createTeamInputSchema>;

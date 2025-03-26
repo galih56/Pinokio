@@ -37,7 +37,7 @@ export function UserSearch({ onSelect, placeholder = "Search users..." }: UserSe
       onSelect?.(user);
     }
   };
-
+  console.log(searchQuery, selectedUser)
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>

@@ -36,7 +36,7 @@ export const TeamView = ({ teamId }: { teamId: string | undefined }) => {
           </Button>
         }
       >
-        <UpdateTeam team={team} />
+        <UpdateTeam data={team} />
       </DialogOrDrawer>
 
       {/* Team Details */}
