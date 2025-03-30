@@ -149,16 +149,19 @@ Route::group([
 
 Route::group([
     "prefix" => "user_roles",
+    'middleware' => [
+        'role:ADMIN','decode_id',
+        'auth:sanctum'
+    ]
 ], function () {
-
+    Route::get('/', [UserRoleController::class, 'index']);
+    Route::get('/search', [UserRoleController::class, 'search']);
+    Route::post('/', [UserRoleController::class, 'store']);
     Route::group([
         'middleware' => [
-            'role:ADMIN','decode_id',
-            'middleware' => 'auth:sanctum'
+            'decode_id',
         ]
     ], function () {
-        Route::get('/', [UserRoleController::class, 'index']);
-        Route::post('/', [UserRoleController::class, 'store']);
         Route::get('/{id}', [UserRoleController::class, 'show']);
         Route::put('/{id}', [UserRoleController::class, 'update']);
         Route::patch('/{id}', [UserRoleController::class, 'update']);

@@ -18,7 +18,6 @@ interface DialogOrDrawerProps {
 
 const DialogOrDrawer = ({ title, description, trigger, children, open, onOpenChange , scrollAreaClassName, dialogContentClassName}: DialogOrDrawerProps) => {
   const isMobile = useMediaQuery("(max-width: 768px)"); // Adjust breakpoint for mobile as needed
-  console.log
   return (
     <>
       {isMobile ? (

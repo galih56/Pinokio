@@ -36,7 +36,6 @@ export const useClosePublicIssue = ({
 
   return useMutation({
     onSuccess: (res : any, ...args ) => {
-      console.log(getPublicIssueQueryOptions(issueId).queryKey)
       queryClient.refetchQueries({
         queryKey: getPublicIssueQueryOptions(issueId).queryKey,
       });

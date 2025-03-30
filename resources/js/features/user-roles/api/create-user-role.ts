@@ -4,15 +4,16 @@ import { z } from 'zod';
 import { api } from '@/lib/api-client';
 import { MutationConfig } from '@/lib/react-query';
 import { UserRole } from '@/types/api';
-import { subYears } from 'date-fns';
 
-import { getUserRolesQueryOptions } from './get-user_roles';
+import { getUserRolesQueryOptions } from './get-user-roles';
 
 
 export const createUserRoleInputSchema = z.object({
+  code: z.string()
+    .min(2, "Code must be at least 2 characters long")
+    .regex(/^[a-zA-Z0-9_-]+$/, "Only letters, numbers, hyphens, and underscores are allowed"),
   name: z.string().min(1, { message: 'Name is required.' }),
-  color: z.string().optional(),
-  isPublic: z.boolean().default(false),
+  description: z.string().optional(),
 });
 
 export type CreateUserRoleInput = z.infer<typeof createUserRoleInputSchema>;

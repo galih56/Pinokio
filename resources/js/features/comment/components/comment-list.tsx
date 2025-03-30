@@ -76,12 +76,8 @@ export const CommentList = ({ commentableId, commentableType, initialComments = 
   const pendingMarkAsRead = useRef<Set<number>>(new Set());
   
   const processMarkAsRead = debounce(() => {
-  // ✅ Debounced function to limit API calls
+    // ✅ Debounced function to limit API calls
     if (pendingMarkAsRead.current.size === 0) return;
-  
-    console.log(
-      `Sending batch request for comments: ${[...pendingMarkAsRead.current]}`
-    );
   
     pendingMarkAsRead.current.forEach((commentId) => {
       markAsRead({ commentId });
@@ -96,9 +92,7 @@ export const CommentList = ({ commentableId, commentableType, initialComments = 
   
     visibleItems.forEach((item) => {
       const comment = comments[item.index];
-      console.log(comment && comment.id && !comment.isRead, comment.isRead)
       if (comment && comment.id && !comment.isRead) {
-        console.log(`Queueing markAsRead for ${comment.id}`);
         pendingMarkAsRead.current.add(comment.id);
       }
     });

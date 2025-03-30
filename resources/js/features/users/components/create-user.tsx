@@ -24,7 +24,6 @@ import { Loader2 } from "lucide-react";
 import { PasswordInput } from "@/components/ui/password-input";
 import { getUserRoles } from "../api/get-user-roles";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useEffect } from "react";
   
 type CreateUserType = {
   onSuccess? : Function;
@@ -58,7 +57,10 @@ export default function CreateUser({
 
   const isFetching = useIsFetching();
   const form = useForm<z.infer<typeof createUserInputSchema>>({
-    resolver: zodResolver(createUserInputSchema)
+    resolver: zodResolver(createUserInputSchema),
+    defaultValues : {
+      roleCode : 'MEMBER'
+    }
   })
   
   async function onSubmit(values: z.infer<typeof createUserInputSchema>) {
@@ -73,7 +75,7 @@ export default function CreateUser({
     }
     createUserMutation.mutate(values)
   }
-  
+
   return (  
       <Form {...form} >
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -125,9 +127,23 @@ export default function CreateUser({
             name="username"
             render={({ field , formState : { errors }  }) => (    
               <FormItem className='my-3'>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Username</FormLabel>
                   <FormControl>
                       <Input {...field} placeholder="Username" type="text"/>
+                  </FormControl>
+                  <FormMessage />
+              </FormItem>
+            )}
+          />
+          
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field , formState : { errors }  }) => (    
+              <FormItem className='my-3'>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                      <Input {...field} placeholder="Name" type="text"/>
                   </FormControl>
                   <FormMessage />
               </FormItem>

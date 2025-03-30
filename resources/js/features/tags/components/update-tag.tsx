@@ -95,11 +95,7 @@ export const UpdateTag = ({ tagId , onSuccess, onError}: UpdateTagProps) => {
   if (!tag) {
     return null;
   }
-  console.log({
-    name: tag?.name,        // Set default value for name
-    color: tag?.color || '#ffffff', // Set default color (fallback to white)
-    isPublic : Boolean(tag?.isPublic),
-  })
+  
   return (
     <Authorization allowedRoles={[ROLES.ADMIN]}>
       <Form {...form}>

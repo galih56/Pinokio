@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use Carbon\Carbon;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -13,7 +14,22 @@ class UserRoleSeeder extends Seeder
     public function run(): void
     {
         $userRoles = [
-            [ 'name' => 'Administrator' , 'code' => 'ADMIN'],
+            [
+                'id' => 1,
+                'code' => 'ADMIN',
+                'name' => 'Administrator',
+                'description' => null,
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now(),
+            ],
+            [
+                'id' => 2,
+                'code' => 'MEMBER',
+                'name' => 'Member',
+                'description' => null,
+                'created_at' =>  Carbon::now(),
+                'updated_at' =>  Carbon::now(),
+            ],
         ];
         
         

@@ -9,15 +9,10 @@ import { UserRole } from "@/types/api"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { ArrowUpDown, CheckIcon, MoreHorizontal } from "lucide-react"
-import { getUserRoleQueryOptions } from "../api/get-user-role"
-import { Link } from '@/components/ui/link';
-import { paths } from '@/apps/dashboard/paths';
 import { Skeleton } from '@/components/ui/skeleton';
-import { capitalizeFirstChar } from '@/lib/common';
-import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { useEffect, useState } from 'react';
-import { formatDate } from '@/lib/datetime';
+import { formatDate, formatDateTime } from '@/lib/datetime';
 import { useDisclosure } from '@/hooks/use-disclosure';
 import DialogOrDrawer from '@/components/layout/dialog-or-drawer';
 import { UpdateUserRole } from './update-user-role';
@@ -72,7 +67,7 @@ export const UserRolesList = ({
     {
       id: "actions",
       cell: ({ row }) => {
-          const userRole = row.original
+        const userRole = row.original
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -105,8 +100,20 @@ export const UserRolesList = ({
       header : 'Name',
     },
     {
+      accessorKey: "updatedAt",
+      header : 'Updated At',
+      cell : ({row}) => {
+        const userRole = row.original
+        return formatDateTime(userRole.updatedAt)
+      }
+    },
+    {
       accessorKey: "createdAt",
       header : 'Created At',
+      cell : ({row}) => {
+        const userRole = row.original
+        return formatDateTime(userRole.createdAt)
+      }
     },
   ]
   const onPageChange = (newPage: number) => {
@@ -156,7 +163,11 @@ export const UserRolesList = ({
               onOpenChange={toggle}
               title={"Edit User Role"}
             >
-              <UpdateUserRole userRoleId={choosenUserRole?.id} onSuccess={() => { setChoosenUserRole(undefined); close(); }}/>
+              <UpdateUserRole userRoleId={choosenUserRole?.id} 
+                onSuccess={() => { 
+                  setChoosenUserRole(undefined); close(); 
+                  userRolesQuery.refetch();
+                }}/>
           </DialogOrDrawer>}
     </div>
   );

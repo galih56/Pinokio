@@ -26,11 +26,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from "zod";
 import { DialogFooter } from '@/components/ui/dialog';
-import { CirclePicker } from 'react-color';
-import { ColorPickerPopover } from '@/components/ui/color-picker-popover';
-import { Checkbox } from '@/components/ui/checkbox';
 import { useEffect } from 'react';
 import { Spinner } from '@/components/ui/spinner';
+import { Textarea } from '@/components/ui/textarea';
 
 type UpdateUserRoleProps = {
   userRoleId: string;
@@ -56,7 +54,7 @@ export const UpdateUserRole = ({ userRoleId , onSuccess, onError}: UpdateUserRol
     resolver: zodResolver(updateUserRoleInputSchema),
     defaultValues: {
       name: userRole?.name,    
-      color: userRole?.color || '#ffffff', 
+      description: userRole?.description,    
     },
   });
 
@@ -64,7 +62,7 @@ export const UpdateUserRole = ({ userRoleId , onSuccess, onError}: UpdateUserRol
     if (userRole) {
       form.reset({
         name: userRole?.name || "",
-        color: userRole?.color || "#ffffff",
+        description: userRole?.description || "",
       });
     }
   }, [userRole, form.reset]);
@@ -118,6 +116,21 @@ export const UpdateUserRole = ({ userRoleId , onSuccess, onError}: UpdateUserRol
               </FormItem>
             )}
           />
+          
+          <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem className="mt-2">
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+  
           <DialogFooter className="my-4">
             <Button type="submit" isLoading={updateUserRoleMutation.isPending}>
               Submit

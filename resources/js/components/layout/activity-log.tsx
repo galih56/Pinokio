@@ -41,7 +41,6 @@ const getActionIcon = (action: LogAction) => {
 
 // Formatting action details
 const formatActionDetails = (action: LogAction, details: LogDetails) => {
-  console.log(action)
   switch (action) {
     case "created":
       return details.description || "Created item";

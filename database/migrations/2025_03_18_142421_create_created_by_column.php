@@ -11,17 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('teams', function (Blueprint $table) {
-            $table->dropForeign(['creator_id']); 
-            $table->dropColumn('creator_id'); 
-            $table->unsignedBigInteger('created_by')->after('description');
-            $table->foreign('created_by')->references('id')->on('users')->cascadeOnDelete();
+        Schema::disableForeignKeyConstraints();
+     
+        Schema::table('tasks', function (Blueprint $table) {
+            if (!Schema::hasColumn('tasks', 'created_by')) {
+                $table->foreignId('created_by')->constrained('users');
+            }
         });
 
-        Schema::table('tasks', function (Blueprint $table) {
-            $table->unsignedBigInteger('created_by')->after('description');
-            $table->foreign('created_by')->references('id')->on('users')->cascadeOnDelete();
-        });
+        Schema::enableForeignKeyConstraints();
     }
 
     /**
@@ -29,16 +27,16 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('teams', function (Blueprint $table) {
-            $table->dropForeign(['created_by']); 
-            $table->dropColumn('created_by'); 
-            $table->unsignedBigInteger('creator_id')->after('description');
-            $table->foreign('creator_id')->references('id')->on('users')->cascadeOnDelete();
-        });
+        Schema::disableForeignKeyConstraints();
 
         Schema::table('tasks', function (Blueprint $table) {
-            $table->dropForeign(['created_by']); 
-            $table->dropColumn('created_by'); 
+            if (Schema::hasColumn('tasks', 'created_by')) {
+                $table->dropForeign(['created_by']);
+                $table->dropColumn('created_by');
+            }
         });
+
+        Schema::enableForeignKeyConstraints();
     }
+
 };

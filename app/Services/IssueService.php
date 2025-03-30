@@ -14,7 +14,7 @@ use App\Helpers\DatetimeHelper;
 use App\Services\Logs\IssueLogService;
 use App\Helpers\QueryProcessor;
 use Auth;
-
+use DB;
 
 class IssueService
 {
@@ -48,6 +48,14 @@ class IssueService
         return array_merge($basic_relations, $additionals);
     }
 
+
+    public function searchIssues(string $keyword){
+        $query = $this->model->newQuery();
+        $query->where(DB::raw("LOWER(title)"), 'like', "%".strtolower($keyword)."%")->orWhere(DB::raw("LOWER(description)"), 'like', "%".strtolower($keyword)."%");
+        $query->limit(6);
+        
+        return $query->get();
+    }
     
     public function create(array $data): Issue
     {

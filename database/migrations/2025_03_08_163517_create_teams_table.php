@@ -14,6 +14,9 @@ return new class extends Migration
         Schema::create('teams', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->string('name');
+            $table->string('color', 50);
+            $table->string('description');
+            $table->foreignId('created_by')->constrained('users');
             $table->timestamps();
         });
     }

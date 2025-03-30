@@ -44,6 +44,7 @@ export interface UserRole {
     description?: string;
     users?: User[];
     createdAt: Date;
+    updatedAt: Date;
 }
 
 export interface Project extends BaseEntity  {

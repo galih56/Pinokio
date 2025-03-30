@@ -10,7 +10,7 @@ import { getUserRolesQueryOptions } from './get-user-roles';
 
 export const updateUserRoleInputSchema = z.object({
   name: z.string().min(1, { message: 'Name is required.' }),
-  color: z.string().optional(),
+  description: z.string().optional(),
 });
 
 export type UpdateUserRoleInput = z.infer<typeof updateUserRoleInputSchema>;
@@ -40,10 +40,10 @@ export const useUpdateUserRole = ({
 
   return useMutation({
     onSuccess: (res : any, ...args ) => {
-      queryClient.refetchQueries({
+      queryClient.invalidateQueries({
         queryKey: getUserRoleQueryOptions(userRoleId).queryKey,
       });
-      queryClient.refetchQueries({
+      queryClient.invalidateQueries({
         queryKey: getUserRolesQueryOptions().queryKey,
       });
       onSuccess?.(res, ...args);

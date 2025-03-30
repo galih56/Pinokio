@@ -1,12 +1,12 @@
 <?php
 
-namespace App\Http\Requests\User;
+namespace App\Http\Requests\UserRole;
 
 use App\Models\UserRole;
 use App\Services\HashIdService;
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateUserRequest extends FormRequest
+class UpdateUserRoleRequest extends FormRequest
 {
     public function authorize(): bool
     {
@@ -17,7 +17,7 @@ class UpdateUserRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:255', 'unique:user_roles,name,' . $this->route('id')],
-            'code' => ['required', 'string', 'max:255', 'unique:user_roles,code,' . $this->route('id')],
+            // 'code' => ['required', 'string', 'max:255', 'unique:user_roles,code,' . $this->route('id')],
             'description' => ['nullable', 'string', 'max:255'],
         ];
     }
@@ -27,8 +27,8 @@ class UpdateUserRequest extends FormRequest
         return [
             'name.required' => 'The role name is required.',
             'name.unique' => 'This role name is already taken.',
-            'code.required' => 'The role code is required.',
-            'code.unique' => 'This role code is already taken.',
+            // 'code.required' => 'The role code is required.',
+            // 'code.unique' => 'This role code is already taken.',
             'description.max' => 'The description must not exceed 255 characters.',
         ];
     }

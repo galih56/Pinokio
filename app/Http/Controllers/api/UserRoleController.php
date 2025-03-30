@@ -10,6 +10,7 @@ use App\Http\Resources\UserRoleResource;
 use Illuminate\Support\Facades\DB;
 use App\Services\Authorizations\UserRoleService;
 use App\Helpers\ApiResponse;
+use Auth;
 
 class UserRoleController extends Controller
 {
@@ -21,9 +22,6 @@ class UserRoleController extends Controller
         $this->userRoleService = $userRoleService;
     }
 
-    /**
-     * Display a listing of the resource.
-     */
     public function index(Request $request)
     {
         $search = $request->query('search');
@@ -58,9 +56,6 @@ class UserRoleController extends Controller
 
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(StoreUserRoleRequest $request)
     {
         DB::beginTransaction();
@@ -83,9 +78,6 @@ class UserRoleController extends Controller
         return ApiResponse::sendResponse(UserRoleResource::collection($data),'', 'success', 200);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
         $user = $this->userRoleService->getById($id);
@@ -93,10 +85,6 @@ class UserRoleController extends Controller
         return ApiResponse::sendResponse(new UserRoleResource($user),'', 'success', 200);
     }
 
-
-    /**
-     * Update the specified resource in storage.
-     */
     public function update($id, UpdateUserRoleRequest $request)
     {
         DB::beginTransaction();
@@ -104,7 +92,7 @@ class UserRoleController extends Controller
             $user = $this->userRoleService->update($id, $request->all());
 
             DB::commit();
-            return ApiResponse::sendResponse( $user , 'UserRole Successful','success',201);
+            return ApiResponse::sendResponse( $user , 'User Role Update Successful','success',201);
 
         }catch(\Exception $ex){
             return ApiResponse::rollback($ex);
@@ -116,14 +104,15 @@ class UserRoleController extends Controller
      */
     public function destroy($id)
     {
-        $this->userRoleService->deleteUserRole($id);
+        $this->userRoleService->delete($id);
         
         return ApiResponse::sendResponse('UserRole Delete Successful','',204);
     }
 
-    public function getUserRoleRoles()
+    public function getUserRoles()
     {
-        $data = $this->userRoleService->getUserRoleRoles();
+        $userId = Auth::id();
+        $data = $this->userRoleService->getUserRole($userId);
 
         return ApiResponse::sendResponse($data,'','success', 200);
     }

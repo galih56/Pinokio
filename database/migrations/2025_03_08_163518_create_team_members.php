@@ -17,7 +17,6 @@ return new class extends Migration {
             $table->foreign('team_id')->references('id')->on('teams')->onDelete('cascade');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
 
-            // Unique constraint (a user can only be in a team once)
             $table->unique(['team_id', 'user_id']);
         });
     }

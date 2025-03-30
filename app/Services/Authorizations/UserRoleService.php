@@ -10,6 +10,8 @@ use App\Helpers\QueryProcessor;
 
 class UserRoleService
 {
+    protected UserRole $model;
+
     public function __construct(
         UserRole $model,
     )
@@ -25,6 +27,15 @@ class UserRoleService
 
         return array_merge($basic_relations, $additionals);
     }
+
+    public function searchUserRole(string $keyword){
+        $query = $this->model->newQuery();
+        $query->where(DB::raw("LOWER(code)"), 'like', "%".strtolower($keyword)."%")->orWhere(DB::raw("LOWER(name)"), 'like', "%".strtolower($keyword)."%");
+        $query->limit(6);
+        
+        return $query->get();
+    }
+
     public function get(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
     {
         $query = $this->model->newQuery();
