@@ -82,6 +82,10 @@ class TeamService
     {
         $this->model = Team::findOrFail($id);
         $this->model->update($data);
+
+        if(isset($data['members'])){
+            $this->updateTeamMembers($id, $data['members']);
+        }
         return $this->model;
     }
 
@@ -89,13 +93,6 @@ class TeamService
     {
         $team = Team::findOrFail($id);
         return $team->delete();
-    }
-
-    public function attachUsersToTeam(Team $model, array $members){
-        $hashidService = new HashidService();
-
-        $members = User::find($members);
-        $this->model->members()->attach($members);
     }
     
     public function updateTeamMembers(int $teamId, array $members): bool
