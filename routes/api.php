@@ -140,6 +140,7 @@ Route::group([
         Route::get('/', [TeamController::class, 'index']);
         Route::post('/', [TeamController::class, 'store']);
         Route::get('/{id}', [TeamController::class, 'show']);
+        Route::put('/{id}/members', [TeamController::class, 'updateMembers']);
         Route::put('/{id}', [TeamController::class, 'update']);
         Route::patch('/{id}', [TeamController::class, 'update']);
         Route::delete('/{id}', [TeamController::class, 'destroy']);

@@ -19,6 +19,11 @@ import { PenIcon, Users2Icon } from "lucide-react"
 import { TeamMembersList } from "./team-members-list"
 import { useTeam } from "../api/get-team"
 import { Textarea } from "@/components/ui/textarea"
+import { UserSearch } from "@/features/users/components/user-search-input"
+
+const extendedUpdateTeamSchema = updateTeamInputSchema.extend({
+  members: z.array(z.string()).min(1, "Please add at least one team member"),
+})
 
 type UpdateTeamProps = {
   data: Team;
@@ -26,19 +31,14 @@ type UpdateTeamProps = {
   onError?: () => void;
 }
 
-// Extend schema to include members
-const extendedUpdateTeamSchema = updateTeamInputSchema.extend({
-  members: z.array(z.string()).min(1, "Please add at least one team member"),
-})
-
 export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps) {
-  const { addNotification } = useNotifications();
-  const [activeTab, setActiveTab] = useState("details");
+  const { addNotification } = useNotifications()
+  const [activeTab, setActiveTab] = useState("details")
   const teamQuery = useTeam({
-    teamId : data.id
+    teamId: data.id
   })
   
-  const team = teamQuery.data?.data || null;
+  const team = teamQuery.data?.data || null
 
   const updateTeamMutation = useUpdateTeam({
     teamId: data.id,
@@ -51,8 +51,9 @@ export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps
       },
     },
   })
-  const memberIds = (data.members ? data.members.map((m) => m.id) : []);
   
+  const memberIds = (data.members ? data.members.map((m) => m.id) : [])
+
   const form = useForm<z.infer<typeof extendedUpdateTeamSchema>>({
     resolver: zodResolver(extendedUpdateTeamSchema),
     defaultValues: {
@@ -70,9 +71,26 @@ export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps
         description: team.description ?? "",  // Ensure it’s never undefined
         color: team.color || "#ffffff",
         members: team.members ? team.members.map((m) => m.id) : [],
-      });
+      })
     }
-  }, [team, form]);
+  }, [team, form])
+
+  // Track current members and handle removal
+  const [currentMembers, setCurrentMembers] = useState<User[]>(data.members)
+
+  const handleRemoveMember = (userId: string) => {
+    setCurrentMembers((prevMembers) => prevMembers.filter((member) => member.id !== userId))
+  }
+
+  // Add a new member to the list
+  const handleAddMember = (user: User) => {
+    setCurrentMembers((prevMembers) => {
+      if (!prevMembers.find((member) => member.id === user.id)) {
+        return [...prevMembers, user]
+      }
+      return prevMembers
+    })
+  }
 
   async function onSubmit(values: z.infer<typeof extendedUpdateTeamSchema>) {
     const isValid = await form.trigger()
@@ -84,10 +102,17 @@ export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps
       })
       return
     }
-    updateTeamMutation.mutate({ 
-      teamId : data.id,
-      data : values
-    }) 
+
+    // Include the updated list of members
+    const updatedMembers = currentMembers.map((member) => member.id) // Extract member IDs
+
+    updateTeamMutation.mutate({
+      teamId: data.id,
+      data: {
+        ...values,
+        members: updatedMembers,  // Add the updated list of members
+      },
+    })
   }
 
   return (
@@ -166,11 +191,21 @@ export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps
         </Card>
       </TabsContent>
       <TabsContent value="members" className="mt-4">
-        <TeamMembersList 
-          members={data.members} 
-          isEditable={true}
-          emptyMessage="No data members yet. Add members using the search above."
-          />
+        <Card>
+          <CardHeader>
+            <CardTitle>Team Members</CardTitle>
+            <CardDescription>Manage team members by adding or removing them</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <UserSearch onSelect={handleAddMember} placeholder="Search and add members..." />
+            <TeamMembersList 
+              members={currentMembers}  // Use updated member list
+              isEditable={true}
+              onRemoveMember={handleRemoveMember} // Handle removing members
+              emptyMessage="No data members yet. Add members using the search above."
+            />
+          </CardContent>
+        </Card>
       </TabsContent>
     </Tabs>
   )

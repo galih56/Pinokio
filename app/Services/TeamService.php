@@ -97,4 +97,24 @@ class TeamService
         $members = User::find($members);
         $this->model->members()->attach($members);
     }
+    
+    public function updateTeamMembers(int $teamId, array $members): bool
+    {
+        $this->model = Team::findOrFail($teamId);
+
+        $existingUserIds = $this->model->members()->pluck('users.id')->toArray();
+
+        $membersToRemove = array_diff($existingUserIds, $members);
+        $newMembers = array_diff($members, $existingUserIds);
+
+        if (!empty($membersToRemove)) {
+            $this->model->members()->detach($membersToRemove);
+        }
+
+        if (!empty($newMembers)) {
+            $this->model->members()->attach($newMembers);
+        }
+
+        return true;
+    }
 }

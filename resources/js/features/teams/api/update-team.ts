@@ -1,4 +1,4 @@
-import { useMutation, useQueryClient } from  '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { z } from 'zod';
 
 import { api } from '@/lib/api-client';
@@ -9,6 +9,7 @@ export const updateTeamInputSchema = z.object({
   name: z.string().min(1, { message: 'Name is required.' }),
   color: z.string().optional(),
   description: z.string().optional(),
+  members: z.array(z.string()).optional(), // Added members to the schema
 });
 
 export type UpdateTeamInput = z.infer<typeof updateTeamInputSchema>;
@@ -39,7 +40,7 @@ export const useUpdateTeam = ({
   return useMutation({
     ...restConfig,
     mutationFn: updateTeam,
-    onMutate: async ({ data, teamId}) => {
+    onMutate: async ({ data, teamId }) => {
       await queryClient.cancelQueries({ queryKey: ['teams'] });
 
       const previousTeams = queryClient.getQueryData<Team[]>(['teams']);
@@ -48,19 +49,24 @@ export const useUpdateTeam = ({
         if (!oldTeams) return [];
 
         return oldTeams.map((team) =>
-          team.id === teamId ? { ...team, ...data } : team
+          team.id === teamId
+            ? {
+                ...team,
+                ...data, // Updates all fields including members
+                members: data.members ? data.members : team.members, // Specifically update members if provided
+              }
+            : team
         );
       });
 
       return { previousTeams };
     },
-    onSuccess: (res : any, ...args ) => {
+    onSuccess: (res: any, ...args) => {
       queryClient.refetchQueries({
         queryKey: ['teams'],
       });
       onSuccess?.(res, ...args);
     },
-    onError
+    onError,
   });
 };
-

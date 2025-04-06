@@ -6,6 +6,7 @@ use App\Exceptions\RecordExistsException;
 use App\Helpers\ApiResponse;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Team\StoreTeamRequest;
+use App\Http\Requests\Team\UpdateTeamMembersRequest;
 use App\Http\Requests\Team\UpdateTeamRequest;
 use App\Http\Resources\TeamResource;
 use App\Services\TeamService;
@@ -100,16 +101,29 @@ class TeamController extends Controller
      */
     public function destroy($id)
     {
-        $this->teamService->deleteTeam($id);
-        
-        return ApiResponse::sendResponse('Team Delete Successful','',204);
+        DB::beginTransaction();
+        try{
+            $this->teamService->delete($id);
+            DB::commit();
+            
+            return ApiResponse::sendResponse('Team Delete Successful','',204);
+            
+        }catch(\Exception $ex){
+            return ApiResponse::rollback($ex);
+        }
     }
 
-    public function getTeamRoles()
+    public function updateMembers(UpdateTeamMembersRequest $request, int $teamId)
     {
-        $data = $this->teamService->getTeamRoles();
+        DB::beginTransaction();
+        try{
+            $this->teamService->updateTeamMembers($teamId, $request->validated()['members']);
 
-        return ApiResponse::sendResponse($data,'','success', 200);
+            DB::commit();
+
+            return ApiResponse::sendResponse('Team Delete Successful','',204);
+        }catch(\Exception $ex){
+            return ApiResponse::rollback($ex);
+        }
     }
-
 }
