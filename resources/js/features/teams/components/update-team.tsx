@@ -10,8 +10,6 @@ import { zodResolver } from "@hookform/resolvers/zod"
 import { updateTeamInputSchema, useUpdateTeam } from "../api/update-team"
 import { useNotifications } from "@/components/ui/notifications"
 import { ColorPickerPopover } from "@/components/ui/color-picker-popover"
-import { MultiUserSelect } from "@/features/users/components/multi-users-select"
-import { useEffect, useState } from "react"
 import { Team, User } from "@/types/api"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,16 +18,25 @@ import { TeamMembersList } from "./team-members-list"
 import { useTeam } from "../api/get-team"
 import { Textarea } from "@/components/ui/textarea"
 import { UserSearch } from "@/features/users/components/user-search-input"
+import { useEffect, useState } from "react"
 
-const extendedUpdateTeamSchema = updateTeamInputSchema.extend({
+// Schema for team details form
+const teamDetailsSchema = z.object({
+  name: z.string().min(1, "Team name is required"),
+  description: z.string().optional(),
+  color: z.string().optional(),
+});
+
+// Schema for team members form
+const teamMembersSchema = z.object({
   members: z.array(z.string()).min(1, "Please add at least one team member"),
-})
+});
 
 type UpdateTeamProps = {
   data: Team;
   onSuccess?: () => void;
   onError?: () => void;
-}
+};
 
 export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps) {
   const { addNotification } = useNotifications()
@@ -43,46 +50,71 @@ export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps
   const updateTeamMutation = useUpdateTeam({
     teamId: data.id,
     config: {
-      onSuccess: () => {
+      onSuccess: (_, variables) => {
         onSuccess?.()
-      },
-      onError: () => {
-        onError?.()
+        
+        const message = variables.data.members !== undefined 
+          ? "Team members updated successfully" 
+          : "Team details updated successfully"
+        
+        addNotification({
+          type: "success",
+          title: message,
+          toast: true,
+        })
       },
     },
   })
-  
-  const memberIds = (data.members ? data.members.map((m) => m.id) : [])
 
-  const form = useForm<z.infer<typeof extendedUpdateTeamSchema>>({
-    resolver: zodResolver(extendedUpdateTeamSchema),
+  // Form for team details
+  const detailsForm = useForm<z.infer<typeof teamDetailsSchema>>({
+    resolver: zodResolver(teamDetailsSchema),
     defaultValues: {
       name: data.name,
-      description: data.description,
+      description: data.description || "",
       color: data.color || "#ffffff",
-      members: memberIds, // Extract IDs
+    },
+  })
+
+  // Track current members and handle management
+  const [currentMembers, setCurrentMembers] = useState<User[]>(data.members || [])
+
+  // Form for team members
+  const membersForm = useForm<z.infer<typeof teamMembersSchema>>({
+    resolver: zodResolver(teamMembersSchema),
+    defaultValues: {
+      members: currentMembers.map(m => m.id),
     },
   })
 
   useEffect(() => {
     if (team) {
-      form.reset({
+      detailsForm.reset({
         name: team.name,
-        description: team.description ?? "",  // Ensure it’s never undefined
+        description: team.description ?? "",
         color: team.color || "#ffffff",
-        members: team.members ? team.members.map((m) => m.id) : [],
       })
+      
+      const memberIds = team.members ? team.members.map(m => m.id) : []
+      membersForm.reset({
+        members: memberIds,
+      })
+      setCurrentMembers(team.members || [])
     }
-  }, [team, form])
+  }, [team, detailsForm, membersForm])
 
-  // Track current members and handle removal
-  const [currentMembers, setCurrentMembers] = useState<User[]>(data.members)
+  // Keep form in sync with current members state
+  useEffect(() => {
+    membersForm.setValue("members", currentMembers.map(m => m.id))
+  }, [currentMembers, membersForm])
 
   const handleRemoveMember = (userId: string) => {
-    setCurrentMembers((prevMembers) => prevMembers.filter((member) => member.id !== userId))
+    setCurrentMembers((prevMembers) => {
+      const filtered = prevMembers.filter((member) => member.id !== userId)
+      return filtered
+    })
   }
 
-  // Add a new member to the list
   const handleAddMember = (user: User) => {
     setCurrentMembers((prevMembers) => {
       if (!prevMembers.find((member) => member.id === user.id)) {
@@ -92,8 +124,8 @@ export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps
     })
   }
 
-  async function onSubmit(values: z.infer<typeof extendedUpdateTeamSchema>) {
-    const isValid = await form.trigger()
+  async function onSubmitDetails(values: z.infer<typeof teamDetailsSchema>) {
+    const isValid = await detailsForm.trigger()
     if (!isValid) {
       addNotification({
         type: "error",
@@ -103,14 +135,35 @@ export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps
       return
     }
 
-    // Include the updated list of members
-    const updatedMembers = currentMembers.map((member) => member.id) // Extract member IDs
-
+    // Only update team details - don't touch members
     updateTeamMutation.mutate({
       teamId: data.id,
       data: {
-        ...values,
-        members: updatedMembers,  // Add the updated list of members
+        name: values.name,
+        description: values.description,
+        color: values.color,
+        // Not including members intentionally
+      },
+    })
+  }
+
+  async function onSubmitMembers(values: z.infer<typeof teamMembersSchema>) {
+    const isValid = await membersForm.trigger()
+    if (!isValid) {
+      addNotification({
+        type: "error",
+        title: "Please add at least one team member",
+        toast: true,
+      })
+      return
+    }
+
+    // Only update members - don't touch other team details
+    updateTeamMutation.mutate({
+      teamId: data.id,
+      data: {
+        members: values.members,
+        // Not including other team details intentionally
       },
     })
   }
@@ -132,20 +185,20 @@ export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps
         <Card>
           <CardHeader>
             <CardTitle>Team Details</CardTitle>
-            <CardDescription>Update your data's basic information</CardDescription>
+            <CardDescription>Update your team's basic information</CardDescription>
           </CardHeader>
           <CardContent>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <Form {...detailsForm}>
+              <form onSubmit={detailsForm.handleSubmit(onSubmitDetails)} className="space-y-6">
                 {/* Name Field */}
                 <FormField
-                  control={form.control}
+                  control={detailsForm.control}
                   name="name"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Team Name</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder="Enter data name" />
+                        <Input {...field} placeholder="Enter team name" />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -154,11 +207,11 @@ export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps
 
                 {/* Color Field */}
                 <FormField
-                  control={form.control}
+                  control={detailsForm.control}
                   name="color"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Team Color </FormLabel>
+                      <FormLabel>Team Color</FormLabel>
                       <FormControl>
                         <ColorPickerPopover value={field.value} onChange={field.onChange} />
                       </FormControl>
@@ -168,13 +221,13 @@ export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps
                 />
 
                 <FormField
-                  control={form.control}
+                  control={detailsForm.control}
                   name="description"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Description</FormLabel>
                       <FormControl>
-                        <Textarea {...field} />
+                        <Textarea {...field} placeholder="Describe the team's purpose..." />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -182,7 +235,7 @@ export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps
                 />
                 <DialogFooter className="pt-4">
                   <Button type="submit" isLoading={updateTeamMutation.isPending}>
-                    Update Team
+                    Update Team Details
                   </Button>
                 </DialogFooter>
               </form>
@@ -190,6 +243,7 @@ export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps
           </CardContent>
         </Card>
       </TabsContent>
+      
       <TabsContent value="members" className="mt-4">
         <Card>
           <CardHeader>
@@ -197,13 +251,41 @@ export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps
             <CardDescription>Manage team members by adding or removing them</CardDescription>
           </CardHeader>
           <CardContent>
-            <UserSearch onSelect={handleAddMember} placeholder="Search and add members..." />
-            <TeamMembersList 
-              members={currentMembers}  // Use updated member list
-              isEditable={true}
-              onRemoveMember={handleRemoveMember} // Handle removing members
-              emptyMessage="No data members yet. Add members using the search above."
-            />
+            <Form {...membersForm}>
+              <form onSubmit={membersForm.handleSubmit(onSubmitMembers)} className="space-y-6">
+                <UserSearch onSelect={handleAddMember} placeholder="Search and add members..." />
+                <TeamMembersList 
+                  members={currentMembers} 
+                  isEditable={true}
+                  onRemoveMember={handleRemoveMember} 
+                  emptyMessage="No team members yet. Add members using the search above."
+                />
+                
+                {/* Hidden field to track members for form validation */}
+                <FormField
+                  control={membersForm.control}
+                  name="members"
+                  render={({ field }) => (
+                    <FormItem className="hidden">
+                      <FormControl>
+                        <Input {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <DialogFooter className="pt-4">
+                  <Button 
+                    type="submit" 
+                    isLoading={updateTeamMutation.isPending}
+                    disabled={currentMembers.length === 0}
+                  >
+                    Update Team Members
+                  </Button>
+                </DialogFooter>
+              </form>
+            </Form>
           </CardContent>
         </Card>
       </TabsContent>

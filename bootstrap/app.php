@@ -9,6 +9,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use App\Http\Middleware\RoleCheck;
 use App\Http\Middleware\DecodeHashParameter;
 use App\Helpers\ApiResponse;
+use Illuminate\Auth\AuthenticationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -50,7 +51,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     return ApiResponse::sendResponse(null, 'This action is unauthorized.','error', 403);
                 }
 
-                if ($e instanceof \Illuminate\Auth\Access\AuthenticationException || $e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException) {
+                if ($e instanceof AuthenticationException || $e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException) {
                     return ApiResponse::sendResponse(null, $e->getMessage(),'error', 401);
                 }
                 
@@ -73,7 +74,7 @@ return Application::configure(basePath: dirname(__DIR__))
             }else{
                 
                 // Handle Authorization Exceptions (403)
-                if ($e instanceof \Illuminate\Auth\Access\AuthenticationException ) {
+                if ($e instanceof AuthenticationException ) {
                     return redirect()->route('auth');
                 }
                 

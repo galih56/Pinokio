@@ -31,11 +31,10 @@ Route::group([
     "prefix" => "users",
     'middleware' => 'auth:sanctum'
 ], function () {
-    
+    Route::get('/search', [UserController::class, 'search']);
     Route::group([
         'middleware' => ['role:ADMIN','decode_id']
     ], function () {
-        Route::get('/search', [UserController::class, 'search']);
         Route::get('/', [UserController::class, 'index']);
         Route::post('/', [UserController::class, 'store']);
         Route::get('/{id}', [UserController::class, 'show']);
@@ -111,7 +110,6 @@ Route::group([
 Route::group([
     "prefix" => "tags",
 ], function () {
-
     Route::get('/', [TagController::class, 'index']);
     Route::group([
         'middleware' => [
@@ -129,16 +127,16 @@ Route::group([
 
 Route::group([
     "prefix" => "teams",
+    'middleware' => 'auth:sanctum'
 ], function () {
+    Route::get('/', [TeamController::class, 'index']);
+    Route::post('/', [TeamController::class, 'store']);
 
     Route::group([
         'middleware' => [
             'role:ADMIN','decode_id',
-            'middleware' => 'auth:sanctum'
         ]
     ], function () {
-        Route::get('/', [TeamController::class, 'index']);
-        Route::post('/', [TeamController::class, 'store']);
         Route::get('/{id}', [TeamController::class, 'show']);
         Route::put('/{id}/members', [TeamController::class, 'updateMembers']);
         Route::put('/{id}', [TeamController::class, 'update']);
@@ -151,7 +149,7 @@ Route::group([
 Route::group([
     "prefix" => "user_roles",
     'middleware' => [
-        'role:ADMIN','decode_id',
+        'role:ADMIN',
         'auth:sanctum'
     ]
 ], function () {

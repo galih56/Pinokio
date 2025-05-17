@@ -35,7 +35,6 @@ export const TagsRoute = () => {
             onOpenChange={toggle}
             title={"Create Tag"}
             trigger={ <Button variant="outline">Create Tag</Button>}
-            dialogContentClassName="max-w-xs"
           >
             <div className='p-2'>
               <CreateTag onSuccess={close} onError={close}/>

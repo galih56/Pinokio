@@ -5,7 +5,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { HelmetProvider } from 'react-helmet-async';
 
 import { Notifications } from '@/components/ui/notifications';
-import { queryConfig } from '@/lib/react-query';
+import { queryClient, queryConfig } from '@/lib/react-query';
 import { MainErrorFallback } from '@/components/layout/main-fallback';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -14,12 +14,6 @@ type AppProviderProps = {
 };
 
 export const AppProvider = ({ children }: AppProviderProps) => {
-  const [queryClient] = React.useState(
-    () =>
-      new QueryClient({
-        defaultOptions: queryConfig,
-      }),
-  );
 
   return (
     <React.Suspense

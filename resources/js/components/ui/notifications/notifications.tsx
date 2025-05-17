@@ -17,14 +17,14 @@ export const Notifications = () => {
           onDismiss={dismissNotification}
         />
       ))}
-      <Toaster position='bottom-right' theme='system' 
+      <Toaster position='top-right' theme='system' 
         toastOptions={{
           classNames: {
-            toast: "z-[9999] rounded-lg shadow-lg",
-            success: "z-[9999] border-none bg-green-500 text-white hover:bg-green-400",
-            error: "z-[9999] border-none bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
-            warning: "z-[9999] border-none bg-yellow-500 text-yellow-900 hover:bg-yellow-400 text-white",
-            info: "z-[9999] border-none bg-blue-500 text-blue-900 hover:bg-blue-400 text-white",
+            toast: "rounded-lg shadow-lg",
+            success: "border-none bg-green-500 text-white hover:bg-green-400",
+            error: "border-none bg-destructive text-destructive-foreground shadow-sm hover:bg-destructive/90",
+            warning: "border-none bg-yellow-500 text-yellow-900 hover:bg-yellow-400 text-white",
+            info: "border-none bg-blue-500 text-blue-900 hover:bg-blue-400 text-white",
           },
         }}/>
     </div>

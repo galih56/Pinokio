@@ -35,7 +35,6 @@ export const TeamsRoute = () => {
             onOpenChange={toggle}
             title={"Create Team"}
             trigger={ <Button variant="outline">Create Team</Button>}
-            dialogContentClassName="max-w-xs"
           >
             <div className='p-2'>
               <CreateTeam onSuccess={close}/>

@@ -94,7 +94,11 @@ class TeamService
         $team = Team::findOrFail($id);
         return $team->delete();
     }
-    
+    public function attachUsersToTeam(Team $model, array $members){
+        $members = User::find($members);
+        $this->model->members()->attach($members);
+    }
+
     public function updateTeamMembers(int $teamId, array $members): bool
     {
         $this->model = Team::findOrFail($teamId);

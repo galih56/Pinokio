@@ -44,7 +44,7 @@ const DialogOrDrawer = ({ title, description, trigger, children, open, onOpenCha
           <DialogTrigger asChild>
             {trigger}
           </DialogTrigger>}
-          <DialogContent className={clsx((dialogContentClassName ?? "max-w-2x"))}aria-describedby={undefined}>
+          <DialogContent className={clsx((dialogContentClassName ?? ""))}aria-describedby={undefined}>
             <DialogHeader>
               <DialogTitle>{title}</DialogTitle>
               <DialogDescription>{description}</DialogDescription>

@@ -208,7 +208,7 @@ export default function CreateIssue({
                       value={(field.value || [])}
                       onValueChange={field.onChange}
                       dropzoneOptions={dropzoneOptions}
-                      className="relative max-w-xs space-y-1"
+                      className="relative space-y-1"
                     >
                       <FileInput className="border border-dashed border-gray-500">
                         <Button type="button" className="w-full" variant={"outline"}>Upload a file</Button>

@@ -109,16 +109,6 @@ api.interceptors.response.use(
         }
       }
 
-      // Handle forbidden (403)
-      if (status === 403) {
-        if (!error.config?.skipNotification) {
-          showToastWithThrottle('error', 'Access denied. Redirecting to login.');
-        }
-        setTimeout(() => {
-          window.location.href = paths.auth.login.getHref();
-        }, 2000);
-      }
-
       if(status > 403 && status < 500){
         if (!error.config?.skipNotification && error.response?.data) {
           showToastWithThrottle(error.response?.data?.status, error.response?.data.message);
@@ -150,6 +140,7 @@ export const showToastWithThrottle = (status: string, message: string) => {
       type: status === 'success' ? 'success' : 'error',
       title: status === 'success' ? 'Success' : 'Error',
       message,
+      toast : true
     });
     lastErrorTime = currentTime;
   }
