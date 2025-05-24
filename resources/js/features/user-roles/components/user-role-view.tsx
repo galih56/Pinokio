@@ -13,7 +13,7 @@ export const UserRoleView = ({ userRoleId }: { userRoleId: string | undefined })
     userRoleId,
   });
 
-  if (userRoleQuery.isLoading) {
+  if (userRoleQuery.isPending) {
     return (
       <div className="flex h-48 w-full items-center justify-center">
         <Spinner size="lg" />

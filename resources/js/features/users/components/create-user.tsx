@@ -86,7 +86,7 @@ export default function CreateUser({
               <FormItem className="my-2">
                 <FormLabel>Role</FormLabel>
                 <FormControl>
-                  {userRolesQuery.isLoading ? (
+                  {userRolesQuery.isPending ? (
                     <Loader2 className="animate-spin" />
                   ) : (
                     <Select {...field} onValueChange={field.onChange}>
