@@ -5,22 +5,13 @@ namespace App\Models\Forms;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class FormAttempt extends Model
+class FormTemplate extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'form_id',
-        'identifier',
-        'started_at',
-        'submitted_at',
-        'is_valid',
-    ];
-
-    protected $casts = [
-        'started_at' => 'datetime',
-        'submitted_at' => 'datetime',
-        'is_valid' => 'boolean',
+        'description',
     ];
 
     public function form()

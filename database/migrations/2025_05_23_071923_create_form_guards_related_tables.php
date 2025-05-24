@@ -98,18 +98,18 @@ return new class extends Migration
         });
 
         Schema::create('form_submissions', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('form_template_id')->constrained('form_templates')->onDelete('cascade');
-        $table->foreignId('submitted_by')->nullable()->constrained('users');
-        $table->timestamp('submitted_at')->useCurrent();
-    });
+            $table->id();
+            $table->foreignId('form_template_id')->constrained('form_templates')->onDelete('cascade');
+            $table->foreignId('submitted_by')->nullable()->constrained('users');
+            $table->timestamp('submitted_at')->useCurrent();
+        });
 
-    Schema::create('form_entries', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('form_submission_id')->constrained('form_submissions')->onDelete('cascade');
-        $table->foreignId('form_field_id')->constrained('form_fields');
-        $table->text('value');
-    });
+        Schema::create('form_entries', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('form_submission_id')->constrained('form_submissions')->onDelete('cascade');
+            $table->foreignId('form_field_id')->constrained('form_fields');
+            $table->text('value');
+        });
     }
 
     /**
