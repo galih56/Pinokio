@@ -27,7 +27,7 @@ export const PublicIssueView = ({ issueId }: { issueId: string | undefined }) =>
 
   const issue = issueQuery?.data?.data;
   
-  if (issueQuery.isLoading) {
+  if (issueQuery.isPending) {
     return (
       <div className="flex h-48 w-full items-center justify-center">
         <Spinner size="lg" />

@@ -12,6 +12,7 @@ export default defineConfig({
                 'resources/js/apps/dashboard/main.tsx',
                 'resources/js/apps/authentication/main.tsx',
                 'resources/js/apps/issue-tracker/main.tsx',
+                'resources/js/apps/form-guard/main.tsx',
             ],
             refresh: true,
         }),
@@ -23,6 +24,7 @@ export default defineConfig({
             '@authentication' : '/resources/js/apps/authentication',
             '@dashboard' : '/resources/js/apps/dashboard',
             '@issue-tracker' : '/resources/js/apps/issue-tracker',
+            '@form-guard' : '/resources/js/apps/form-guard',
         }
     },
     build: {
@@ -30,7 +32,8 @@ export default defineConfig({
           input: {
             authentication: path.resolve(__dirname, 'resources/js/apps/authentication/main.tsx'),
             dashboard: path.resolve(__dirname, 'resources/js/apps/dashboard/main.tsx'),
-            issueTracker: path.resolve(__dirname, 'resources/js/apps/issue-tracker/main.tsx')
+            issueTracker: path.resolve(__dirname, 'resources/js/apps/issue-tracker/main.tsx'),
+            formBuilder: path.resolve(__dirname, 'resources/js/apps/form-guard/main.tsx')
           },
         },
     },

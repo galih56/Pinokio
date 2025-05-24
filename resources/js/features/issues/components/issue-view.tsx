@@ -30,7 +30,7 @@ export const IssueView = ({ issueId }: { issueId: string }) => {
     return <h1>Unrecognized Request</h1>
   }
 
-  if (issueQuery.isLoading) {
+  if (issueQuery.isPending) {
     return (
       <div className="flex h-48 w-full items-center justify-center">
         <Spinner size="lg" />

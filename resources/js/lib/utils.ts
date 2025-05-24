@@ -2,6 +2,7 @@ import { useNotifications } from "@/components/ui/notifications";
 import { clsx, type ClassValue } from "clsx"
 import { FieldErrors } from "react-hook-form";
 import { twMerge } from "tailwind-merge"
+import { nanoid } from 'nanoid'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -75,3 +76,9 @@ export const apiErrorHandler = (error: any) => {
 
   console.error("API Error:", error);
 };
+
+
+export function generateId(): string {
+  const id = nanoid(6); 
+  return `field-${id}`
+}

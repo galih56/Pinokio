@@ -23,7 +23,7 @@ export const IssueView = ({ projectId }: { projectId: string | undefined }) => {
   const project = projectQuery?.data?.data;
   adjustActiveBreadcrumbs(`/projects/:id`,`/projects/${projectId}`, project?.title, [ project ]);
   
-  if (projectQuery.isLoading) {
+  if (projectQuery.isPending) {
     return (
       <div className="flex h-48 w-full items-center justify-center">
         <Spinner size="lg" />

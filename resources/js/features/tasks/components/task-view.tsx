@@ -23,7 +23,7 @@ export const TaskView = ({ taskId }: { taskId: string | undefined }) => {
   const task = taskQuery?.data?.data;
   adjustActiveBreadcrumbs(`/tasks/:id`,`/tasks/${taskId}`, task?.title, [ task ]);
   
-  if (taskQuery.isLoading) {
+  if (taskQuery.isPending) {
     return (
       <div className="flex h-48 w-full items-center justify-center">
         <Spinner size="lg" />

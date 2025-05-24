@@ -13,7 +13,7 @@ export const TagView = ({ tagId }: { tagId: string | undefined }) => {
     tagId,
   });
 
-  if (tagQuery.isLoading) {
+  if (tagQuery.isPending) {
     return (
       <div className="flex h-48 w-full items-center justify-center">
         <Spinner size="lg" />
