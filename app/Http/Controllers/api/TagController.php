@@ -1,5 +1,5 @@
 <?php
-namespace App\Http\Controllers\api;
+namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
