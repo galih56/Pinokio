@@ -23,7 +23,7 @@ class WebController extends Controller
     }
 
     public function formsApp(){
-        return view('forms');
+        return view('form-guard');
     }
 
     public function authApp(){

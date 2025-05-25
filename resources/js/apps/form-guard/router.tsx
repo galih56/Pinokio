@@ -2,7 +2,7 @@ import { QueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
 import { Navigate, Outlet, RouterProvider, createBrowserRouter, useLocation, useRouteError } from 'react-router-dom';
 
-import { paths } from '@/apps/issue-tracker/paths';
+import { paths } from '@/apps/form-tracker/paths';
 import { queryClient } from '@/lib/react-query';
 import { Layout } from './layout';
 
@@ -25,9 +25,9 @@ export const createAppRouter = (queryClient: QueryClient) => {
         {
           path: paths.home.path,
           lazy: async () => {
-            const { IssueTrackerFormRoute } = await import('@/pages/app/issues/issue-tracker-form');
+            const { FormTrackerFormRoute } = await import('@/pages/app/forms/form-tracker-form');
             return {
-              Component: IssueTrackerFormRoute,
+              Component: FormTrackerFormRoute,
             };
           },
           ErrorBoundary: AppRootErrorBoundary,
@@ -35,12 +35,12 @@ export const createAppRouter = (queryClient: QueryClient) => {
         {
           path: ':id', 
           lazy: async () => {
-            const { IssueRoute, issueLoader } = await import(
-              '@/pages/app/issues/public-issue-view'
+            const { FormRoute, formLoader } = await import(
+              '@/pages/app/form-guards/form-list'
             );
             return {
-              Component: IssueRoute,
-              loader: issueLoader(queryClient),
+              Component: FormRoute,
+              loader: formLoader(queryClient),
             };
           },
           ErrorBoundary: AppRootErrorBoundary,
