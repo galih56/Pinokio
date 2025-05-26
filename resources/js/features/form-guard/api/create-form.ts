@@ -11,21 +11,21 @@ import { getFormsQueryOptions } from './get-forms';
 export const createFormInputSchema = z.object({
   title: z.string().min(1, { message: "Title is required." }),
   description: z.string().optional(),
-  type: z.enum(["internal", "google"], { message: "Form type is required." }),
+  provider: z.enum(["Pinokio", "Google Form"], { message: "Form provider is required." }),
   formCode: z.string().optional(),
   formUrl: z.string().url({ message: "Invalid URL." }).optional(),
-  access_type: z.enum(["public", "token", "identifier"], { message: "Access type is required." }),
-  
+  accessType: z.enum(["public", "token", "identifier"], { message: "Access type is required." }
   identifierLabel: z.string().optional(),
   identifierDescription: z.string().optional(),
   identifierType: z.enum(["email", "number", "text"]).optional(),
 
-  timeLimitMinutes: z.coerce.number().min(0, { message: "Time limit cannot be negative." }).optional(),
+  timeLimit: z.coerce.number().min(0, { message: "Time limit cannot be negative." }).optional(),
   allowMultipleAttempts: z.boolean().default(false),
   isActive: z.boolean().default(true),
+  proctored: z.boolean().default(false),
 })
 .refine(data => {
-  if (data.type === "google" && (!data.formCode || !data.formUrl)) {
+  if (data.provider === "Google Form" && (!data.formCode || !data.formUrl)) {
     return false;
   }
   return true;
@@ -34,7 +34,7 @@ export const createFormInputSchema = z.object({
   path: ["formCode"], // you could also put both formCode and form_url here
 })
 .refine(data => {
-  if (data.access_type === "identifier" && (!data.identifierLabel || !data.identifierType)) {
+  if (data.accessType === "identifier" && (!data.identifierLabel || !data.identifierType)) {
     return false;
   }
   return true;

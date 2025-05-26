@@ -1,24 +1,28 @@
 "use client"
-import { Input } from "@/components/ui/input"
-import type { z } from "zod"
+
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useNotifications } from "@/components/ui/notifications"
+import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import RichTextEditor from "@/components/ui/text-editor"
-import { type CreateFormInput, createFormInputSchema, useCreateForm } from "../api/create-form"
-import { Editor } from "@tiptap/react"
-import StarterKit from "@tiptap/starter-kit"
-import Link from "@tiptap/extension-link"
-import { useEffect, useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
-import { NumberInput } from "@/components/ui/number-input"
-import { FileText, Settings, Zap } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { MultiStepForm, type Step } from "@/components/layout/multistep-form/multistep-form"
-import { useMultiStepForm } from "@/components/layout/multistep-form/use-multistep-form"
+import { useForm } from "react-hook-form"
+import { FileText, Settings, Zap } from "lucide-react"
+import { MultiStepForm, Step } from "./multistep-form"
+
+// Form data type
+interface CreateFormData {
+  title: string
+  description: string
+  provider: string
+  formUrl?: string
+  identifierLabel?: string
+  identifierType?: string
+  identifierDescription?: string
+  proctored: boolean
+  timeLimit?: number
+  allowMultipleAttempts: boolean
+}
 
 // Steps configuration
 const FORM_STEPS: Step[] = [
@@ -43,125 +47,58 @@ const FORM_STEPS: Step[] = [
   },
 ]
 
-// Editor extensions
-const extensions = [
-  StarterKit,
-  Link.configure({
-    autolink: true,
-    openOnClick: true,
-    linkOnPaste: true,
-    shouldAutoLink: (url) => url.startsWith("https://") || url.startsWith("http://"),
-  }),
-]
-
-type CreateFormType = {
-  onSuccess?: Function
-  onError?: Function
+interface CreateFormProps {
+  onSuccess?: () => void
+  onError?: () => void
 }
 
-export default function CreateForm({ onSuccess, onError }: CreateFormType) {
-  const { addNotification } = useNotifications()
+export default function CreateForm({ onSuccess, onError }: CreateFormProps) {
+  const form = useForm<CreateFormData>({
+    defaultValues: {
+      title: "",
+      description: "",
+      provider: "",
+      formUrl: "",
+      identifierLabel: "",
+      identifierType: "",
+      identifierDescription: "",
+      proctored: false,
+      timeLimit: undefined,
+      allowMultipleAttempts: false,
+    },
+  })
 
-  const { mutate: createFormMutation, isPending } = useCreateForm({
-    mutationConfig: {
-      onSuccess: () => {
+  const { formData, updateFormData, handleSubmit, handleValidateStep, isSubmitting } = useMultiStepForm<CreateFormData>(
+    {
+      onSubmit: async (data) => {
+        console.log("Submitting form:", data)
+        // Simulate API call
+        await new Promise((resolve) => setTimeout(resolve, 2000))
         onSuccess?.()
       },
-      onError: (error: any) => {
-        onError?.()
-        if (error?.response?.data?.errors) {
-          // Map the errors to React Hook Form `setError`
-          Object.keys(error.response.data.errors).forEach((field) => {
-            form.setError(field as keyof CreateFormInput, {
-              type: "manual",
-              message: error.response.data.errors[field][0], // Display the first error message
-            })
-          })
-        } else {
-          addNotification({
-            type: "error",
-            title: "An error occurred",
-            toast: true,
-          })
+      validateStep: async (stepIndex) => {
+        const values = form.getValues()
+
+        switch (stepIndex) {
+          case 0: // Basic Information
+            return !!(values.title && values.description)
+          case 1: // Provider Configuration
+            if (!values.provider) return false
+            if (values.provider === "Google Form") {
+              return !!(values.formUrl && values.identifierLabel && values.identifierType)
+            }
+            return true
+          case 2: // Advanced Settings (optional)
+            return true
+          default:
+            return true
         }
       },
     },
-  })
-
-  const form = useForm<z.infer<typeof createFormInputSchema>>({
-    resolver: zodResolver(createFormInputSchema),
-  })
-
-  // Instantiate Editor outside of component state
-  const [editor] = useState(
-    new Editor({
-      extensions,
-      content: "",
-      editorProps: {
-        attributes: {
-          spellcheck: "false",
-        },
-      },
-    }),
   )
 
-  // Sync editor content with form state
-  useEffect(() => {
-    const handleUpdate = () => {
-      form.setValue("description", editor.getHTML(), { shouldValidate: true })
-    }
-
-    editor.on("update", handleUpdate)
-
-    return () => {
-      editor.off("update", handleUpdate)
-      editor.destroy()
-    }
-  }, [editor, form])
-
-  // Multi-step form integration
-  const { formData, updateFormData, handleSubmit, handleValidateStep, isSubmitting } = useMultiStepForm<
-    z.infer<typeof createFormInputSchema>
-  >({
-    onSubmit: async (data) => {
-      // Use the real API mutation instead of mock
-      createFormMutation(data)
-    },
-    validateStep: async (stepIndex) => {
-      const values = form.getValues()
-
-      switch (stepIndex) {
-        case 0: // Basic Information
-          const step1Valid = await form.trigger(["title", "description"])
-          if (!step1Valid) {
-            addNotification({
-              type: "error",
-              title: "Please fill in all required fields",
-              toast: true,
-            })
-          }
-          return step1Valid
-        case 1: // Provider Configuration
-          const fieldsToValidate: (keyof CreateFormInput)[] = ["provider"]
-          if (values.provider === "Google Form") {
-            fieldsToValidate.push("formUrl", "identifierLabel", "identifierType")
-          }
-          const step2Valid = await form.trigger(fieldsToValidate)
-          if (!step2Valid) {
-            addNotification({
-              type: "error",
-              title: "Please fill in all required fields",
-              toast: true,
-            })
-          }
-          return step2Valid
-        case 2: // Advanced Settings (optional)
-          return true
-        default:
-          return true
-      }
-    },
-  })
+  // Update form data when form values change
+  const watchedValues = form.watch()
 
   const renderStepContent = (currentStep: number) => {
     switch (currentStep) {
@@ -196,11 +133,13 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
                   <FormItem>
                     <FormLabel>Description *</FormLabel>
                     <FormControl>
-                      <RichTextEditor
-                        editor={editor}
-                        onChange={(content) => {
-                          field.onChange(content)
-                          updateFormData({ description: content })
+                      <Textarea
+                        {...field}
+                        placeholder="Describe your form purpose and instructions"
+                        rows={4}
+                        onChange={(e) => {
+                          field.onChange(e)
+                          updateFormData({ description: e.target.value })
                         }}
                       />
                     </FormControl>
@@ -400,10 +339,12 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
                         </div>
                         <FormControl>
                           <div className="w-32">
-                            <NumberInput
-                              {...field}
+                            <Input
+                              type="number"
                               placeholder="Minutes"
-                              onChange={(value) => {
+                              value={field.value || ""}
+                              onChange={(e) => {
+                                const value = e.target.value ? Number.parseInt(e.target.value) : undefined
                                 field.onChange(value)
                                 updateFormData({ timeLimit: value })
                               }}
@@ -455,7 +396,7 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
       steps={FORM_STEPS}
       onSubmit={handleSubmit}
       validateStep={handleValidateStep}
-      isSubmitting={isPending} // Use isPending from your real API call
+      isSubmitting={isSubmitting}
       onStepChange={(step, direction) => {
         console.log(`Moved to step ${step + 1} (${direction})`)
       }}

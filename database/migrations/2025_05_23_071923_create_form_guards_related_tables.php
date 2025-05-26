@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('title');
             $table->text('description')->nullable();
-            $table->enum('type', ['internal', 'google-form'])->default('internal');  // form source
+            $table->enum('provider', ['Pinokio', 'Google Form'])->default('Pinokio');  // form source
             $table->string('form_code')->nullable()->comment('Google Form ID if external');
             $table->string('form_url')->nullable()->comment('Optional full Google Form URL');
             
@@ -25,9 +25,10 @@ return new class extends Migration
             $table->text('identifier_description')->nullable();
             $table->string('identifier_type')->nullable();       // e.g. email, number
             
-            $table->integer('time_limit_minutes')->default(0);
+            $table->integer('time_limit')->default(0);
             $table->boolean('allow_multiple_attempts')->default(false);
             $table->boolean('is_active')->default(true);
+            $table->boolean('proctored')->default(false);
             $table->timestamps();
         });
 
@@ -118,13 +119,18 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('forms');
+        Schema::disableForeignKeyConstraints();
         Schema::dropIfExists('form_entries');
         Schema::dropIfExists('form_submissions');
         Schema::dropIfExists('form_field_options');
         Schema::dropIfExists('form_fields');
         Schema::dropIfExists('field_types');
         Schema::dropIfExists('form_groups');
+        Schema::dropIfExists('form_attempts');
+        Schema::dropIfExists('form_tokens');
         Schema::dropIfExists('form_templates');
+        Schema::dropIfExists('forms');
+
+        Schema::enableForeignKeyConstraints();
     }
 };
