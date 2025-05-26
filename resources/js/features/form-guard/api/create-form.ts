@@ -14,7 +14,7 @@ export const createFormInputSchema = z.object({
   provider: z.enum(["Pinokio", "Google Form"], { message: "Form provider is required." }),
   formCode: z.string().optional(),
   formUrl: z.string().url({ message: "Invalid URL." }).optional(),
-  accessType: z.enum(["public", "token", "identifier"], { message: "Access type is required." }
+  accessType: z.enum(["public", "token", "identifier"], { message: "Access type is required." }),
   identifierLabel: z.string().optional(),
   identifierDescription: z.string().optional(),
   identifierType: z.enum(["email", "number", "text"]).optional(),
