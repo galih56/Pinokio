@@ -52,7 +52,15 @@ export const RegisterForm = ({ onSuccess, onError }: RegisterFormProps) => {
       await registering.mutateAsync(values);
       if (onSuccess) onSuccess();
     } catch (error: any) {
-      if (error.response?.data?.message) {
+      if (error.response?.status === 422 && error.response.data?.errors) {
+        const errors = error.response.data.errors;
+        Object.keys(errors).forEach((field) => {
+          form.setError(field as keyof z.infer<typeof registerInputSchema>, {
+            type: "server",
+            message: errors[field][0],
+          });
+        });
+      } else if (error.response?.data?.message) {
         form.setError("root", {
           type: "manual",
           message: error.response.data.message,
@@ -103,7 +111,7 @@ export const RegisterForm = ({ onSuccess, onError }: RegisterFormProps) => {
             )}
           />
           
-          {/* Name Field */}
+          {/* Username Field */}
           <FormField
             control={form.control}
             name="username"

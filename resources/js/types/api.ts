@@ -155,7 +155,7 @@ export type ActionDetails =
 
 export interface IssueLog  extends BaseEntity  {
   issueId?: number;
-  userId: number | null;
+  userId: string | null;
   userType?: string;
   action: 'updated' | 'status_change' | 'created' | 'deleted';
   actionDetails: ActionDetails;
@@ -163,11 +163,6 @@ export interface IssueLog  extends BaseEntity  {
 
 export const isIssue = (commentable: Issue | Project | Task): commentable is Issue =>
     (commentable as Issue).issuer !== undefined;
-  
-/*
-export const isProjectOrTask = (commentable: Issue | Project | Task): commentable is Project | Task =>
-    (commentable as Project).creator !== undefined;
-*/
 
 export const getCommentableCreator = (commentable?: Issue | Project | Task) => {
     if (!commentable) return null;
@@ -176,10 +171,112 @@ export const getCommentableCreator = (commentable?: Issue | Project | Task) => {
         return commentable.issuer; 
     } 
 
-    /*
-        if (isProjectOrTask(commentable)) {
-            return commentable.creator; 
-        }
-    */
     return null;
 };
+
+export interface Form {
+  id: string;
+  title: string;
+  type: 'internal' | 'google';
+  formCode?: string;
+  formUrl?: string;
+  accessType: 'public' | 'token' | 'identifier';
+  identifierLabel?: string;
+  identifierDescription?: string;
+  identifierType?: string;
+  timeLimitMinutes: number;
+  allowMultipleAttempts: boolean;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FormTemplate {
+  id: string;
+  formId: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FormGroup {
+  id: string;
+  formTemplateId: string;
+  name: string;
+  description?: string;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FieldType {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FormField {
+  id: string;
+  formGroupId: string;
+  fieldTypeId: string;
+  label: string;
+  name: string;
+  placeholder?: string;
+  isRequired: boolean;
+  order: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FormFieldOption {
+  id: string;
+  formFieldId: string;
+  label: string;
+  value: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FormToken {
+  id: string;
+  formId: string;
+  token: string;
+  identifier?: string;
+  openTime?: string;
+  submittedTime?: string;
+  isUsed: boolean;
+  expiresAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FormAttempt {
+  id: string;
+  formId: string;
+  tokenId?: number;
+  identifier?: string;
+  startedAt: string;
+  submittedAt?: string;
+  isValid: boolean;
+  durationSeconds?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface FormSubmission {
+  id: string;
+  formTemplateId: string;
+  submittedBy?: number;
+  submittedAt: string;
+}
+
+export interface FormEntry {
+  id: string;
+  formSubmissionId: string;
+  formFieldId: string;
+  value: string;
+}
+
+

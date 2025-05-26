@@ -119,9 +119,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        
         Schema::disableForeignKeyConstraints();
-        
         Schema::dropIfExists('form_entries');
         Schema::dropIfExists('form_submissions');
         Schema::dropIfExists('form_field_options');

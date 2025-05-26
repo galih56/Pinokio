@@ -1,14 +1,14 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\api\AuthController;
-use App\Http\Controllers\api\UserController;
-use App\Http\Controllers\api\TeamController;
-use App\Http\Controllers\api\UserRoleController;
-use App\Http\Controllers\api\TagController;
-use App\Http\Controllers\api\IssueController;
-use App\Http\Controllers\api\TaskController;
-use App\Http\Controllers\api\CommentController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\TeamController;
+use App\Http\Controllers\Api\UserRoleController;
+use App\Http\Controllers\Api\TagController;
+use App\Http\Controllers\Api\IssueController;
+use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\CommentController;
 
 Route::group([ 
     "prefix" => "auth", 
