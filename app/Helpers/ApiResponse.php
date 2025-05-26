@@ -26,9 +26,13 @@ class ApiResponse
         $response=[
             'status' => $status,
         ];
-        if(!empty($result)){
-            $response['data'] =$result;
+            
+        if ($status === 'error' && !empty($result)) {
+            $response['errors'] = $result;
+        } elseif (!empty($result)) {
+            $response['data'] = $result;
         }
+
         if(!empty($message)){
             $response['message'] =$message;
         }
