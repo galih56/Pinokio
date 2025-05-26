@@ -6,15 +6,64 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { ImageUpload } from "./image-upload"
+import RichTextEditor from "@/components/ui/text-editor"
 import type { FormField } from "@/types/form"
 import { Plus, X } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Editor } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import Link from '@tiptap/extension-link'
 
 interface FieldEditorProps {
   field: FormField
   onUpdate: (updates: Partial<FormField>) => void
 }
 
+const extensions = [
+  StarterKit,
+  Link.configure({
+    autolink: true,
+    openOnClick: true,
+    linkOnPaste: true,
+    shouldAutoLink: (url) => url.startsWith('https://') || url.startsWith('http://'),
+  }),
+];
+
 export function FieldEditor({ field, onUpdate }: FieldEditorProps) {
+  // Create editor instance for textarea fields
+  const [editor] = useState(() => {
+    if (field.type === "textarea") {
+      return new Editor({
+        extensions,
+        content: field.defaultValue || '',
+        editorProps: {
+          attributes: {
+            spellcheck: 'false',
+          },
+        },
+      });
+    }
+    return null;
+  });
+
+  // Sync editor content with field default value
+  useEffect(() => {
+    if (editor && field.type === "textarea") {
+      editor.on('update', () => {
+        onUpdate({ defaultValue: editor.getHTML() });
+      });
+
+      // Set initial content if field has default value
+      if (field.defaultValue && editor.getHTML() !== field.defaultValue) {
+        editor.commands.setContent(field.defaultValue);
+      }
+
+      return () => {
+        editor.destroy();
+      };
+    }
+  }, [editor, field.defaultValue, onUpdate]);
+
   const addOption = () => {
     const currentOptions = field.options || []
     onUpdate({
@@ -68,17 +117,30 @@ export function FieldEditor({ field, onUpdate }: FieldEditorProps) {
         />
 
         {field.type === "textarea" && (
-          <div>
-            <Label htmlFor="field-rows">Rows</Label>
-            <Input
-              id="field-rows"
-              type="number"
-              min="1"
-              max="10"
-              value={field.rows || 3}
-              onChange={(e) => onUpdate({ rows: Number.parseInt(e.target.value) || 3 })}
-            />
-          </div>
+          <>
+            <div>
+              <Label htmlFor="field-rows">Rows</Label>
+              <Input
+                id="field-rows"
+                type="number"
+                min="1"
+                max="10"
+                value={field.rows || 3}
+                onChange={(e) => onUpdate({ rows: Number.parseInt(e.target.value) || 3 })}
+              />
+            </div>
+            
+            <div>
+              <Label>Default Content</Label>
+              <div className="mt-2 border rounded-md p-3">
+                {editor ? (
+                  <RichTextEditor editor={editor} />
+                ) : (
+                  <div className="text-gray-500 text-sm">Rich text editor loading...</div>
+                )}
+              </div>
+            </div>
+          </>
         )}
 
         <div className="flex items-center space-x-2">

@@ -7,11 +7,11 @@ import { adjustActiveBreadcrumbs } from '@/components/layout/breadcrumbs/breadcr
 import { CommentList } from '@/features/comment/components/comment-list';
 import CreateComment from '@/features/comment/components/create-comment';
 import DOMPurify from 'dompurify';
-import { useForm } from 'react-hook-form';
+import { useFormDetail } from '../api/get-form';
 
 export const FormView = ({ formId }: { formId: string }) => {
   
-  const formQuery = useForm({
+  const formQuery = useFormDetail({
     formId,
   });
 
@@ -40,18 +40,6 @@ export const FormView = ({ formId }: { formId: string }) => {
           <CardHeader>
             <CardTitle className='flex flex-row justify-between'> 
               <span>{form.title}</span>  
-              <StatusBadge 
-                status={form.status}
-                editable={true} 
-                entityId={formId} 
-                entityType={'form'} 
-                onStatusChange={(status)=> {
-                  updateFormStatus.mutateAsync({
-                    formId,
-                    status
-                  });
-                }}
-              /> 
             </CardTitle>
             <CardDescription dangerouslySetInnerHTML={{__html : DOMPurify.sanitize(form?.description ?? '')}} />
           </CardHeader>

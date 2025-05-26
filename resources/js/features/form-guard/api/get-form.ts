@@ -25,7 +25,7 @@ type UseFormOptions = {
   queryConfig?: QueryConfig<typeof getFormQueryOptions>;
 };
 
-export const useForm = ({
+export const useFormDetail = ({
   formId,
   queryConfig,
 }: UseFormOptions) => {

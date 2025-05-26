@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('forms', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->enum('type', ['internal', 'google'])->default('internal');  // form source
+            $table->text('description')->nullable();
+            $table->enum('type', ['internal', 'google-form'])->default('internal');  // form source
             $table->string('form_code')->nullable()->comment('Google Form ID if external');
             $table->string('form_url')->nullable()->comment('Optional full Google Form URL');
             
@@ -117,6 +118,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('forms');
         Schema::dropIfExists('form_entries');
         Schema::dropIfExists('form_submissions');
         Schema::dropIfExists('form_field_options');

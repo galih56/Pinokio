@@ -20,15 +20,13 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useNotifications } from '@/components/ui/notifications';
 import DateTimePickerInput from "@/components/ui/date-picker/date-picker-input";
 import { Textarea } from "@/components/ui/textarea";
-import { FileInput, FileUploader, FileUploaderContent, FileUploaderItem } from "@/components/ui/file-upload";
-import { DropzoneOptions } from "react-dropzone";
-import { GuestIssuerInputs } from "./guest-issuer-inputs";
 import RichTextEditor from "@/components/ui/text-editor";
-import { CreateIssueInput, createIssueInputSchema, useCreateIssue } from "../api/create-issue";
+import { CreateFormInput, createFormInputSchema, useCreateForm } from "../api/create-form";
 import { Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { useEffect, useState } from "react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 // Editor extensions
 const extensions = [
@@ -41,18 +39,18 @@ const extensions = [
   }),
 ];
 
-type CreateIssueType = {
+type CreateFormType = {
   onSuccess? : Function;
   onError? : Function;
 }
 
-export default function CreateIssue({
+export default function CreateForm({
   onSuccess,
   onError
-} : CreateIssueType) { 
+} : CreateFormType) { 
   const { addNotification } = useNotifications();
 
-  const { mutate: createIssueMutation, isPending } = useCreateIssue({
+  const { mutate: createFormMutation, isPending } = useCreateForm({
     mutationConfig: {
       onSuccess: () => {
         onSuccess?.();
@@ -62,7 +60,7 @@ export default function CreateIssue({
         if (error?.response?.data?.errors) {
           // Map the errors to React Hook Form `setError`
           Object.keys(error.response.data.errors).forEach((field) => {
-            form.setError(field as keyof CreateIssueInput, {
+            form.setError(field as keyof CreateFormInput, {
               type: 'manual',
               message: error.response.data.errors[field][0], // Display the first error message
             });
@@ -78,8 +76,8 @@ export default function CreateIssue({
     },
   });
   
-  const form = useForm<z.infer<typeof createIssueInputSchema>>({
-    resolver: zodResolver(createIssueInputSchema)
+  const form = useForm<z.infer<typeof createFormInputSchema>>({
+    resolver: zodResolver(createFormInputSchema)
   })
   
 
@@ -107,7 +105,7 @@ export default function CreateIssue({
     };
   }, [editor, form]);
 
-  async function onSubmit(values: z.infer<typeof createIssueInputSchema>) {
+  async function onSubmit(values: z.infer<typeof createFormInputSchema>) {
     const isValid = await form.trigger();
     if (!isValid) {
       addNotification({
@@ -117,25 +115,12 @@ export default function CreateIssue({
       });
       return;
     }
-    createIssueMutation(values)
+    createFormMutation(values)
   }
   
-  const dropzoneOptions = {
-    accept: {
-      "image/*": [".jpg", ".jpeg", ".png"],
-      "application/pdf": [".pdf"], 
-      "application/msword": [".doc"], 
-    },
-    multiple: true,
-    maxFiles: 4,
-    maxSize: 1 * 1024 * 1024,
-  } satisfies DropzoneOptions;
-  
-
   return (  
       <Form {...form} >
         <form onSubmit={form.handleSubmit(onSubmit)}>
-            <GuestIssuerInputs />
             <FormField
               control={form.control}
               name="title"
@@ -147,39 +132,6 @@ export default function CreateIssue({
                   </FormControl>
                   <FormMessage/>
               </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="tagIds"
-              render={({ field, formState: { errors } }) => (
-                <FormItem>
-                  <FormLabel>Issue Type</FormLabel>
-                  <FormControl> 
-                    <TagCombobox
-                        multiple={true} 
-                        name={field.name}
-                      />
-                  </FormControl>
-                  <FormMessage>{errors.tagIds?.message}</FormMessage>
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="dueDate"
-              render={({ field , formState : { errors }  }) => (
-                <FormItem>
-                  <FormLabel>Due Date</FormLabel>
-                  <FormControl>
-                    <DateTimePickerInput
-                      value={field.value || undefined}
-                      onChange={field.onChange}
-                      disabledDate={(date) => date < new Date()}
-                    />
-                  </FormControl>
-                  {errors.dueDate && <FormMessage> {errors.dueDate.message} </FormMessage>}
-                </FormItem>
               )}
             />
             <FormField
@@ -197,31 +149,46 @@ export default function CreateIssue({
             />
             <FormField
               control={form.control}
-              name="files"
-              render={({ field }) => (
-                <FormItem
-                  className="w-full mt-2"
-                  >
-                  <FormLabel>Attachments</FormLabel>
+              name="type"
+              render={({ field , formState : { errors }  }) => (
+                <FormItem className="my-2">
+                  <FormLabel>Form Type</FormLabel>
                   <FormControl>
-                    <FileUploader
-                      value={(field.value || [])}
-                      onValueChange={field.onChange}
-                      dropzoneOptions={dropzoneOptions}
-                      className="relative space-y-1"
-                    >
-                      <FileInput className="border border-dashed border-gray-500">
-                        <Button type="button" className="w-full" variant={"outline"}>Upload a file</Button>
-                      </FileInput>
-                      <FileUploaderContent className="max-h-48 ">
-                        {(field.value || []).length > 0 && (field.value || []).map((file: File, index: number) => (<FileUploaderItem key={index+"-"+file.name} index={index}>{file.name}</FileUploaderItem>))}
-                      </FileUploaderContent>
-                    </FileUploader>
+                      <Select {...field} onValueChange={field.onChange}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select Form Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem key='internal' value='internal'>
+                              Internal
+                            </SelectItem>
+                            <SelectItem key='google-form' value='google-form'>
+                              Google Form
+                            </SelectItem>
+                        </SelectContent>
+                      </Select>
                   </FormControl>
-                  <FormMessage />
+                  {errors.type && <FormMessage> {errors.type.message} </FormMessage>}
                 </FormItem>
               )}
             />
+            {/* <FormField
+              control={form.control}
+              name="dueDate"
+              render={({ field , formState : { errors }  }) => (
+                <FormItem>
+                  <FormLabel>Due Date</FormLabel>
+                  <FormControl>
+                    <DateTimePickerInput
+                      value={field.value || undefined}
+                      onChange={field.onChange}
+                      disabledDate={(date) => date < new Date()}
+                    />
+                  </FormControl>
+                  {errors.dueDate && <FormMessage> {errors.dueDate.message} </FormMessage>}
+                </FormItem>
+              )}
+            /> */}
           <DialogFooter className="my-4">
             <Button type="submit" isLoading={isPending}>Submit</Button>
           </DialogFooter>
