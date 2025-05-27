@@ -18,6 +18,7 @@ export const Notifications = () => {
         />
       ))}
       <Toaster position='top-right' theme='system' 
+        duration={5}
         toastOptions={{
           classNames: {
             toast: "rounded-lg shadow-lg",
