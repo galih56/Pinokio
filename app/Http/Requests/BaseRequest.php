@@ -3,7 +3,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\ValidationException;
 
 class BaseRequest extends FormRequest
 {
@@ -23,12 +23,4 @@ class BaseRequest extends FormRequest
         return [];
     }
     
-    public function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response()->json([
-            'status'   => 'error',
-            'message'  => 'Kesalahan input',
-            'data'     => $validator->errors()
-        ], 422));
-    }
 }
