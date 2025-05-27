@@ -12,7 +12,11 @@ import { Editor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
 import Link from "@tiptap/extension-link"
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import { useEffect, useState } from "react"
+=======
+import { useEffect, useState, useMemo } from "react"
+>>>>>>> Stashed changes
 =======
 import { useEffect, useState, useMemo } from "react"
 >>>>>>> Stashed changes
@@ -23,8 +27,14 @@ import { FileText, Settings, Zap } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { MultiStepForm, type Step } from "@/components/layout/multistep-form/multistep-form"
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import { useMultiStepForm } from "@/components/layout/multistep-form/use-multistep-form"
 import { extractGoogleFormCode } from "@/lib/common"
+=======
+import { camelizeKeys } from "humps"
+import { extractGoogleFormCode } from "@/lib/common"
+import { useMultiStepForm } from "@/components/layout/multistep-form/use-multistep-form"
+>>>>>>> Stashed changes
 =======
 import { camelizeKeys } from "humps"
 import { extractGoogleFormCode } from "@/lib/common"
@@ -58,6 +68,7 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
       onError: (error: any) => {
         onError?.()
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         if (error?.response?.data?.errors) {
           Object.keys(error.response.data.errors).forEach((field) => {
             form.setError(field as keyof CreateFormInput, {
@@ -65,6 +76,8 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
               message: error.response.data.errors[field][0],
             })
 =======
+=======
+>>>>>>> Stashed changes
 
         if (error?.response?.data?.errors) {
           // Convert snake_case error keys to camelCase using humps
@@ -85,6 +98,9 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
             type: "error",
             title: "An error occurred",
             toast: true,
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
           })
         }
@@ -95,9 +111,12 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
   const form = useForm<z.infer<typeof createFormInputSchema>>({
     resolver: zodResolver(createFormInputSchema),
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   })
 
 =======
+=======
+>>>>>>> Stashed changes
     defaultValues:{
       title: "",
       description: "",
@@ -116,6 +135,9 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
   })
   
   // Instantiate Editor outside of component state
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   const [editor] = useState(
     new Editor({
@@ -130,15 +152,21 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
   )
 
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   const formUrl = form.watch("formUrl")
   const selectedProvider = form.watch("provider")
 
 =======
+=======
+>>>>>>> Stashed changes
   // Watch form values for conditional logic
   const formUrl = form.watch("formUrl")
   const selectedProvider = form.watch("provider")
 
   // Extract Google Form code when URL changes
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   useEffect(() => {
     const code = extractGoogleFormCode(formUrl ?? "")
@@ -146,8 +174,14 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
       form.setValue("formCode", code)
     }
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
   }, [formUrl])
 
+=======
+  }, [formUrl, form])
+
+  // Sync editor content with form state
+>>>>>>> Stashed changes
 =======
   }, [formUrl, form])
 
@@ -167,6 +201,7 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
   }, [editor, form])
 
   // Dynamic steps configuration with conditions
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
   const FORM_STEPS: Step[] = [
     {
@@ -192,6 +227,8 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
   ]
 
 =======
+=======
+>>>>>>> Stashed changes
   const FORM_STEPS: Step[] = useMemo(
     () => [
       {
@@ -219,11 +256,15 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
   )
 
   // Multi-step form integration
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
   const { formData, updateFormData, handleSubmit, handleValidateStep, isSubmitting } = useMultiStepForm<
     z.infer<typeof createFormInputSchema>
   >({
     onSubmit: async (data) => {
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
       // Use the real API mutation instead of mock
       createFormMutation(data)
@@ -235,6 +276,8 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
         case 0: // Basic Information
           const step1Valid = await form.trigger(["title", "description", "provider"])
 =======
+=======
+>>>>>>> Stashed changes
       // Get the latest form data and submit
       const formValues = form.getValues()
       createFormMutation(formValues)
@@ -246,6 +289,9 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
       switch (currentStepId) {
         case 1: // Basic Information
           const step1Valid = await form.trigger(["title", "description", "provider", "accessType"])
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
           if (!step1Valid) {
             addNotification({
@@ -256,7 +302,11 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
           }
           return step1Valid
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         case 1: // Google Form Configuration (only exists when Google Form is selected)
+=======
+        case 2: // Google Form Configuration (only exists when Google Form is selected)
+>>>>>>> Stashed changes
 =======
         case 2: // Google Form Configuration (only exists when Google Form is selected)
 >>>>>>> Stashed changes
@@ -274,7 +324,11 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
           }
           return true
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         case 2: // Advanced Settings (optional)
+=======
+        case 3: // Advanced Settings (optional)
+>>>>>>> Stashed changes
 =======
         case 3: // Advanced Settings (optional)
 >>>>>>> Stashed changes
@@ -316,7 +370,10 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
               <FormField
                 control={form.control}
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
                 name="accessType"
                 render={({ field }) => (
                   <FormItem>
@@ -348,6 +405,9 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
               />
               <FormField
                 control={form.control}
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
                 name="provider"
                 render={({ field }) => (
@@ -383,7 +443,11 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
                 render={({ field }) => (
                   <FormItem>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                     <FormLabel>Description *</FormLabel>
+=======
+                    <FormLabel>Description</FormLabel>
+>>>>>>> Stashed changes
 =======
                     <FormLabel>Description</FormLabel>
 >>>>>>> Stashed changes
@@ -474,9 +538,15 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
                         </SelectTrigger>
                         <SelectContent>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                           <SelectItem value="Free Text">Free Text</SelectItem>
                           <SelectItem value="Email">Email</SelectItem>
                           <SelectItem value="Number">Number</SelectItem>
+=======
+                          <SelectItem value="email">Email</SelectItem>
+                          <SelectItem value="number">Number</SelectItem>
+                          <SelectItem value="text">Free Text</SelectItem>
+>>>>>>> Stashed changes
 =======
                           <SelectItem value="email">Email</SelectItem>
                           <SelectItem value="number">Number</SelectItem>
@@ -524,7 +594,12 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
                 control={form.control}
                 name="proctored"
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 render={({ field }) => (
+=======
+                render={({ field }) => {
+                  return (
+>>>>>>> Stashed changes
 =======
                 render={({ field }) => {
                   return (
@@ -551,7 +626,11 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
                     </Card>
                   </FormItem>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
                 )}
+=======
+                )}}
+>>>>>>> Stashed changes
 =======
                 )}}
 >>>>>>> Stashed changes
