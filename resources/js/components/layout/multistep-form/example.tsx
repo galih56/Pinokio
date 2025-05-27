@@ -239,7 +239,7 @@ export default function CreateForm({ onSuccess, onError }: CreateFormProps) {
                       <FormItem>
                         <FormLabel>Identifier Type *</FormLabel>
                         <FormDescription>
-                          Make clearer identifier by minimizing typos. Pinokio will help validate the identifier input
+                          Make clearer identifier by minimizing typos. Pinokio will help you validate the identifier input
                         </FormDescription>
                         <FormControl>
                           <Select
