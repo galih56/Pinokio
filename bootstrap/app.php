@@ -66,10 +66,7 @@ return Application::configure(basePath: dirname(__DIR__))
 
                 $debugMode = config('app.debug');
                 if (!$debugMode) {
-                    return response()->json([
-                        'status' => 'error',
-                        'message' => $e->getMessage(),
-                    ], 500); // Default to 500 if no specific handling found
+                    return ApiResponse::sendResponse(null, $e->getMessage(),'error', 500);
                 }
             }else{
                 
