@@ -79,6 +79,24 @@ Route::group([
 });
 
 Route::group([
+    "prefix" => "forms",
+], function () {
+    Route::get('/', [FormController::class, 'index']);
+    Route::group([
+        'middleware' => [
+            'role:ADMIN','decode_id',
+            'middleware' => 'auth:sanctum'
+        ]
+    ], function () {
+        Route::post('/', [FormController::class, 'store']);
+        Route::get('/{id}', [FormController::class, 'show']);
+        Route::put('/{id}', [FormController::class, 'update']);
+        Route::patch('/{id}', [FormController::class, 'update']);
+        Route::delete('/{id}', [FormController::class, 'destroy']);
+    });
+});
+
+Route::group([
     "prefix" => "tasks",
     'middleware' => ['role:ADMIN','decode_id', 'auth:sanctum']
 ], function () {

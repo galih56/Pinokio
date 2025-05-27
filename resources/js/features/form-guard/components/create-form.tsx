@@ -19,29 +19,7 @@ import { FileText, Settings, Zap } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { MultiStepForm, type Step } from "@/components/layout/multistep-form/multistep-form"
 import { useMultiStepForm } from "@/components/layout/multistep-form/use-multistep-form"
-
-// Steps configuration
-const FORM_STEPS: Step[] = [
-  {
-    id: 1,
-    title: "Basic Information",
-    description: "Set up the basic details of your form",
-    icon: FileText,
-  },
-  {
-    id: 2,
-    title: "Provider Configuration",
-    description: "Configure your form provider and settings",
-    icon: Settings,
-  },
-  {
-    id: 3,
-    title: "Advanced Settings",
-    description: "Set up proctoring, time limits, and other options",
-    icon: Zap,
-    optional: true,
-  },
-]
+import { extractGoogleFormCode } from "@/lib/common"
 
 // Editor extensions
 const extensions = [
@@ -70,18 +48,11 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
       onError: (error: any) => {
         onError?.()
         if (error?.response?.data?.errors) {
-          // Map the errors to React Hook Form `setError`
           Object.keys(error.response.data.errors).forEach((field) => {
             form.setError(field as keyof CreateFormInput, {
               type: "manual",
-              message: error.response.data.errors[field][0], // Display the first error message
+              message: error.response.data.errors[field][0],
             })
-          })
-        } else {
-          addNotification({
-            type: "error",
-            title: "An error occurred",
-            toast: true,
           })
         }
       },
@@ -92,7 +63,6 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
     resolver: zodResolver(createFormInputSchema),
   })
 
-  // Instantiate Editor outside of component state
   const [editor] = useState(
     new Editor({
       extensions,
@@ -105,7 +75,16 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
     }),
   )
 
-  // Sync editor content with form state
+  const formUrl = form.watch("formUrl")
+  const selectedProvider = form.watch("provider")
+
+  useEffect(() => {
+    const code = extractGoogleFormCode(formUrl ?? "")
+    if (code) {
+      form.setValue("formCode", code)
+    }
+  }, [formUrl])
+
   useEffect(() => {
     const handleUpdate = () => {
       form.setValue("description", editor.getHTML(), { shouldValidate: true })
@@ -119,7 +98,30 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
     }
   }, [editor, form])
 
-  // Multi-step form integration
+  // Dynamic steps configuration with conditions
+  const FORM_STEPS: Step[] = [
+    {
+      id: 1,
+      title: "Basic Information",
+      description: "Set up the basic details of your form",
+      icon: FileText,
+    },
+    {
+      id: 2,
+      title: "Google Form Configuration",
+      description: "Configure your Google Form integration settings",
+      icon: Settings,
+      condition: () => selectedProvider === "Google Form", // Only show for Google Form
+    },
+    {
+      id: 3,
+      title: "Advanced Settings",
+      description: "Set up proctoring, time limits, and other options",
+      icon: Zap,
+      optional: true,
+    },
+  ]
+
   const { formData, updateFormData, handleSubmit, handleValidateStep, isSubmitting } = useMultiStepForm<
     z.infer<typeof createFormInputSchema>
   >({
@@ -132,7 +134,7 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
 
       switch (stepIndex) {
         case 0: // Basic Information
-          const step1Valid = await form.trigger(["title", "description"])
+          const step1Valid = await form.trigger(["title", "description", "provider"])
           if (!step1Valid) {
             addNotification({
               type: "error",
@@ -141,20 +143,20 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
             })
           }
           return step1Valid
-        case 1: // Provider Configuration
-          const fieldsToValidate: (keyof CreateFormInput)[] = ["provider"]
+        case 1: // Google Form Configuration (only exists when Google Form is selected)
           if (values.provider === "Google Form") {
-            fieldsToValidate.push("formUrl", "identifierLabel", "identifierType")
+            const fieldsToValidate: (keyof CreateFormInput)[] = ["formUrl", "identifierLabel", "identifierType"]
+            const step2Valid = await form.trigger(fieldsToValidate)
+            if (!step2Valid) {
+              addNotification({
+                type: "error",
+                title: "Please fill in all required Google Form fields",
+                toast: true,
+              })
+            }
+            return step2Valid
           }
-          const step2Valid = await form.trigger(fieldsToValidate)
-          if (!step2Valid) {
-            addNotification({
-              type: "error",
-              title: "Please fill in all required fields",
-              toast: true,
-            })
-          }
-          return step2Valid
+          return true
         case 2: // Advanced Settings (optional)
           return true
         default:
@@ -163,9 +165,11 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
     },
   })
 
-  const renderStepContent = (currentStep: number) => {
-    switch (currentStep) {
-      case 0:
+  const renderStepContent = (currentStep: number, goToStep: (step: number) => void, visibleSteps: Step[]) => {
+    const currentStepId = visibleSteps[currentStep]?.id
+
+    switch (currentStepId) {
+      case 1: // Basic Information
         return (
           <Form {...form}>
             <div className="space-y-6">
@@ -184,6 +188,36 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
                           updateFormData({ title: e.target.value })
                         }}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="provider"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Form Provider *</FormLabel>
+                    <FormDescription>
+                      Choose your form provider. Google Forms allows integration with external forms.
+                    </FormDescription>
+                    <FormControl>
+                      <Select
+                        value={field.value}
+                        onValueChange={(value) => {
+                          field.onChange(value)
+                          updateFormData({ provider: value })
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select provider of this form" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Pinokio">Pinokio</SelectItem>
+                          <SelectItem value="Google Form">Google Form</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -212,33 +246,78 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
           </Form>
         )
 
-      case 1:
+      case 2: // Google Form Configuration
         return (
           <Form {...form}>
             <div className="space-y-6">
               <FormField
                 control={form.control}
-                name="provider"
+                name="formUrl"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Form Provider *</FormLabel>
+                    <FormLabel>Form URL *</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="https://forms.google.com/..."
+                        onChange={(e) => {
+                          field.onChange(e)
+                          updateFormData({ formUrl: e.target.value })
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="identifierLabel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Identifier Label *</FormLabel>
                     <FormDescription>
-                      You can integrate your Google Forms and set a timer and proctoring
+                      This is used to sync Google Form responses. It helps Pinokio identify which record is filled by
+                      whom
+                    </FormDescription>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        placeholder="e.g., Student ID, Email Address"
+                        onChange={(e) => {
+                          field.onChange(e)
+                          updateFormData({ identifierLabel: e.target.value })
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="identifierType"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Identifier Type *</FormLabel>
+                    <FormDescription>
+                      Make clearer identifier by minimizing typos. Pinokio will help you validate the identifier input
                     </FormDescription>
                     <FormControl>
                       <Select
                         value={field.value}
                         onValueChange={(value) => {
                           field.onChange(value)
-                          updateFormData({ provider: value })
+                          updateFormData({ identifierType: value })
                         }}
                       >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select provider of this form" />
+                          <SelectValue placeholder="Select identifier type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Pinokio">Pinokio</SelectItem>
-                          <SelectItem value="Google Form">Google Form</SelectItem>
+                          <SelectItem value="Free Text">Free Text</SelectItem>
+                          <SelectItem value="Email">Email</SelectItem>
+                          <SelectItem value="Number">Number</SelectItem>
                         </SelectContent>
                       </Select>
                     </FormControl>
@@ -246,114 +325,34 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
                   </FormItem>
                 )}
               />
-
-              {form.watch("provider") === "Google Form" && (
-                <div className="space-y-6">
-                  <FormField
-                    control={form.control}
-                    name="formUrl"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Form URL *</FormLabel>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="https://forms.google.com/..."
-                            onChange={(e) => {
-                              field.onChange(e)
-                              updateFormData({ formUrl: e.target.value })
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="identifierLabel"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Identifier Label *</FormLabel>
-                        <FormDescription>
-                          This is used to sync Google Form responses. It helps Pinokio identify which record is filled
-                          by whom
-                        </FormDescription>
-                        <FormControl>
-                          <Input
-                            {...field}
-                            placeholder="e.g., Student ID, Email Address"
-                            onChange={(e) => {
-                              field.onChange(e)
-                              updateFormData({ identifierLabel: e.target.value })
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="identifierType"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Identifier Type *</FormLabel>
-                        <FormDescription>
-                          Make clearer identifier by minimizing typos. Pinokio will help validate the identifier input
-                        </FormDescription>
-                        <FormControl>
-                          <Select
-                            value={field.value}
-                            onValueChange={(value) => {
-                              field.onChange(value)
-                              updateFormData({ identifierType: value })
-                            }}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select identifier type" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Free Text">Free Text</SelectItem>
-                              <SelectItem value="Email">Email</SelectItem>
-                              <SelectItem value="Number">Number</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="identifierDescription"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Identifier Description</FormLabel>
-                        <FormDescription>
-                          Tell your respondents what they should fill in the Identifier Label
-                        </FormDescription>
-                        <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder="e.g., Please enter your student ID number"
-                            onChange={(e) => {
-                              field.onChange(e)
-                              updateFormData({ identifierDescription: e.target.value })
-                            }}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              )}
+              <FormField
+                control={form.control}
+                name="identifierDescription"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Identifier Description</FormLabel>
+                    <FormDescription>
+                      Tell your respondents what they should fill in the Identifier Label
+                    </FormDescription>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder="e.g., Please enter your student ID number"
+                        onChange={(e) => {
+                          field.onChange(e)
+                          updateFormData({ identifierDescription: e.target.value })
+                        }}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </div>
           </Form>
         )
 
-      case 2:
+      case 3: // Advanced Settings
         return (
           <Form {...form}>
             <div className="space-y-6">
@@ -455,12 +454,12 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
       steps={FORM_STEPS}
       onSubmit={handleSubmit}
       validateStep={handleValidateStep}
-      isSubmitting={isPending} // Use isPending from your real API call
+      isSubmitting={isPending}
       onStepChange={(step, direction) => {
         console.log(`Moved to step ${step + 1} (${direction})`)
       }}
     >
-      {(currentStep) => renderStepContent(currentStep)}
+      {renderStepContent}
     </MultiStepForm>
   )
 }

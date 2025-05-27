@@ -14,3 +14,8 @@ export const isValidEmail = (email: string) => {
     const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     return regex.test(email);
 };
+
+export function extractGoogleFormCode(url: string): string | null {
+  const match = url.match(/\/forms\/d\/([a-zA-Z0-9_-]+)/)
+  return match ? match[1] : null
+}

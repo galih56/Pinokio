@@ -35,7 +35,7 @@ export const FormsRoute = () => {
           title={"Create Form"}
           trigger={ <Button variant="outline">Create Form</Button>}
           >
-            <CreateForm onSuccess={close} onError={close}/>
+            <CreateForm onSuccess={close}/>
         </DialogOrDrawer>
         <div className='w-full my-2 p4'>
           <FormsList />          
