@@ -37,7 +37,7 @@ export const UserRolesRoute = () => {
             trigger={ <Button variant="outline">Create User Role</Button>}
           >
             <div className='p-2'>
-              <CreateUserRole onSuccess={close} onError={close}/>
+              <CreateUserRole onSuccess={close}/>
             </div>
         </DialogOrDrawer>
         <div className='w-full my-2 p4'>

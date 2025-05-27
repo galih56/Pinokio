@@ -102,7 +102,7 @@ export default function RichTextEditor({ editor }: RichTextEditorProps) {
   return (
     <div className='w-full'>
       <MenuBar editor={editor} />
-      {editor && <EditorContent editor={editor} />}
+      {editor && <EditorContent className='min-h-24' editor={editor} />}
     </div>
   )
 }

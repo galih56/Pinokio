@@ -5,7 +5,7 @@ import { Progress } from "@/components/ui/progress"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { type ReactNode, useState } from "react"
+import { type ReactNode, useState, useMemo } from "react"
 import type { LucideIcon } from "lucide-react"
 
 export interface Step {
@@ -14,6 +14,7 @@ export interface Step {
   description: string
   icon?: LucideIcon
   optional?: boolean
+  condition?: () => boolean // Add condition function
 }
 
 export interface MultiStepFormProps<T = any> {
@@ -25,7 +26,7 @@ export interface MultiStepFormProps<T = any> {
   className?: string
   showStepIndicators?: boolean
   showProgress?: boolean
-  children: (currentStep: number, goToStep: (step: number) => void) => ReactNode
+  children: (currentStep: number, goToStep: (step: number) => void, visibleSteps: Step[]) => ReactNode
 }
 
 export function MultiStepForm<T = any>({
@@ -41,19 +42,26 @@ export function MultiStepForm<T = any>({
 }: MultiStepFormProps<T>) {
   const [currentStep, setCurrentStep] = useState(0)
 
+  // Filter steps based on conditions
+  const visibleSteps = useMemo(() => {
+    return steps.filter((step) => !step.condition || step.condition())
+  }, [steps])
+
   const goToStep = (stepIndex: number) => {
-    if (stepIndex >= 0 && stepIndex < steps.length) {
+    if (stepIndex >= 0 && stepIndex < visibleSteps.length) {
       setCurrentStep(stepIndex)
     }
   }
 
   const nextStep = async () => {
     if (validateStep) {
-      const isValid = await validateStep(currentStep, {} as T)
+      // Find the original step index for validation
+      const originalStepIndex = steps.findIndex((step) => step.id === visibleSteps[currentStep].id)
+      const isValid = await validateStep(originalStepIndex, {} as T)
       if (!isValid) return
     }
 
-    if (currentStep < steps.length - 1) {
+    if (currentStep < visibleSteps.length - 1) {
       const newStep = currentStep + 1
       setCurrentStep(newStep)
       onStepChange?.(newStep, "next")
@@ -70,21 +78,27 @@ export function MultiStepForm<T = any>({
 
   const handleSubmit = async () => {
     if (validateStep) {
-      const isValid = await validateStep(currentStep, {} as T)
+      const originalStepIndex = steps.findIndex((step) => step.id === visibleSteps[currentStep].id)
+      const isValid = await validateStep(originalStepIndex, {} as T)
       if (!isValid) return
     }
     await onSubmit({} as T)
   }
 
-  const progress = ((currentStep + 1) / steps.length) * 100
-  const currentStepData = steps[currentStep]
+  const progress = ((currentStep + 1) / visibleSteps.length) * 100
+  const currentStepData = visibleSteps[currentStep]
+
+  // Reset current step if it's beyond visible steps
+  if (currentStep >= visibleSteps.length && visibleSteps.length > 0) {
+    setCurrentStep(visibleSteps.length - 1)
+  }
 
   return (
     <div className={`max-w-2xl mx-auto ${className}`}>
       {/* Step Indicators */}
       {showStepIndicators && (
-        <div className="flex items-center justify-between mb-8">
-          {steps.map((step, index) => {
+        <div className="flex items-center justify-center mb-6">
+          {visibleSteps.map((step, index) => {
             const StepIcon = step.icon
             const isActive = currentStep === index
             const isCompleted = currentStep > index
@@ -106,7 +120,7 @@ export function MultiStepForm<T = any>({
                     <span className="text-sm font-medium">{index + 1}</span>
                   )}
                 </div>
-                {index < steps.length - 1 && (
+                {index < visibleSteps.length - 1 && (
                   <div className={`w-20 h-0.5 mx-4 transition-colors ${isCompleted ? "bg-primary" : "bg-muted"}`} />
                 )}
               </div>
@@ -119,21 +133,21 @@ export function MultiStepForm<T = any>({
       <div className="space-y-4 mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-2xl font-bold">{currentStepData.title}</h3>
-            <p className="text-muted-foreground">{currentStepData.description}</p>
+            <h3 className="text-2xl font-bold">{currentStepData?.title}</h3>
+            <p className="text-muted-foreground">{currentStepData?.description}</p>
           </div>
           <div className="text-sm text-muted-foreground">
-            Step {currentStep + 1} of {steps.length}
+            Step {currentStep + 1} of {visibleSteps.length}
           </div>
         </div>
         {showProgress && <Progress value={progress} className="w-full" />}
       </div>
 
       {/* Step Content */}
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <ScrollArea className="max-h-[500px]">
-            <div className="pr-4">{children(currentStep, goToStep)}</div>
+      <Card className="mb-4">
+        <CardContent className="p-4">
+          <ScrollArea className="max-h-[400px] sm:max-h-[500px] md:max-h-[600px] lg:max-h-[700px] overflow-y-auto">
+            <div className="pr-4">{children(currentStep, goToStep, visibleSteps)}</div>
           </ScrollArea>
         </CardContent>
       </Card>
@@ -150,7 +164,7 @@ export function MultiStepForm<T = any>({
         </div>
 
         <div className="flex gap-2">
-          {currentStep < steps.length - 1 ? (
+          {currentStep < visibleSteps.length - 1 ? (
             <Button type="button" onClick={nextStep} className="flex items-center gap-2">
               Next
               <ChevronRight className="h-4 w-4" />

@@ -37,7 +37,7 @@ export const TagsRoute = () => {
             trigger={ <Button variant="outline">Create Tag</Button>}
           >
             <div className='p-2'>
-              <CreateTag onSuccess={close} onError={close}/>
+              <CreateTag onSuccess={close}/>
             </div>
         </DialogOrDrawer>
         <div className='w-full my-2 p4'>
