@@ -73,7 +73,7 @@ export const CommentList = ({ commentableId, commentableType, initialComments = 
 
   const { mutate: markAsRead } = useMarkCommentAsRead();
 
-  const pendingMarkAsRead = useRef<Set<number>>(new Set());
+  const pendingMarkAsRead = useRef<Set<string>>(new Set());
   
   const processMarkAsRead = debounce(() => {
     // ✅ Debounced function to limit API calls

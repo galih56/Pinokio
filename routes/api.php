@@ -1,14 +1,15 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\api\AuthController;
-use App\Http\Controllers\api\UserController;
-use App\Http\Controllers\api\TeamController;
-use App\Http\Controllers\api\UserRoleController;
-use App\Http\Controllers\api\TagController;
-use App\Http\Controllers\api\IssueController;
-use App\Http\Controllers\api\TaskController;
-use App\Http\Controllers\api\CommentController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\TeamController;
+use App\Http\Controllers\Api\UserRoleController;
+use App\Http\Controllers\Api\TagController;
+use App\Http\Controllers\Api\IssueController;
+use App\Http\Controllers\Api\FormController;
+use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\CommentController;
 
 Route::group([ 
     "prefix" => "auth", 
@@ -75,6 +76,24 @@ Route::group([
         Route::put('/{id}/status', [IssueController::class, 'updateIssueStatus']);
         Route::patch('/{id}', [IssueController::class, 'update']);
         Route::delete('/{id}', [IssueController::class, 'destroy']);
+    });
+});
+
+Route::group([
+    "prefix" => "forms",
+], function () {
+    Route::get('/', [FormController::class, 'index']);
+    Route::group([
+        'middleware' => [
+            'role:ADMIN','decode_id',
+            'middleware' => 'auth:sanctum'
+        ]
+    ], function () {
+        Route::post('/', [FormController::class, 'store']);
+        Route::get('/{id}', [FormController::class, 'show']);
+        Route::put('/{id}', [FormController::class, 'update']);
+        Route::patch('/{id}', [FormController::class, 'update']);
+        Route::delete('/{id}', [FormController::class, 'destroy']);
     });
 });
 
