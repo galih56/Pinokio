@@ -34,7 +34,7 @@ Route::group([
 ], function () {
     Route::get('/search', [UserController::class, 'search']);
     Route::group([
-        'middleware' => ['role:ADMIN','decode_id']
+        'middleware' => ['decode_id']
     ], function () {
         Route::get('/', [UserController::class, 'index']);
         Route::post('/', [UserController::class, 'store']);
@@ -69,7 +69,7 @@ Route::group([
     Route::get('/{id}/logs', [IssueController::class, 'getIssueLogs']);
     
     Route::group([
-        'middleware' => ['role:ADMIN','decode_id', 'auth:sanctum']
+        'middleware' => ['decode_id', 'auth:sanctum']
     ], function () {
         Route::get('/{id}', [IssueController::class, 'show']);
         Route::put('/{id}', [IssueController::class, 'update']);
@@ -85,7 +85,7 @@ Route::group([
     Route::get('/', [FormController::class, 'index']);
     Route::group([
         'middleware' => [
-            'role:ADMIN','decode_id',
+            'decode_id',
             'middleware' => 'auth:sanctum'
         ]
     ], function () {
@@ -99,7 +99,7 @@ Route::group([
 
 Route::group([
     "prefix" => "tasks",
-    'middleware' => ['role:ADMIN','decode_id', 'auth:sanctum']
+    'middleware' => ['decode_id', 'auth:sanctum']
 ], function () {
     Route::post('/', [TaskController::class, 'store']);
     Route::get('/', [TaskController::class, 'index']);
@@ -132,7 +132,7 @@ Route::group([
     Route::get('/', [TagController::class, 'index']);
     Route::group([
         'middleware' => [
-            'role:ADMIN','decode_id',
+            'decode_id',
             'middleware' => 'auth:sanctum'
         ]
     ], function () {
@@ -153,7 +153,7 @@ Route::group([
 
     Route::group([
         'middleware' => [
-            'role:ADMIN','decode_id',
+            'decode_id',
         ]
     ], function () {
         Route::get('/{id}', [TeamController::class, 'show']);
@@ -168,7 +168,7 @@ Route::group([
 Route::group([
     "prefix" => "user_roles",
     'middleware' => [
-        'role:ADMIN',
+        
         'auth:sanctum'
     ]
 ], function () {

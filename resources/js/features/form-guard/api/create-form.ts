@@ -74,6 +74,7 @@ export const useCreateForm = ({ mutationConfig }: UseCreateFormOptions = {}) => 
 
   return useMutation({
     onSuccess: (...args: any) => {
+      console.log(getFormsQueryOptions().queryKey);
       queryClient.invalidateQueries({
         queryKey: getFormsQueryOptions().queryKey,
       })
