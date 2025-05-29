@@ -124,8 +124,7 @@ export function MultiStepForm<T = any>({
   }
 
   return (
-    <div className={`max-w-2xl mx-auto ${className}`}>
-      <ScrollArea className="overflow-y-auto px-4">
+    <div className={`px-4 mx-auto ${className}`}>
       {/* Step Indicators */}
       {showStepIndicators && (
         <div className="flex items-center justify-center mb-6">
@@ -238,7 +237,7 @@ export function MultiStepForm<T = any>({
       {/* Step Content */}
       <Card className="mb-4">
         <CardContent className="p-4">
-            <div className="pr-4">{children(currentStep, goToStep, visibleSteps)}</div>
+          <div className="pr-4">{children(currentStep, goToStep, visibleSteps)}</div>
         </CardContent>
       </Card>
 
@@ -266,7 +265,6 @@ export function MultiStepForm<T = any>({
           )}
         </div>
       </div>
-      </ScrollArea>
     </div>
   )
 }
