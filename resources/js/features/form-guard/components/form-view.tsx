@@ -27,6 +27,7 @@ import {
   ExternalLink,
   Copy,
   Edit,
+  Link,
 } from "lucide-react"
 import { useState } from "react"
 import { useNotifications } from "@/components/ui/notifications"
@@ -143,6 +144,10 @@ export const FormView = ({ formId }: { formId: string }) => {
           <Button size="sm">
             <Eye className="h-4 w-4 mr-2" />
             Preview
+          </Button>
+          <Button variant="outline" size="sm">
+            <Link  className="h-4 w-4 mr-2" />
+            Link
           </Button>
         </div>
       </div>
@@ -319,6 +324,7 @@ export const FormView = ({ formId }: { formId: string }) => {
       </Card>
 
       {/* Quick Actions */}
+      {form.provider == 'Pinokio' && 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -348,7 +354,7 @@ export const FormView = ({ formId }: { formId: string }) => {
             )}
           </div>
         </CardContent>
-      </Card>
+      </Card>}
     </div>
   )
 }

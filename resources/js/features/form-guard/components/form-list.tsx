@@ -7,7 +7,7 @@ import { ColumnDef } from '@tanstack/react-table';
 import { Form } from "@/types/api"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal } from "lucide-react"
+import { LinkIcon, MoreHorizontal } from "lucide-react"
 import { Link } from '@/components/ui/link';
 import { paths } from '@/apps/dashboard/paths';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -16,6 +16,9 @@ import { useEffect, useState } from 'react';
 import { formatDate, formatDateTime, formatTime } from '@/lib/datetime';
 import { getFormQueryOptions } from '@/features/form-guard/api/get-form';
 import { useForms } from '@/features/form-guard/api/get-forms';
+import DialogOrDrawer from '@/components/layout/dialog-or-drawer';
+import { useDisclosure } from '@/hooks/use-disclosure';
+import { useGenerateFormLink } from '../api/create-form-link';
 
 export type FormsListProps = {
   onFormPrefetch?: (id: string) => void;
@@ -25,6 +28,8 @@ export const FormsList = ({
   onFormPrefetch,
 }: FormsListProps) => {
   const navigate = useNavigate();
+  const [ choosenForm, setChoosenForm ] = useState<Form | null>();
+  const { isOpen, open, close, toggle } = useDisclosure();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = +(searchParams.get("page") || 1);
   const search = searchParams.get('search') || '';
@@ -35,7 +40,22 @@ export const FormsList = ({
   });
 
   const [searchTerm, setSearchTerm] = useState(search);
+  const [generatedLink, setGeneratedLink] = useState<string | null>(null);
 
+  const generateFormLinkMutation = useGenerateFormLink({
+    mutationConfig: {
+      onSuccess: (form) => {
+        setGeneratedLink(form.formUrl || null); // assuming `form.formLink` is the generated link
+      },
+    },
+  });
+
+  const handleGenerateLink = (form: Form) => {
+    setChoosenForm(form);
+    setGeneratedLink(null);
+    open();
+    generateFormLinkMutation.mutate({ formId: form.id });
+  };
   useEffect(() => {
     // Sync the search term with query parameters
     const timeout = setTimeout(() => {
@@ -85,6 +105,10 @@ export const FormsList = ({
                       View
                     </DropdownMenuItem> 
                   </Link>
+                  <DropdownMenuItem onClick={() => handleGenerateLink(form)}>
+                    <LinkIcon  className="h-4 w-4 mr-2" />
+                    Generate Link
+                  </DropdownMenuItem>
                 <DropdownMenuSeparator />
             </DropdownMenuContent>
           </DropdownMenu>
@@ -165,6 +189,25 @@ export const FormsList = ({
           <div className="flex items-center justify-center w-full min-h-[60vh]">
             <p className="text-gray-500">No forms found.</p>
           </div>}
+          {choosenForm && choosenForm.id && (
+            <DialogOrDrawer open={isOpen} onOpenChange={toggle} title={"Form Link"}>
+              <div className="flex flex-col gap-4">
+                {generateFormLinkMutation.isPending ? (
+                  <Skeleton className="h-10 w-full" />
+                ) : generatedLink ? (
+                  <div className="p-4 bg-muted border rounded text-sm break-all">
+                    <p className="text-muted-foreground mb-2">Generated Link:</p>
+                    <Link to={generatedLink} target="_blank" className="text-blue-600 underline">
+                      {generatedLink}
+                    </Link>
+                  </div>
+                ) : (
+                  <p className="text-muted-foreground">No link generated.</p>
+                )}
+              </div>
+            </DialogOrDrawer>
+          )}
+
     </div>
   );
 };

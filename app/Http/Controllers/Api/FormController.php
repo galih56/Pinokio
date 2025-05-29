@@ -6,9 +6,11 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Form\StoreFormRequest;
 use App\Http\Requests\Form\UpdateFormRequest;
+use App\Http\Requests\Form\GenerateLinkRequest;
 use App\Http\Resources\FormResource;
 use Illuminate\Support\Facades\DB;
 use App\Services\Forms\FormService;
+use App\Services\Forms\Exter;
 
 class FormController extends Controller
 {
@@ -17,6 +19,23 @@ class FormController extends Controller
     public function __construct(FormService $formService)
     {
         $this->formService = $formService;
+    }
+
+    public function generateLink(GenerateLinkRequest $request, $id) {
+        
+        DB::beginTransaction();
+        try{
+            $data = $request->all();
+                
+            $form = $this->formService->getById($id);
+            $data = $this->formService->generateLink($form);
+
+            DB::commit();
+            return ApiResponse::sendResponse($data,'Link generated successfully','success', 201);
+
+        }catch(\Exception $ex){
+            return ApiResponse::rollback($ex);
+        }
     }
 
     /**
@@ -69,7 +88,7 @@ class FormController extends Controller
             $form = $this->formService->create($data);
 
             DB::commit();
-            return ApiResponse::sendResponse($form,'Form Created Successful','success', 201);
+            return ApiResponse::sendResponse($form,'Form Created Successfully','success', 201);
 
         }catch(\Exception $ex){
             return ApiResponse::rollback($ex);

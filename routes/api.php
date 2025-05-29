@@ -92,6 +92,7 @@ Route::group([
         Route::post('/', [FormController::class, 'store']);
         Route::get('/{id}', [FormController::class, 'show']);
         Route::put('/{id}', [FormController::class, 'update']);
+        Route::post('/{id}/generate-link', [FormController::class, 'generateLink']);
         Route::patch('/{id}', [FormController::class, 'update']);
         Route::delete('/{id}', [FormController::class, 'destroy']);
     });

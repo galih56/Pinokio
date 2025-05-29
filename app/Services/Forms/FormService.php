@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\QueryProcessor;
+use App\Models\Forms\FormToken;
+use Illuminate\Support\Str;
 
 class FormService
 {
@@ -69,5 +71,33 @@ class FormService
     {
         $model = $this->model->find($id);
         return $model->delete();
+    }
+
+    
+    public function generateToken(Form $form, ?string $identifier = null): string
+    {
+        $token = Str::random(32);
+
+        FormToken::create([
+            'form_id' => $form->id,
+            'token' => $token,
+            'identifier' => $identifier,
+            'expires_at' => now()->addHours(2), // adjust as needed
+        ]);
+
+        return  [
+            'token' => $token
+        ];
+    }
+
+    public function triggerOpenTime(string $token): ?FormToken
+    {
+        $formToken = FormToken::where('token', $token)->firstOrFail();
+
+        if (!$formToken->open_time) {
+            $formToken->update(['open_time' => now()]);
+        }
+
+        return $formToken;
     }
 }
