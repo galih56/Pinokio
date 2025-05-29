@@ -42,7 +42,7 @@ class StoreFormRequest extends BaseRequest
                 Rule::in(['Free Text', 'Email', 'Number']),
             ],
 
-            'time_limit' => ['required', 'integer'],
+            'time_limit' => ['nullable', 'integer'],
             'allow_multiple_attempts' => ['required', 'boolean'],
             'proctored' => ['required', 'boolean'],
             'is_active' => ['nullable', 'boolean'], // optional, might be toggled in UI

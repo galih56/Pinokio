@@ -2,8 +2,8 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Services\HashIdService;
 
 class FormResource extends JsonResource
 {
@@ -14,8 +14,10 @@ class FormResource extends JsonResource
      */
     public function toArray($request)
     {
+        $hashid = new HashIdService();
+
         return [
-            'id' => $this->id,
+            'id' => $hashid->encode($this->id), 
             'title' => $this->title,
             'description' => $this->description,
             'provider' => $this->provider,
