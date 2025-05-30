@@ -28,7 +28,7 @@ class FormController extends Controller
             $data = $request->all();
                 
             $form = $this->formService->getById($id);
-            $token = $this->formService->generateToken($form);
+            $token = $this->formService->generateToken($form, $data);
 
             DB::commit();
             
