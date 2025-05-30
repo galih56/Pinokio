@@ -50,6 +50,11 @@ class FormService
      */
     public function create(array $data): Form
     {
+        
+        if (isset($data['form_url'])) {
+            $data['form_code'] = $this->extractGoogleFormCode($data['form_url']);
+        }
+
         $this->model = $this->model->create($data);
         return $this->model;
     }
@@ -98,5 +103,19 @@ class FormService
         }
 
         return $formToken;
+    }
+
+    protected function extractGoogleFormCode(?string $url): ?string
+    {
+        if (!$url) return null;
+
+        preg_match('#/forms/d/e/([^/]+)/#', $url, $matches);
+
+        if (!isset($matches[1])) {
+            logger()->warning('Failed to extract Google Form code', ['url' => $url]);
+            return null;
+        }
+
+        return $matches[1];
     }
 }

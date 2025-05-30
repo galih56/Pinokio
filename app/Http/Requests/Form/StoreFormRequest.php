@@ -21,20 +21,28 @@ class StoreFormRequest extends BaseRequest
             'is_active' => $this->boolean('is_active'),
         ]);
     }
-
+    
     public function rules(): array
     {
         return [
             'title' => ['required', 'string'],
             'description' => ['nullable', 'string'],
+
             'provider' => ['required', Rule::in(['Pinokio', 'Google Form'])],
             'form_code' => ['nullable', 'string'],
-            'form_url' => ['nullable', 'url'],
-            
+
+            'form_url' => [
+                Rule::requiredIf(fn () => $this->input('provider') === 'Google Form'),
+                'nullable',
+                'url',
+            ],
+
             'access_type' => ['required', Rule::in(['public', 'token', 'identifier'])],
+
             'identifier_label' => [
                 Rule::requiredIf(fn () => $this->input('access_type') === 'identifier'),
-                'nullable', 'string',
+                'nullable',
+                'string',
             ],
             'identifier_description' => ['nullable', 'string'],
             'identifier_type' => [
@@ -45,7 +53,21 @@ class StoreFormRequest extends BaseRequest
             'time_limit' => ['nullable', 'integer'],
             'allow_multiple_attempts' => ['required', 'boolean'],
             'proctored' => ['required', 'boolean'],
-            'is_active' => ['nullable', 'boolean'], // optional, might be toggled in UI
+            'is_active' => ['nullable', 'boolean'],
         ];
     }
+
+    public function withValidator($validator): void
+    {
+        $validator->after(function ($validator) {
+            if ($this->input('provider') === 'Google Form') {
+                $url = $this->input('form_url');
+
+                if ($url && !str_contains($url, 'docs.google.com/forms')) {
+                    $validator->errors()->add('form_url', 'The form_url must be a valid Google Form link.');
+                }
+            }
+        });
+    }
+
 }

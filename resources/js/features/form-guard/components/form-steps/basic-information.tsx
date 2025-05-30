@@ -8,6 +8,7 @@ import type { UseFormReturn } from "react-hook-form"
 import type { z } from "zod"
 import type { createFormInputSchema } from "../../api/create-form"
 import type { Editor } from "@tiptap/react"
+import { Switch } from "@/components/ui/switch"
 
 interface BasicInformationStepProps {
   form: UseFormReturn<z.infer<typeof createFormInputSchema>>
@@ -41,6 +42,60 @@ const BasicInformationStep = memo(({ form, updateFormData, editor }: BasicInform
         />
         <FormField
           control={form.control}
+          name="provider"
+          render={({ field }) => {
+            const isExternal = field.value === "Google Form"
+
+            return (
+              <FormItem>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <FormLabel className="text-base">External Form Integration</FormLabel>
+                      <FormDescription>
+                        Enable this to integrate with external form providers like Google Forms
+                      </FormDescription>
+                    </div>
+                    <FormControl>
+                      <Switch
+                        checked={isExternal}
+                        onCheckedChange={(checked) => {
+                          const value = checked ? "Google Form" : "Pinokio"
+                          field.onChange(value)
+                          updateFormData({ provider: value })
+                        }}
+                      />
+                    </FormControl>
+                  </div>
+
+                  {/* Commented out until Google Form extension is ready */}
+                  {/* {isExternal && (
+                    <div className="pl-4 border-l-2 border-muted">
+                      <FormLabel className="text-sm">External Provider</FormLabel>
+                      <Select
+                        value={field.value}
+                        onValueChange={(value) => {
+                          field.onChange(value)
+                          updateFormData({ provider: value })
+                        }}
+                      >
+                        <SelectTrigger className="mt-2">
+                          <SelectValue placeholder="Select external provider" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Google Form">Google Forms</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )} */}
+                </div>
+                <FormMessage />
+              </FormItem>
+            )
+          }}
+        />
+        <FormField
+          control={form.control}
           name="accessType"
           render={({ field }) => (
             <FormItem>
@@ -61,38 +116,8 @@ const BasicInformationStep = memo(({ form, updateFormData, editor }: BasicInform
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="public">Open to Everyone</SelectItem>
-                    <SelectItem value="token">Requires Token Access</SelectItem>
+                    <SelectItem value="token">Authorized Link</SelectItem>
                     <SelectItem value="identifier">Requires Personal ID</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          control={form.control}
-          name="provider"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Form Provider *</FormLabel>
-              <FormDescription>
-                Choose your form provider. Google Forms allows integration with external forms.
-              </FormDescription>
-              <FormControl>
-                <Select
-                  value={field.value}
-                  onValueChange={(value) => {
-                    field.onChange(value)
-                    updateFormData({ provider: value })
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select provider of this form" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Pinokio">Pinokio</SelectItem>
-                    <SelectItem value="Google Form">Google Form</SelectItem>
                   </SelectContent>
                 </Select>
               </FormControl>

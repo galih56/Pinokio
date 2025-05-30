@@ -84,6 +84,19 @@ export const FormView = ({ formId }: { formId: string }) => {
     }
   }
 
+  const getAccessTypeTitle = (accessType: string) => {
+    switch (accessType) {
+      case "public":
+        return "Open to Everyone"
+      case "token":
+        return "Authorized Link"
+      case "identifier":
+        return "Requires Personal ID"
+      default:
+        return "-"
+    }
+  }
+
   const getAccessTypeColor = (accessType: string) => {
     switch (accessType) {
       case "public":
@@ -129,7 +142,7 @@ export const FormView = ({ formId }: { formId: string }) => {
                   {form.accessType === "public"
                     ? "Public Access"
                     : form.accessType === "token"
-                      ? "Token Required"
+                      ? "Authorized Link"
                       : "ID Required"}
                 </Badge>
               </div>
@@ -227,7 +240,7 @@ export const FormView = ({ formId }: { formId: string }) => {
                   <p className="text-sm font-medium text-muted-foreground">Access Type</p>
                   <div className="flex items-center gap-2">
                     {getAccessTypeIcon(form.accessType)}
-                    <p className="text-sm capitalize">{form.accessType}</p>
+                    <p className="text-sm capitalize">{getAccessTypeTitle(form.accessType)}</p>
                   </div>
                 </div>
                 {form.identifierLabel && (

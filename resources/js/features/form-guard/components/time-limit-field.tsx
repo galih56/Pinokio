@@ -85,10 +85,10 @@ const TimeLimitField = memo(({ form, updateFormData }: TimeLimitFieldProps) => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="unlimited">No time limit</SelectItem>
-                      <SelectItem value="15">15 minutes</SelectItem>
-                      <SelectItem value="30">30 minutes</SelectItem>
-                      <SelectItem value="60">1 hour</SelectItem>
-                      <SelectItem value="120">2 hours</SelectItem>
+                      <SelectItem value="900">15 minutes</SelectItem>
+                      <SelectItem value="1800">30 minutes</SelectItem>
+                      <SelectItem value="3600">1 hour</SelectItem>
+                      <SelectItem value="7200">2 hours</SelectItem>
                       <SelectItem value="custom">Custom time...</SelectItem>
                     </SelectContent>
                   </Select>
