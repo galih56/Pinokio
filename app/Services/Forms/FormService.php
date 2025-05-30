@@ -73,21 +73,20 @@ class FormService
         return $model->delete();
     }
 
-    
-    public function generateToken(Form $form, ?string $identifier = null): string
+    public function generateToken(Form $form, array $data): string
     {
         $token = Str::random(32);
 
         FormToken::create([
-            'form_id' => $form->id,
-            'token' => $token,
-            'identifier' => $identifier,
-            'expires_at' => now()->addHours(2), // adjust as needed
+            'form_id'    => $form->id,
+            'token'      => $token,
+            'identifier' => $data['identifier'] ?? null,
+            'expires_at' => isset($data['expires_at']) 
+                ? now()->parse($data['expires_at']) 
+                : now()->addDays(1), // fallback
         ]);
 
-        return  [
-            'token' => $token
-        ];
+        return $token;
     }
 
     public function triggerOpenTime(string $token): ?FormToken

@@ -10,7 +10,7 @@ use App\Http\Requests\Form\GenerateLinkRequest;
 use App\Http\Resources\FormResource;
 use Illuminate\Support\Facades\DB;
 use App\Services\Forms\FormService;
-use App\Services\Forms\Exter;
+use App\Services\HashidService;
 
 class FormController extends Controller
 {
@@ -28,10 +28,19 @@ class FormController extends Controller
             $data = $request->all();
                 
             $form = $this->formService->getById($id);
-            $data = $this->formService->generateLink($form);
+            $token = $this->formService->generateToken($form);
 
             DB::commit();
-            return ApiResponse::sendResponse($data,'Link generated successfully','success', 201);
+            
+            if(empty($token)){
+                return ApiResponse::sendResponse(null,'Failed to generate link','error', 500);
+
+            }
+
+            $hashid = new HashIdService();
+            return ApiResponse::sendResponse([
+                'link' => env('APP_URL')."/forms/".$hashid->encode($form->id)."/fill"
+            ],'Link generated successfully','success', 201);
 
         }catch(\Exception $ex){
             return ApiResponse::rollback($ex);

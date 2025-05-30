@@ -6,6 +6,7 @@ import { getFormsQueryOptions } from "./get-forms"
 
 export type GenerateFormLinkInput = {
   formId: string
+  expiresAt : Date | null
 }
 
 export const generateFormLink = async ({ formId }: GenerateFormLinkInput): Promise<Form> => {
