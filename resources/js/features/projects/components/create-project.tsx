@@ -19,10 +19,10 @@ import {
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createIssueInputSchema, useCreateIssue } from '../api/create-issue';
-import { useNotifications } from '@/components/ui/notifications';
 import { useIsFetching } from '@tanstack/react-query';
 import { Loader2, RefreshCcw } from "lucide-react";
 import { RefetchButton } from "@/components/ui/refetch-button";
+import { toast } from "sonner";
   
 type CreateIssueType = {
   onSuccess? : Function;
@@ -33,7 +33,6 @@ export default function CreateIssue({
   onSuccess,
   onError
 } : CreateIssueType) { 
-  const { addNotification } = useNotifications();
   const createIssueMutation = useCreateIssue({
     mutationConfig: {
       onSuccess: () => {
@@ -55,11 +54,7 @@ export default function CreateIssue({
   async function onSubmit(values: z.infer<typeof createIssueInputSchema>) {
     const isValid = await form.trigger();
     if (!isValid) {
-      addNotification({
-        type: 'error',
-        title: 'Required fields are empty',
-        toast: true
-      });
+      toast.error('Required fields are empty');
       return;
     }
     createIssueMutation.mutate(values)

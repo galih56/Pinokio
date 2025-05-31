@@ -20,7 +20,7 @@ export const navigations : NavigationItem[] = [
       icon: BugIcon,
     },
     {
-      title: 'Form Guard',
+      title: 'Forms',
       url : paths.forms.getHref(),
       icon: FilePen,
     },

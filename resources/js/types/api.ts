@@ -181,6 +181,7 @@ export interface Form {
   formCode?: string;
   provider : 'Pinokio' | 'Google Form'
   formUrl?: string;
+  description?: string;
   accessType: 'public' | 'token' | 'identifier';
   identifierLabel?: string;
   identifierDescription?: string;

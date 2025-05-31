@@ -30,10 +30,9 @@ import {
   Link,
 } from "lucide-react"
 import { useState } from "react"
-import { useNotifications } from "@/components/ui/notifications"
+import { toast } from "sonner"
 
 export const FormView = ({ formId }: { formId: string }) => {
-  const { addNotification } = useNotifications()
   const [copiedUrl, setCopiedUrl] = useState(false)
 
   const formQuery = useFormDetail({
@@ -61,11 +60,8 @@ export const FormView = ({ formId }: { formId: string }) => {
     if (form.formUrl) {
       await navigator.clipboard.writeText(form.formUrl)
       setCopiedUrl(true)
-      addNotification({
-        title: "URL Copied",
-        message: "Form URL has been copied to clipboard",
-        type: "info",
-        toast: true
+      toast.info("URL Copied",{
+        description: "Form URL has been copied to clipboard",
       });
       setTimeout(() => setCopiedUrl(false), 2000)
     }

@@ -18,12 +18,12 @@ import {
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createUserInputSchema, useCreateUser } from '../api/create-user';
-import { useNotifications } from '@/components/ui/notifications';
 import { useIsFetching, useQueries } from '@tanstack/react-query';
 import { Loader2 } from "lucide-react";
 import { PasswordInput } from "@/components/ui/password-input";
 import { getUserRoles } from "../api/get-user-roles";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
   
 type CreateUserType = {
   onSuccess? : Function;
@@ -34,7 +34,6 @@ export default function CreateUser({
   onSuccess,
   onError
 } : CreateUserType) { 
-  const { addNotification } = useNotifications();
   const createUserMutation = useCreateUser({
     mutationConfig: {
       onSuccess: () => {
@@ -66,11 +65,7 @@ export default function CreateUser({
   async function onSubmit(values: z.infer<typeof createUserInputSchema>) {
     const isValid = await form.trigger();
     if (!isValid) {
-      addNotification({
-        type: 'error',
-        title: 'Required fields are empty',
-        toast: true
-      });
+      toast.error('Required fields are empty');
       return;
     }
     createUserMutation.mutate(values)

@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { addDays, endOfDay, format } from "date-fns"
 import { Calendar, Clock, Copy, CheckCircle, ExternalLink, LinkIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,7 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import DialogOrDrawer from "@/components/layout/dialog-or-drawer"
 import { formatDateTime } from "@/lib/datetime"
-import { useNotifications } from "@/components/ui/notifications"
+import { toast } from "sonner"
 
 export interface GenerateLinkItem {
   id: string
@@ -43,26 +44,25 @@ export function GenerateLinkDialog<T extends GenerateLinkItem>({
   itemTypeLabel = "item",
   defaultExpiryDays = 7,
 }: GenerateLinkDialogProps<T>) {
-  const { addNotification } = useNotifications()
   const [expiryDate, setExpiryDate] = useState<string>("")
   const [expiryTime, setExpiryTime] = useState<string>("")
   const [linkCopied, setLinkCopied] = useState(false)
 
-  // Set default expiry when dialog opens
-  const handleDialogOpen = (open: boolean) => {
-    if (open && item) {
-      const defaultExpiry = new Date()
-      defaultExpiry.setDate(defaultExpiry.getDate() + defaultExpiryDays)
-
-      const dateStr = defaultExpiry.toISOString().split("T")[0]
-      const timeStr = defaultExpiry.toTimeString().slice(0, 5)
+  // Set default expiry when dialog opens OR when item changes
+  useEffect(() => {
+    if (isOpen && item) {
+      // Use date-fns for cleaner date manipulation
+      const defaultExpiry = endOfDay(addDays(new Date(), defaultExpiryDays))
+      console.log(defaultExpiry);
+      
+      const dateStr = format(defaultExpiry, 'yyyy-MM-dd')
+      const timeStr = format(defaultExpiry, 'HH:mm')
 
       setExpiryDate(dateStr)
       setExpiryTime(timeStr)
       setLinkCopied(false)
     }
-    onOpenChange(open)
-  }
+  }, [isOpen, item, defaultExpiryDays])
 
   const handleGenerateLink = () => {
     if (!item) return
@@ -79,12 +79,7 @@ export function GenerateLinkDialog<T extends GenerateLinkItem>({
     if (generatedLink) {
       await navigator.clipboard.writeText(generatedLink)
       setLinkCopied(true)
-      addNotification({
-        title: "Link Copied",
-        description: `${itemTypeLabel} link has been copied to clipboard`,
-        type: "info",
-        toast: true,
-      })
+      toast.info("Link Copied", { description: `${itemTypeLabel} link has been copied to clipboard` })
       setTimeout(() => setLinkCopied(false), 1000)
     }
   }
@@ -104,7 +99,7 @@ export function GenerateLinkDialog<T extends GenerateLinkItem>({
   if (!item) return null
 
   return (
-    <DialogOrDrawer open={isOpen} onOpenChange={handleDialogOpen} title={title}>
+    <DialogOrDrawer open={isOpen} onOpenChange={onOpenChange} title={title}>
       <div className="space-y-6">
         {/* Item Info */}
         <Card>
@@ -126,34 +121,39 @@ export function GenerateLinkDialog<T extends GenerateLinkItem>({
             </CardTitle>
             <CardDescription>Set when this link should expire (optional)</CardDescription>
           </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="expiry-date" className="flex items-center gap-2">
-                  <Calendar className="h-3 w-3" />
-                  Expiry Date
-                </Label>
-                <Input
-                  id="expiry-date"
-                  type="date"
-                  value={expiryDate}
-                  onChange={(e) => setExpiryDate(e.target.value)}
-                  min={new Date().toISOString().split("T")[0]}
-                />
+          <CardContent className="space-y-4"><div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="flex items-center gap-2">
+                <Label className="text-sm font-medium">Expiry Date/Time : </Label>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="expiry-time" className="flex items-center gap-2">
-                  <Clock className="h-3 w-3" />
-                  Expiry Time
-                </Label>
-                <Input
-                  id="expiry-time"
-                  type="time"
-                  value={expiryTime}
-                  onChange={(e) => setExpiryTime(e.target.value)}
-                />
+              <div className="flex gap-3 sm:flex-shrink-0">
+                <div className="w-full sm:w-auto">
+                  <Input
+                    id="expiry-date"
+                    type="date"
+                    value={expiryDate}
+                    onChange={(e) => setExpiryDate(e.target.value)}
+                    min={new Date().toISOString().split("T")[0]}
+                    placeholder="Select date"
+                    style={{
+                      colorScheme: 'light'
+                    }}
+                  />
+                </div>
+                <div className="w-full sm:w-auto">
+                  <Input
+                    id="expiry-time"
+                    type="time"
+                    value={expiryTime}
+                    onChange={(e) => setExpiryTime(e.target.value)}
+                    placeholder="Select time"
+                    style={{
+                      colorScheme: 'light'
+                    }}
+                  />
+                </div>
               </div>
             </div>
+
 
             {expiryDate && expiryTime && (
               <div className="p-3 bg-muted rounded-lg">

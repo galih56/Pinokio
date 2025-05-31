@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createCommentInputSchema, useCreateComment } from '../api/create-comment';
-import { useNotifications } from '@/components/ui/notifications';
 import { useIsFetching } from '@tanstack/react-query';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Button } from '@/components/ui/button';
@@ -15,6 +14,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import RichTextEditor from '@/components/ui/text-editor';
 import useAuth from '@/store/useAuth';
+import { toast } from 'sonner';
 
 // Editor extensions
 const extensions = [
@@ -40,7 +40,6 @@ export default function CreateComment({
   commentableId,
   commentableType,
 }: CreateCommentType) {
-  const { addNotification } = useNotifications();
   const { authenticated, user } = useAuth();
   const guestIssuer = useGuestIssuerStore();
 
@@ -98,21 +97,16 @@ export default function CreateComment({
 
   async function onSubmit(values: z.infer<typeof createCommentInputSchema>) {
     if (commenterType !== 'user' && !(name && isValidEmail(email))) {
-      addNotification({
+      toast.error({
         type: 'error',
         title: 'Please enter your name and email...',
-        toast: true,
       });
       return;
     }
 
     const isValid = await form.trigger();
     if (!isValid) {
-      addNotification({
-        type: 'error',
-        title: 'Required fields are empty',
-        toast: true,
-      });
+      toast.error('Required fields are empty');
       return;
     }
 

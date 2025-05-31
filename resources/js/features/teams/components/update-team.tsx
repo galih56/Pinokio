@@ -8,7 +8,6 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { updateTeamInputSchema, useUpdateTeam } from "../api/update-team"
-import { useNotifications } from "@/components/ui/notifications"
 import { ColorPickerPopover } from "@/components/ui/color-picker-popover"
 import { Team, User } from "@/types/api"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -19,6 +18,7 @@ import { useTeam } from "../api/get-team"
 import { Textarea } from "@/components/ui/textarea"
 import { UserSearch } from "@/features/users/components/user-search-input"
 import { useEffect, useState } from "react"
+import { toast } from "sonner"
 
 // Schema for team details form
 const teamDetailsSchema = z.object({
@@ -39,7 +39,6 @@ type UpdateTeamProps = {
 };
 
 export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps) {
-  const { addNotification } = useNotifications()
   const [activeTab, setActiveTab] = useState("details")
   const teamQuery = useTeam({
     teamId: data.id
@@ -57,11 +56,7 @@ export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps
           ? "Team members updated successfully" 
           : "Team details updated successfully"
         
-        addNotification({
-          type: "success",
-          title: message,
-          toast: true,
-        })
+        toast.success(message)
       },
     },
   })
@@ -127,11 +122,7 @@ export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps
   async function onSubmitDetails(values: z.infer<typeof teamDetailsSchema>) {
     const isValid = await detailsForm.trigger()
     if (!isValid) {
-      addNotification({
-        type: "error",
-        title: "Required fields are empty",
-        toast: true,
-      })
+      toast.error("Required fields are empty")
       return
     }
 
@@ -150,11 +141,7 @@ export default function UpdateTeam({ data, onSuccess, onError }: UpdateTeamProps
   async function onSubmitMembers(values: z.infer<typeof teamMembersSchema>) {
     const isValid = await membersForm.trigger()
     if (!isValid) {
-      addNotification({
-        type: "error",
-        title: "Please add at least one team member",
-        toast: true,
-      })
+      toast.error("Please add at least one team member")
       return
     }
 

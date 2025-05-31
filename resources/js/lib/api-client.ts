@@ -1,10 +1,10 @@
 import Axios, { AxiosError, AxiosHeaders, InternalAxiosRequestConfig } from 'axios';
-import { useNotifications } from '@/components/ui/notifications';
 import { paths } from '@/apps/authentication/paths';
 import { camelizeKeys, decamelizeKeys } from 'humps';
 import useAuth from '@/store/useAuth';
 import { convertDates } from './datetime';
 import { createFormData } from './formdata';
+import { toast } from 'sonner';
 
 
 // Extend AxiosRequestConfig to include optional skipNotification property
@@ -72,10 +72,8 @@ api.interceptors.response.use(
 
     // Show success/error messages if available and skipNotification is not set
     if (message && !response.config.skipNotification) {
-      useNotifications.getState().addNotification({
-        type: 'error',
-        title: status,
-        message : message
+      toast.success( status, {
+        description : message
       });
     }
 
@@ -99,10 +97,8 @@ api.interceptors.response.use(
 
         if (!isPublicPage) {
           if (!error.config?.skipNotification) {
-            useNotifications.getState().addNotification({
-              type: 'error',
-              title: status,
-              message : message
+            toast.error(status, {
+              description : message
             });
           }
 
@@ -117,10 +113,7 @@ api.interceptors.response.use(
 
       if(status > 403 && status < 500){
         if (!error.config?.skipNotification && error.response?.data) {
-          useNotifications.getState().addNotification({
-            type: 'error',
-            title: error.response?.data?.message
-          });
+          toast.error(error.response?.data?.message);
         }
       }
     } else {
@@ -129,10 +122,8 @@ api.interceptors.response.use(
         message = 'Network connection issue. Please try again later.';
       }
       if (!error.config?.skipNotification) {
-        useNotifications.getState().addNotification({
-          type: 'error',
-          title: 'Something went wrong!',
-          message : message
+        toast.error('Something went wrong!',{
+          description : message
         });
       }
     }

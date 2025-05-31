@@ -17,9 +17,7 @@ import {
 } from "@/components/ui/form"
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useNotifications } from '@/components/ui/notifications';
 import DateTimePickerInput from "@/components/ui/date-picker/date-picker-input";
-import { Textarea } from "@/components/ui/textarea";
 import { FileInput, FileUploader, FileUploaderContent, FileUploaderItem } from "@/components/ui/file-upload";
 import { DropzoneOptions } from "react-dropzone";
 import { GuestIssuerInputs } from "./guest-issuer-inputs";
@@ -29,6 +27,7 @@ import { Editor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 // Editor extensions
 const extensions = [
@@ -50,8 +49,6 @@ export default function CreateIssue({
   onSuccess,
   onError
 } : CreateIssueType) { 
-  const { addNotification } = useNotifications();
-
   const { mutate: createIssueMutation, isPending } = useCreateIssue({
     mutationConfig: {
       onSuccess: () => {
@@ -68,11 +65,7 @@ export default function CreateIssue({
             });
           });
         } else {
-          addNotification({
-            type: 'error',
-            title: 'An error occurred',
-            toast: true
-          });
+          toast.error('An error occurred');
         }
       },
     },
@@ -110,11 +103,7 @@ export default function CreateIssue({
   async function onSubmit(values: z.infer<typeof createIssueInputSchema>) {
     const isValid = await form.trigger();
     if (!isValid) {
-      addNotification({
-        type: 'error',
-        title: 'Required fields are empty',
-        toast: true
-      });
+      toast.error('Required fields are empty');
       return;
     }
     createIssueMutation(values)

@@ -2,7 +2,6 @@
 import type { z } from "zod"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useNotifications } from "@/components/ui/notifications"
 import { type CreateFormInput, createFormInputSchema, useCreateForm } from "../api/create-form"
 import { Editor } from "@tiptap/react"
 import StarterKit from "@tiptap/starter-kit"
@@ -16,6 +15,7 @@ import { useMultiStepForm } from "@/components/layout/multistep-form/use-multist
 import { BasicInformationStep } from "./form-steps/basic-information"
 import { GoogleFormConfigurationStep } from "./form-steps/google-configuration"
 import { AdvancedSettingsStep } from "./form-steps/advanced-settings"
+import { toast } from "sonner"
 
 // Editor extensions
 const extensions = [
@@ -34,7 +34,6 @@ type CreateFormType = {
 }
 
 export default function CreateForm({ onSuccess, onError }: CreateFormType) {
-  const { addNotification } = useNotifications()
 
   const { mutate: createFormMutation, isPending } = useCreateForm({
     mutationConfig: {
@@ -59,11 +58,7 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
             }
           })
         } else {
-          addNotification({
-            type: "error",
-            title: "An error occurred",
-            toast: true,
-          })
+          toast.error("An error occurred")
         }
       },
     },
@@ -170,11 +165,7 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
         case 1:
           const step1Valid = await form.trigger(["title", "description", "provider", "accessType"])
           if (!step1Valid) {
-            addNotification({
-              type: "error",
-              title: "Please fill in all required fields",
-              toast: true,
-            })
+            toast.error("Please fill in all required fields")
           }
           return step1Valid
         case 2:
@@ -182,11 +173,7 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
             const fieldsToValidate: (keyof CreateFormInput)[] = ["formUrl", "identifierLabel", "identifierType"]
             const step2Valid = await form.trigger(fieldsToValidate)
             if (!step2Valid) {
-              addNotification({
-                type: "error",
-                title: "Please fill in all required Google Form fields",
-                toast: true,
-              })
+              toast.error("Please fill in all required Google Form fields")
             }
             return step2Valid
           }

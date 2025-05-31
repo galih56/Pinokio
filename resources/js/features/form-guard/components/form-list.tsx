@@ -214,7 +214,6 @@ export const FormsList = ({ onFormPrefetch }: FormsListProps) => {
         </div>
       )}
 
-      {/* Simple dialog usage - no dedicated hook needed! */}
       <GenerateLinkDialog
         isOpen={isOpen}
         onOpenChange={handleDialogClose}
@@ -225,7 +224,7 @@ export const FormsList = ({ onFormPrefetch }: FormsListProps) => {
         title="Generate Form Link"
         description="Generate a shareable link for this form with custom expiry settings"
         itemTypeLabel="Form"
-        defaultExpiryDays={7}
+        defaultExpiryDays={1}
       />
     </div>
   )

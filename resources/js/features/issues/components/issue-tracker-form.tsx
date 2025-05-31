@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/form"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { useNotifications } from "@/components/ui/notifications"
 import DateTimePickerInput from "@/components/ui/date-picker/date-picker-input"
 import {
   FileInput,
@@ -27,6 +26,7 @@ import { GuestIssuerInputs } from "./guest-issuer-inputs"
 import { createPublicIssueInputSchema, useCreatePublicIssue } from "../api/create-public-issue"
 import RichTextEditor from "@/components/ui/text-editor"
 import useGuestIssuerStore from "@/store/useGuestIssuer"
+import { toast } from "sonner"
 
 type CreateIssueType = {
   onSuccess?: () => void
@@ -34,7 +34,6 @@ type CreateIssueType = {
 }
 
 export default function IssueTrackerForm({ onSuccess, onError }: CreateIssueType) {
-  const { addNotification } = useNotifications()
   const { loggedIn, setLoggedIn, email, name } = useGuestIssuerStore()
 
   const { mutate: createIssueMutation, isPending } = useCreatePublicIssue({
@@ -53,11 +52,7 @@ export default function IssueTrackerForm({ onSuccess, onError }: CreateIssueType
             })
           })
         } else {
-          addNotification({
-            type: "error",
-            title: "An error occurred",
-            toast: true,
-          })
+          toast.error("An error occurred")
         }
       },
     },
@@ -74,11 +69,7 @@ export default function IssueTrackerForm({ onSuccess, onError }: CreateIssueType
   async function onSubmit(values: z.infer<typeof createPublicIssueInputSchema>) {
     const isValid = await form.trigger()
     if (!isValid) {
-      addNotification({
-        type: "error",
-        title: "Required fields are empty",
-        toast: true,
-      })
+      toast.error("Required fields are empty")
       return
     }
     createIssueMutation(values)

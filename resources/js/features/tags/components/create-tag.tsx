@@ -13,10 +13,10 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createTagInputSchema, useCreateTag } from "../api/create-tag";
-import { useNotifications } from "@/components/ui/notifications";
 import { useIsFetching } from "@tanstack/react-query";
 import { ColorPickerPopover } from "@/components/ui/color-picker-popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
 
 type CreateTagType = {
   onSuccess?: Function;
@@ -24,7 +24,6 @@ type CreateTagType = {
 };
 
 export default function CreateTag({ onSuccess, onError }: CreateTagType) {
-  const { addNotification } = useNotifications();
   const createTagMutation = useCreateTag({
     mutationConfig: {
       onSuccess: () => {
@@ -48,11 +47,7 @@ export default function CreateTag({ onSuccess, onError }: CreateTagType) {
   async function onSubmit(values: z.infer<typeof createTagInputSchema>) {
     const isValid = await form.trigger();
     if (!isValid) {
-      addNotification({
-        type: "error",
-        title: "Required fields are empty",
-        toast: true,
-      });
+      toast.error("Required fields are empty");
       return;
     }
     createTagMutation.mutate(values);

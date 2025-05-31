@@ -3,6 +3,7 @@ import { useFilteredNavigation } from "@/lib/authorization"
 import { navigations } from "./navigations"
 import ImagePreviewer from "@/components/ui/image-previewer/image-previewer"
 import GlobalAlertDialog from "@/components/ui/global-alert-dialog/global-alert-dialog"
+import { Toaster } from "@/components/ui/toaster"
 
 export const Layout = ({
     children
@@ -16,6 +17,7 @@ export const Layout = ({
                 {children}
             </DashboardLayout>
             <ImagePreviewer/>
+            <Toaster/>
             <GlobalAlertDialog/>
         </>
         

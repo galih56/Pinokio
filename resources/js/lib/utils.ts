@@ -1,8 +1,8 @@
-import { useNotifications } from "@/components/ui/notifications";
 import { clsx, type ClassValue } from "clsx"
 import { FieldErrors } from "react-hook-form";
 import { twMerge } from "tailwind-merge"
 import { nanoid } from 'nanoid'
+import { toast } from "sonner";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -13,15 +13,29 @@ export function hasErrorsInTab(errors: FieldErrors, fieldNames: string[]) {
 }
 
 export const apiErrorHandler = (error: any) => {
-  const { addNotification } = useNotifications.getState(); 
+  type ToastType = "info" | "warning" | "success" | "error";
 
-  const notify = (type: "info" | "warning" | "success" | "error", title: string, message?: string) => {
-    addNotification({
-      type,
-      title,
-      message,
-      toast: true,
-    });
+  const notify = (type: ToastType, title: string, message?: string) => {
+    const options = {
+      description: message,
+    };
+
+    switch (type) {
+      case "success":
+        toast.success(title, options);
+        break;
+      case "error":
+        toast.error(title, options);
+        break;
+      case "warning":
+        toast.warning(title, options);
+        break;
+      case "info":
+        toast.info(title, options);
+        break;
+      default:
+        toast(title, options);
+    }
   };
 
   if (
