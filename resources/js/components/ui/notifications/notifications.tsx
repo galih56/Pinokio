@@ -1,9 +1,10 @@
+"use client"
+
 import { Toaster } from "sonner";
 
 export const Notifications = () => {
   return (
       <Toaster position='top-right' theme='system' gap={80}
-        duration={5}
         toastOptions={{
           classNames: {
             title: "text-white",
