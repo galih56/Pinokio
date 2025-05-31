@@ -6,8 +6,6 @@ import useAuth from '@/store/useAuth';
 import { convertDates } from './datetime';
 import { createFormData } from './formdata';
 
-// Throttle settings for toast notifications
-let lastErrorTime = 0;
 
 // Extend AxiosRequestConfig to include optional skipNotification property
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
@@ -74,7 +72,11 @@ api.interceptors.response.use(
 
     // Show success/error messages if available and skipNotification is not set
     if (message && !response.config.skipNotification) {
-      showToastWithThrottle(status, message);
+      useNotifications.getState().addNotification({
+        type: 'error',
+        title: status,
+        message : message
+      });
     }
 
     // Return the processed response data
@@ -97,7 +99,11 @@ api.interceptors.response.use(
 
         if (!isPublicPage) {
           if (!error.config?.skipNotification) {
-            showToastWithThrottle(status, message);
+            useNotifications.getState().addNotification({
+              type: 'error',
+              title: status,
+              message : message
+            });
           }
 
           // Redirect to login for non-public pages
@@ -111,7 +117,10 @@ api.interceptors.response.use(
 
       if(status > 403 && status < 500){
         if (!error.config?.skipNotification && error.response?.data) {
-          showToastWithThrottle(error.response?.data?.status, error.response?.data.message);
+          useNotifications.getState().addNotification({
+            type: 'error',
+            title: error.response?.data?.message
+          });
         }
       }
     } else {
@@ -120,7 +129,11 @@ api.interceptors.response.use(
         message = 'Network connection issue. Please try again later.';
       }
       if (!error.config?.skipNotification) {
-        showToastWithThrottle('error', message);
+        useNotifications.getState().addNotification({
+          type: 'error',
+          title: 'Something went wrong!',
+          message : message
+        });
       }
     }
 
@@ -131,17 +144,3 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-// Utility: Throttled notification handler
-export const showToastWithThrottle = (status: string, message: string) => {
-  const currentTime = Date.now();
-  if (currentTime - lastErrorTime > 3000) { // Throttle notifications every 3 seconds
-    useNotifications.getState().addNotification({
-      type: status === 'success' ? 'success' : 'error',
-      title: status === 'success' ? 'Success' : 'Error',
-      message,
-      toast : true
-    });
-    lastErrorTime = currentTime;
-  }
-};

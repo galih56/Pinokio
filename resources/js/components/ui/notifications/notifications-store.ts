@@ -7,7 +7,6 @@ export type Notification = {
   id: string;
   type: 'info' | 'warning' | 'success' | 'error';
   title: string;
-  toast: boolean;
   message?: string;
   createdAt: number;
 };
@@ -23,29 +22,31 @@ export const useNotifications = create<NotificationsStore>((set) => ({
     notifications: [],
     
     addNotification: (notification) => {
-      const newNotification = { id: nanoid(), createdAt: Date.now(), ...notification };
+      const newNotification = { 
+        id: nanoid(), 
+        createdAt: Date.now(), 
+        ...notification 
+      };
 
       set((state) => ({
         notifications: [...state.notifications, newNotification],
       }));
 
-      if (notification.toast) {
-        const toastOptions =  {
-          description: notification.message,
-          duration: 5000, // Auto-dismiss in 5s
-        };
+      const toastOptions =  {
+        description: notification.message,
+        duration: 5000, // Auto-dismiss in 5s
+      };
 
-        switch (notification.type) {
-          case 'success':
-            toast.success(notification.title,toastOptions)
-            break;
-          case 'error':
-            toast.error(notification.title,toastOptions)
-            break;
-          default:
-            toast(notification.title, toastOptions);
-            break;
-        }
+      switch (notification.type) {
+        case 'success':
+          toast.success(notification.title, toastOptions);
+          break;
+        case 'error':
+          toast.error(notification.title, toastOptions);
+          break;
+        default:
+          toast(notification.title, toastOptions);
+          break;
       }
     },
     dismissNotification: (id) =>
@@ -63,16 +64,3 @@ export const useNotifications = create<NotificationsStore>((set) => ({
       })),
 }));
 
-
-export const useAutoDismissNotifications = (interval: number) => {
-  useEffect(() => {
-    const dismissInterval = setInterval(() => {
-      const { notifications, dismissEarliestNotification } = useNotifications.getState();
-      if (notifications.length > 0) {
-        dismissEarliestNotification();
-      }
-    }, interval);
-
-    return () => clearInterval(dismissInterval); 
-  }, [interval]);
-};
