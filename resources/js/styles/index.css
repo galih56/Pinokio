@@ -60,3 +60,21 @@
     }
 }
   
+
+
+/* 
+  override Sonner's internal styles
+  Force text color for all toast content 
+*/
+
+/* Make all toasts fully visible */
+[data-sonner-toast] > * {
+  opacity: 1 !important;
+}
+
+/* Ensure text is visible */
+[data-sonner-toast] [data-title],
+[data-sonner-toast] [data-description] {
+  opacity: 1 !important;
+  color: white !important;
+}
