@@ -6,11 +6,7 @@ import { paths } from '@/apps/dashboard/paths';
 import { ProtectedRoute } from '@/lib/auth';
 import { queryClient } from '@/lib/react-query';
 import { Layout } from './layout';
-
-const AppRootErrorBoundary = () => {
-  const error = useRouteError();
-  return <div>Something went wrong!</div>;
-};
+import { AppRootErrorBoundary } from '@/components/ui/app-root-error-boundary';
 
 export const createAppRouter = (queryClient: QueryClient) => {
   return createBrowserRouter([

@@ -5,11 +5,7 @@ import { Navigate, Outlet, RouterProvider, createBrowserRouter, useLocation, use
 import { paths } from '@/apps/issue-tracker/paths';
 import { queryClient } from '@/lib/react-query';
 import { Layout } from './layout';
-
-const AppRootErrorBoundary = () => {
-  const error = useRouteError();
-  return <div>Something went wrong!</div>;
-};
+import { AppRootErrorBoundary } from '@/components/ui/app-root-error-boundary';
 
 export const createAppRouter = (queryClient: QueryClient) => {
   const routes =  createBrowserRouter([

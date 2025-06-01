@@ -80,7 +80,6 @@ class FormService
 
     public function generateToken(Form $form, array $data): string
     {
-        dd($data);
         $token = Str::random(32);
 
         FormToken::create([

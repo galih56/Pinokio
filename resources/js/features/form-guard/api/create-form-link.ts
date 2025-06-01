@@ -10,7 +10,7 @@ export type GenerateFormLinkInput = {
 }
 
 export const generateFormLink = async ({ formId, expiresAt }: GenerateFormLinkInput): Promise<Form> => {
-  const response = await api.post(`/forms/${formId}/generate-link`) // , { expiresAt : expiresAt }
+  const response = await api.post(`/forms/${formId}/generate-link`, { expiresAt : expiresAt }) 
   return response.data
 }
 

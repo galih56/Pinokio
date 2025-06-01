@@ -186,8 +186,9 @@ export interface Form {
   identifierLabel?: string;
   identifierDescription?: string;
   identifierType?: string;
-  timeLimitMinutes: number;
+  timeLimit: number;
   allowMultipleAttempts: boolean;
+  proctored: boolean;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

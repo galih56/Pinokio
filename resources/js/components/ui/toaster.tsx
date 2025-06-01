@@ -2,8 +2,8 @@ import { Toaster as SonnerToaster } from "sonner"
 
 export const Toaster = () => {
     return (
-      <SonnerToaster position='top-right' theme='system' 
-        duration={6}
+      <SonnerToaster position='top-right' 
+        duration={6 * 1000} // 5 Seconds
         gap={80}
         toastOptions={{
           classNames: {

@@ -25,6 +25,8 @@ export const apiErrorHandler = (error: any) => {
         toast.success(title, options);
         break;
       case "error":
+        console.log(type)
+
         toast.error(title, options);
         break;
       case "warning":

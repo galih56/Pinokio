@@ -5,8 +5,8 @@ import { useParams, LoaderFunctionArgs } from 'react-router-dom';
 import {
   getFormQueryOptions,
 } from '@/features/form-guard/api/get-form';
-import { FormView } from '@/features/form-guard/components/form-view';
 import { NotFoundRoute } from '@/pages/not-found';
+import { FormView } from '@/features/form-guard/components/form-view';
 
 export const formLoader =
   (queryClient: QueryClient) =>

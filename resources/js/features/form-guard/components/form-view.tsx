@@ -1,14 +1,12 @@
 "use client"
 
-import { Spinner } from "@/components/ui/spinner"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
+import { Progress } from "@/components/ui/progress"
 import { formatDate, formatDateTime } from "@/lib/datetime"
-import { adjustActiveBreadcrumbs } from "@/components/layout/breadcrumbs/breadcrumbs-store"
 import DOMPurify from "dompurify"
-import { useFormDetail } from "../api/get-form"
 import {
   FileText,
   Settings,
@@ -28,17 +26,43 @@ import {
   Copy,
   Edit,
   Link,
+  Send,
+  Clock,
+  AlertTriangle,
 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import { useFormDetail } from "../api/get-form"
+import { adjustActiveBreadcrumbs } from "@/components/layout/breadcrumbs/breadcrumbs-store"
+import { Spinner } from "@/components/ui/spinner"
 
-export const FormView = ({ formId }: { formId: string }) => {
+// Define the token stats interface
+interface TokenStats {
+  generated: number
+  used: number
+  unused: number
+  expired: number
+}
+
+interface FormViewProps {
+  formId: string
+  onGenerateLink: () => void
+}
+
+export function FormView({ formId, onGenerateLink }: FormViewProps) {
   const [copiedUrl, setCopiedUrl] = useState(false)
+  const [tokenStats, setTokenStats] = useState<TokenStats>({
+    generated: 45,
+    used: 32,
+    unused: 8,
+    expired: 5,
+  })
 
   const formQuery = useFormDetail({
     formId,
   })
 
+  
   const form = formQuery?.data?.data
   adjustActiveBreadcrumbs(`/forms/:id`, `/forms/${formId}`, form?.title, [form])
 
@@ -55,14 +79,14 @@ export const FormView = ({ formId }: { formId: string }) => {
   }
 
   if (!form) return null
-
+  
   const copyFormUrl = async () => {
     if (form.formUrl) {
       await navigator.clipboard.writeText(form.formUrl)
       setCopiedUrl(true)
-      toast.info("URL Copied",{
+      toast.info("URL Copied", {
         description: "Form URL has been copied to clipboard",
-      });
+      })
       setTimeout(() => setCopiedUrl(false), 2000)
     }
   }
@@ -117,6 +141,8 @@ export const FormView = ({ formId }: { formId: string }) => {
     }
   }
 
+  const completionRate = tokenStats.generated > 0 ? (tokenStats.used / tokenStats.generated) * 100 : 0
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header Section */}
@@ -154,9 +180,9 @@ export const FormView = ({ formId }: { formId: string }) => {
             <Eye className="h-4 w-4 mr-2" />
             Preview
           </Button>
-          <Button variant="outline" size="sm">
-            <Link  className="h-4 w-4 mr-2" />
-            Link
+          <Button variant="outline" size="sm" onClick={onGenerateLink}>
+            <Link className="h-4 w-4 mr-2" />
+            Generate Link
           </Button>
         </div>
       </div>
@@ -239,24 +265,6 @@ export const FormView = ({ formId }: { formId: string }) => {
                     <p className="text-sm capitalize">{getAccessTypeTitle(form.accessType)}</p>
                   </div>
                 </div>
-                {form.identifierLabel && (
-                  <>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-muted-foreground">Identifier Label</p>
-                      <p className="text-sm">{form.identifierLabel}</p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium text-muted-foreground">Identifier Type</p>
-                      <p className="text-sm capitalize">{form.identifierType}</p>
-                    </div>
-                    {form.identifierDescription && (
-                      <div className="space-y-1 md:col-span-2">
-                        <p className="text-sm font-medium text-muted-foreground">Identifier Description</p>
-                        <p className="text-sm text-muted-foreground">{form.identifierDescription}</p>
-                      </div>
-                    )}
-                  </>
-                )}
               </div>
             </div>
           </CardContent>
@@ -306,6 +314,128 @@ export const FormView = ({ formId }: { formId: string }) => {
         </Card>
       </div>
 
+      {/* Assessment Progress Card - NEW */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
+            Assessment Progress
+          </CardTitle>
+          <CardDescription>Track assessment completion and token usage</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Progress Overview */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Completion Rate */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Completion Rate</span>
+                  <div className="flex items-center gap-2">
+                    <span
+                      className={`text-sm font-medium ${
+                        completionRate >= 80
+                          ? "text-green-600"
+                          : completionRate >= 50
+                            ? "text-yellow-600"
+                            : "text-red-600"
+                      }`}
+                    >
+                      {completionRate.toFixed(0)}%
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {completionRate >= 80
+                        ? "Great progress!"
+                        : completionRate >= 50
+                          ? "Good progress"
+                          : "Needs attention"}
+                    </span>
+                  </div>
+                </div>
+                <Progress value={completionRate} className="h-2" />
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{tokenStats.used} completed</span>
+                  <span>{tokenStats.generated} total invites</span>
+                </div>
+              </div>
+
+              {/* Token Status Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                <div className="text-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-center justify-center mb-1">
+                    <Link2 className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <p className="text-lg font-bold text-blue-700">{tokenStats.generated}</p>
+                  <p className="text-xs text-blue-600">Generated</p>
+                </div>
+
+                <div className="text-center p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center justify-center mb-1">
+                    <CheckCircle className="h-4 w-4 text-green-600" />
+                  </div>
+                  <p className="text-lg font-bold text-green-700">{tokenStats.used}</p>
+                  <p className="text-xs text-green-600">Completed</p>
+                </div>
+
+                <div className="text-center p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                  <div className="flex items-center justify-center mb-1">
+                    <Clock className="h-4 w-4 text-gray-600" />
+                  </div>
+                  <p className="text-lg font-bold text-gray-700">{tokenStats.unused}</p>
+                  <p className="text-xs text-gray-600">Pending</p>
+                </div>
+
+                <div className="text-center p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                  <div className="flex items-center justify-center mb-1">
+                    <AlertTriangle className="h-4 w-4 text-orange-600" />
+                  </div>
+                  <p className="text-lg font-bold text-orange-700">{tokenStats.expired}</p>
+                  <p className="text-xs text-orange-600">Expired</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium">Quick Actions</h4>
+
+              <div className="space-y-2">
+                <Button className="w-full justify-start" onClick={onGenerateLink}>
+                  <Link2 className="h-4 w-4 mr-2" />
+                  Generate New Link
+                </Button>
+
+                <Button variant="outline" className="w-full justify-start">
+                  <Send className="h-4 w-4 mr-2" />
+                  Send Reminders
+                </Button>
+
+                <Button variant="outline" className="w-full justify-start">
+                  <Eye className="h-4 w-4 mr-2" />
+                  View Responses
+                </Button>
+
+                <Button variant="outline" className="w-full justify-start">
+                  <Clock className="h-4 w-4 mr-2" />
+                  Manage Expiry
+                </Button>
+              </div>
+
+              {tokenStats.expired > 0 && (
+                <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4 text-orange-600 flex-shrink-0" />
+                    <p className="text-xs text-orange-700">
+                      {tokenStats.expired} expired links. Consider regenerating links for pending applicants.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Metadata */}
       <Card>
         <CardHeader>
@@ -318,11 +448,11 @@ export const FormView = ({ formId }: { formId: string }) => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Created At</p>
-              <p className="text-sm">{form.createdAt && formatDateTime(form.createdAt)}</p>
+              <p className="text-sm">{formatDateTime(form.createdAt)}</p>
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Last Updated</p>
-              <p className="text-sm">{form.updatedAt && formatDateTime(form.updatedAt)}</p>
+              <p className="text-sm">{formatDateTime(form.updatedAt)}</p>
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Due Date</p>
@@ -333,37 +463,38 @@ export const FormView = ({ formId }: { formId: string }) => {
       </Card>
 
       {/* Quick Actions */}
-      {form.provider == 'Pinokio' && 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Link2 className="h-5 w-5" />
-            Quick Actions
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-3">
-            <Button variant="outline" size="sm">
-              <Eye className="h-4 w-4 mr-2" />
-              View Responses
-            </Button>
-            <Button variant="outline" size="sm">
-              <Users className="h-4 w-4 mr-2" />
-              Manage Access
-            </Button>
-            <Button variant="outline" size="sm">
-              <Settings className="h-4 w-4 mr-2" />
-              Form Settings
-            </Button>
-            {form.formUrl && (
-              <Button variant="outline" size="sm" onClick={() => window.open(form.formUrl, "_blank")}>
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Open Form
+      {form.provider == "Pinokio" && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Link2 className="h-5 w-5" />
+              Quick Actions
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              <Button variant="outline" size="sm">
+                <Eye className="h-4 w-4 mr-2" />
+                View Responses
               </Button>
-            )}
-          </div>
-        </CardContent>
-      </Card>}
+              <Button variant="outline" size="sm">
+                <Users className="h-4 w-4 mr-2" />
+                Manage Access
+              </Button>
+              <Button variant="outline" size="sm">
+                <Settings className="h-4 w-4 mr-2" />
+                Form Settings
+              </Button>
+              {form.formUrl && (
+                <Button variant="outline" size="sm" onClick={() => window.open(form.formUrl, "_blank")}>
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Open Form
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   )
 }
