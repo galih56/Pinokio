@@ -28,7 +28,7 @@ export const createFormData = (data: any, formData = new FormData(), parentKey =
                         formData.append(key, value);
                     } else if (value instanceof Date) {
                         // Format and append Date
-                        formData.append(key, value.toISOString());
+                        formData.append(key, format(value, 'yyyy-MM-dd HH:mm:ss'));
                     } else {
                         // Recursively process nested objects
                         createFormData(value, formData, key);

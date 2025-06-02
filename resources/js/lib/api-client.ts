@@ -7,12 +7,7 @@ import { createFormData } from './formdata';
 import { toast } from 'sonner';
 
 
-// Extend AxiosRequestConfig to include optional skipNotification property
-interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
-  skipNotification?: boolean;
-}
-
-function authRequestInterceptor(config: ExtendedAxiosRequestConfig) {
+function authRequestInterceptor(config: InternalAxiosRequestConfig) {
   const { accessToken, tokenType } = useAuth.getState(); // Access the token from Zustand
 
   // Set Authorization header if token is available
@@ -70,8 +65,7 @@ api.interceptors.response.use(
       }
     }
 
-    // Show success/error messages if available and skipNotification is not set
-    if (message && !response.config.skipNotification) {
+    if (message) {
       toast.success( status, {
         description : message
       });
@@ -96,11 +90,9 @@ api.interceptors.response.use(
         message = error.response?.data?.message || message;
 
         if (!isPublicPage) {
-          if (!error.config?.skipNotification) {
-            toast.error(status, {
-              description : message
-            });
-          }
+          toast.error(status, {
+            description : message
+          });
 
           // Redirect to login for non-public pages
           const redirectTo = new URLSearchParams().get('redirectTo') || window.location.pathname;
@@ -112,20 +104,16 @@ api.interceptors.response.use(
       }
 
       if(status > 403 && status < 500){
-        if (!error.config?.skipNotification && error.response?.data) {
-          toast.error(error.response?.data?.message);
-        }
+        toast.error(error.response?.data?.message);
       }
     } else {
       // Handle network errors and other issues
       if (message === 'Network Error') {
         message = 'Network connection issue. Please try again later.';
       }
-      if (!error.config?.skipNotification) {
-        toast.error('Something went wrong!',{
-          description : message
-        });
-      }
+      toast.error('Something went wrong!',{
+        description : message
+      });
     }
 
     // Log the error or send it to a monitoring service if needed
