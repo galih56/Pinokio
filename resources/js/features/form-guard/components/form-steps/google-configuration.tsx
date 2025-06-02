@@ -82,8 +82,8 @@ const GoogleFormConfigurationStep = memo(({ form, updateFormData }: GoogleFormCo
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="email">Email</SelectItem>
-                    <SelectItem value="number">Number</SelectItem>
                     <SelectItem value="text">Free Text</SelectItem>
+                    <SelectItem value="number">Number</SelectItem>
                   </SelectContent>
                 </Select>
               </FormControl>

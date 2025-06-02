@@ -1,4 +1,5 @@
 "use client"
+
 import { memo } from "react"
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
@@ -9,6 +10,9 @@ import type { z } from "zod"
 import type { createFormInputSchema } from "../../api/create-form"
 import type { Editor } from "@tiptap/react"
 import { Switch } from "@/components/ui/switch"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Clock } from "lucide-react"
+import { ExpiryDateTimeField } from "../expiry-date-time-field"
 
 interface BasicInformationStepProps {
   form: UseFormReturn<z.infer<typeof createFormInputSchema>>
@@ -17,6 +21,15 @@ interface BasicInformationStepProps {
 }
 
 const BasicInformationStep = memo(({ form, updateFormData, editor }: BasicInformationStepProps) => {
+  // Get the current time limit value for display
+  const timeLimit = form.watch("timeLimit") ? Math.floor(form.watch("timeLimit") / 60) : 15
+  const expiresAt = form.watch("expiresAt")
+
+  const handleExpiresAtChange = (date: Date | null) => {
+    form.setValue("expiresAt", date)
+    updateFormData({ expiresAt: date })
+  }
+
   return (
     <Form {...form}>
       <div className="space-y-6">
@@ -40,6 +53,37 @@ const BasicInformationStep = memo(({ form, updateFormData, editor }: BasicInform
             </FormItem>
           )}
         />
+
+        {/* Standalone Expiry Date/Time Input */} 
+        <ExpiryDateTimeField
+          value={expiresAt}
+          onChange={handleExpiresAtChange}
+          label="Form Due Date"
+          description="Set when this form should be completed by"
+          defaultExpiryDays={14}
+          allowNoExpiry={true}
+          presets={[
+            { label: "1 day", days: 1 },
+            { label: "3 days", days: 3 },
+            { label: "1 week", days: 7 },
+            { label: "2 weeks", days: 14 },
+            { label: "1 month", days: 30 },
+          ]}
+        />
+
+        {/* Time Limit Info */}
+        {form.watch("proctored") && (
+          <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-blue-600" />
+              <span className="text-sm text-blue-700">
+                Responders will have <strong>{timeLimit} minutes</strong> to complete the assessment once they open the
+                link.
+              </span>
+            </div>
+          </div>
+        )}
+
         <FormField
           control={form.control}
           name="provider"
@@ -94,6 +138,7 @@ const BasicInformationStep = memo(({ form, updateFormData, editor }: BasicInform
             )
           }}
         />
+
         <FormField
           control={form.control}
           name="accessType"
@@ -125,6 +170,7 @@ const BasicInformationStep = memo(({ form, updateFormData, editor }: BasicInform
             </FormItem>
           )}
         />
+
         <FormField
           control={form.control}
           name="description"

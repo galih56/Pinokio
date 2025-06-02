@@ -69,7 +69,7 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
     defaultValues: {
       title: "",
       description: "",
-      provider: undefined,
+      provider: 'Pinokio',
       accessType: undefined,
       formCode: "",
       formUrl: "",

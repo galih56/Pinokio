@@ -17,7 +17,9 @@ class Form extends Model
         'identifier_label',
         'identifier_description',
         'identifier_type',
-        'time_limit_minutes',
+        'proctored',
+        'expires_at',
+        'time_limit',
         'allow_multiple_attempts',
         'is_active',
     ];

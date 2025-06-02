@@ -1,22 +1,23 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { addDays, endOfDay, format } from "date-fns"
-import { Calendar, Clock, Copy, CheckCircle, ExternalLink, LinkIcon, Send, Share2, History } from "lucide-react"
+import { formatDuration, intervalToDuration } from "date-fns"
+import { Copy, CheckCircle, ExternalLink, LinkIcon, Send, Share2, History } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { formatDateTime } from "@/lib/datetime"
 import { toast } from "sonner"
+import { TimeLimitField } from "./time-limit-field"
+import { ExpiryDateTimeField } from "./expiry-date-time-field"
+import DialogOrDrawer from "@/components/layout/dialog-or-drawer"
 
 export interface GenerateLinkItem {
   id: string
   title: string
+  timeLimit?: number // in seconds
   [key: string]: any
 }
 
@@ -47,34 +48,26 @@ export function GenerateLinkDialog<T extends GenerateLinkItem>({
   defaultExpiryDays = 7,
   previousLinks = [],
 }: GenerateLinkDialogProps<T>) {
-  const [expiryDate, setExpiryDate] = useState<string>("")
-  const [expiryTime, setExpiryTime] = useState<string>("")
-  const [timeLimit, setTimeLimit] = useState<number>(15) // Default 15 minutes
+  const [expiryDateTime, setExpiryDateTime] = useState<Date | null>(null)
+  const [timeLimit, setTimeLimit] = useState<number>(900) // Default 15 minutes in seconds
   const [linkCopied, setLinkCopied] = useState(false)
   const [activeTab, setActiveTab] = useState<string>("generate")
 
-  // Set default expiry when dialog opens OR when item changes
+  // Set defaults when dialog opens OR when item changes
   useEffect(() => {
     if (isOpen && item) {
-      const defaultExpiry = endOfDay(addDays(new Date(), defaultExpiryDays))
-
-      const dateStr = format(defaultExpiry, "yyyy-MM-dd")
-      const timeStr = format(defaultExpiry, "HH:mm")
-
-      setExpiryDate(dateStr)
-      setExpiryTime(timeStr)
       setLinkCopied(false)
-      setTimeLimit(item.timeLimit)
+
+      // Set time limit from item or default to 15 minutes (900 seconds)
+      setTimeLimit(item.timeLimit || 900)
+
+      // ExpiryDateTime will be set by the ExpiryDateTimeInput component
+      // based on its defaultExpiryDays prop
     }
   }, [isOpen, item, defaultExpiryDays])
 
   const handleGenerateLink = () => {
     if (!item) return
-
-    let expiryDateTime = null
-    if (expiryDate && expiryTime) {
-      expiryDateTime = new Date(`${expiryDate}T${expiryTime}`)
-    }
 
     onGenerateLink(item.id, expiryDateTime, timeLimit)
 
@@ -93,27 +86,29 @@ export function GenerateLinkDialog<T extends GenerateLinkItem>({
     }
   }
 
-  const getExpiryDateTime = () => {
-    if (expiryDate && expiryTime) {
-      return new Date(`${expiryDate}T${expiryTime}`)
-    }
-    return null
+  const isExpired = () => {
+    return expiryDateTime ? expiryDateTime < new Date() : false
   }
 
-  const isExpired = () => {
-    const expiry = getExpiryDateTime()
-    return expiry ? expiry < new Date() : false
+  // Format time limit for display
+  const formatTimeLimitDisplay = (seconds: number) => {
+    const duration = intervalToDuration({ start: 0, end: seconds * 1000 })
+
+    if (seconds < 3600) {
+      const minutes = Math.floor(seconds / 60)
+      return `${minutes} minute${minutes !== 1 ? "s" : ""}`
+    }
+
+    return formatDuration(duration, {
+      format: ["hours", "minutes"],
+      delimiter: " ",
+    })
   }
 
   if (!item) return null
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>{title}</DialogTitle>
-        </DialogHeader>
-
+    <DialogOrDrawer title={title} open={isOpen} onOpenChange={onOpenChange}>
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-3 mb-4">
             <TabsTrigger value="generate">Generate</TabsTrigger>
@@ -137,90 +132,54 @@ export function GenerateLinkDialog<T extends GenerateLinkItem>({
               </CardHeader>
             </Card>
 
-            {/* Expiry Settings */}
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Calendar className="h-4 w-4" />
-                  Link Expiry Settings
-                </CardTitle>
-                <CardDescription>Set when this link should expire</CardDescription>
+                <CardTitle className="text-base">Link Settings</CardTitle>
+                <CardDescription>Configure when this link should expire</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <Label className="text-sm font-medium">Expiry Date/Time : </Label>
-                  </div>
-                  <div className="flex gap-3 sm:flex-shrink-0">
-                    <div className="w-full sm:w-auto">
-                      <Input
-                        id="expiry-date"
-                        type="date"
-                        value={expiryDate}
-                        onChange={(e) => setExpiryDate(e.target.value)}
-                        min={new Date().toISOString().split("T")[0]}
-                        placeholder="Select date"
-                        style={{
-                          colorScheme: "light",
-                        }}
-                      />
-                    </div>
-                    <div className="w-full sm:w-auto">
-                      <Input
-                        id="expiry-time"
-                        type="time"
-                        value={expiryTime}
-                        onChange={(e) => setExpiryTime(e.target.value)}
-                        placeholder="Select time"
-                        style={{
-                          colorScheme: "light",
-                        }}
-                      />
-                    </div>
-                  </div>
-                </div>
+              <CardContent>
+                <ExpiryDateTimeField
+                  value={expiryDateTime}
+                  onChange={setExpiryDateTime}
+                  label="Link Expiry"
+                  description="Set when this link should expire"
+                  defaultExpiryDays={defaultExpiryDays}
+                  allowNoExpiry={true}
+                  presets={[
+                    { label: "1 hour", days: 0.04 }, // ~1 hour
+                    { label: "1 day", days: 1 },
+                    { label: "3 days", days: 3 },
+                    { label: "1 week", days: 7 },
+                    { label: "2 weeks", days: 14 },
+                    { label: "1 month", days: 30 },
+                  ]}
+                />
+              </CardContent>
+            </Card>
 
-                {/* Time Limit Setting */}
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div className="flex items-center gap-2">
-                    <Label className="text-sm font-medium">Time Limit (minutes): </Label>
-                  </div>
-                  <div className="w-full sm:w-32">
-                    <Input
-                      id="time-limit"
-                      type="number"
-                      value={timeLimit}
-                      onChange={(e) => setTimeLimit(Number.parseInt(e.target.value) || 15)}
-                      min={1}
-                      max={180}
-                      placeholder="Minutes"
-                    />
-                  </div>
-                </div>
-
-                {expiryDate && expiryTime && (
-                  <div className="p-3 bg-muted rounded-lg">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Link will expire:</span>
-                      <div className="flex items-center gap-2">
-                        <Badge variant={isExpired() ? "destructive" : "secondary"}>
-                          {formatDateTime(getExpiryDateTime()!)}
-                        </Badge>
-                        {isExpired() && <Badge variant="destructive">Expired</Badge>}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                <div className="p-3 bg-blue-50 border border-blue-100 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-blue-600" />
-                    <span className="text-sm text-blue-700">
-                      Responder will have <strong>{timeLimit} minutes</strong> to complete the assessment once they open
-                      the link.
-                    </span>
-                  </div>
-                </div>
+            {/* Time Limit Settings */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">Assessment Time Limit</CardTitle>
+                <CardDescription>Set how long responders have to complete the assessment</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <TimeLimitField
+                  value={timeLimit}
+                  onChange={setTimeLimit}
+                  label="Time Limit"
+                  description="Responders will have this amount of time to complete the assessment once they open the link"
+                  presets={[
+                    { label: "5 min", seconds: 300 },
+                    { label: "10 min", seconds: 600 },
+                    { label: "15 min", seconds: 900 },
+                    { label: "30 min", seconds: 1800 },
+                    { label: "45 min", seconds: 2700 },
+                    { label: "1 hour", seconds: 3600 },
+                    { label: "1.5 hours", seconds: 5400 },
+                    { label: "2 hours", seconds: 7200 },
+                  ]}
+                />
               </CardContent>
             </Card>
 
@@ -282,14 +241,18 @@ export function GenerateLinkDialog<T extends GenerateLinkItem>({
                     </Button>
                   </div>
 
-                  {expiryDate && expiryTime && (
+                  {expiryDateTime && (
                     <div className="text-xs text-muted-foreground text-center">
-                      This link will expire on {formatDateTime(getExpiryDateTime()!)}
+                      This link will expire on {formatDateTime(expiryDateTime)}
                     </div>
                   )}
 
+                  {!expiryDateTime && (
+                    <div className="text-xs text-muted-foreground text-center">This link has no expiry date</div>
+                  )}
+
                   <div className="text-xs text-muted-foreground text-center">
-                    Time limit: {timeLimit} minutes once opened
+                    Time limit: {formatTimeLimitDisplay(timeLimit)} once opened
                   </div>
                 </CardContent>
               </Card>
@@ -424,7 +387,6 @@ export function GenerateLinkDialog<T extends GenerateLinkItem>({
             </CardContent>
           </Card>
         )}
-      </DialogContent>
-    </Dialog>
+      </DialogOrDrawer>
   )
 }

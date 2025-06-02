@@ -158,6 +158,21 @@ export const FormsList = ({ onFormPrefetch }: FormsListProps) => {
       },
     },
     {
+      accessorKey: "expiresAt",
+      header: "Due Date",
+      cell: ({ row }) => {
+        const form = row.original
+        if (!form.expiresAt) return "-"
+
+        return (
+          <span className="text-xs text-nowrap">
+            {formatDate(form.expiresAt)} <br />
+            {formatTime(form.expiresAt)}
+          </span>
+        )
+      },
+    },
+    {
       accessorKey: "createdAt",
       header: "Created At",
       cell: ({ row }) => {
@@ -166,8 +181,7 @@ export const FormsList = ({ onFormPrefetch }: FormsListProps) => {
 
         return (
           <span className="text-xs text-nowrap">
-            {formatDate(form.createdAt)} <br />
-            {formatTime(form.createdAt)}
+            {formatDate(form.createdAt)} 
           </span>
         )
       },

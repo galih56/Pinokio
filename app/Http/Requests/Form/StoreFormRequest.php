@@ -36,6 +36,7 @@ class StoreFormRequest extends BaseRequest
                 'nullable',
                 'url',
             ],
+            'expires_at' => 'nullable|date', 
 
             'access_type' => ['required', Rule::in(['public', 'token', 'identifier'])],
 
@@ -47,7 +48,7 @@ class StoreFormRequest extends BaseRequest
             'identifier_description' => ['nullable', 'string'],
             'identifier_type' => [
                 Rule::requiredIf(fn () => $this->input('access_type') === 'identifier'),
-                Rule::in(['Free Text', 'Email', 'Number']),
+                Rule::in(['text', 'email', 'number']),
             ],
 
             'time_limit' => ['nullable', 'integer'],

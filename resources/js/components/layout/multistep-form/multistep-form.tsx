@@ -123,7 +123,7 @@ export function MultiStepForm<T = any>({
   }
 
   return (
-    <div className={`px-4 mx-auto ${className}`}>
+    <div className={`mx-auto ${className}`}>
       {/* Step Indicators */}
       {showStepIndicators && (
         <div className="flex items-center justify-center mb-6">
