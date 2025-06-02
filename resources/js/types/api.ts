@@ -190,16 +190,17 @@ export interface Form {
   allowMultipleAttempts: boolean;
   proctored: boolean;
   isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+  expiresAt?: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface FormTemplate {
   id: string;
   formId: string;
   description?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface FormGroup {
@@ -208,16 +209,16 @@ export interface FormGroup {
   name: string;
   description?: string;
   order: number;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface FieldType {
   id: string;
   name: string;
   description?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface FormField {
@@ -229,8 +230,8 @@ export interface FormField {
   placeholder?: string;
   isRequired: boolean;
   order: number;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface FormFieldOption {
@@ -238,8 +239,8 @@ export interface FormFieldOption {
   formFieldId: string;
   label: string;
   value: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface FormToken {
@@ -251,8 +252,8 @@ export interface FormToken {
   submittedTime?: string;
   isUsed: boolean;
   expiresAt?: string;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface FormAttempt {
@@ -260,19 +261,19 @@ export interface FormAttempt {
   formId: string;
   tokenId?: number;
   identifier?: string;
-  startedAt: string;
+  startedAt: Date;
   submittedAt?: string;
   isValid: boolean;
   durationSeconds?: number;
-  createdAt: string;
-  updatedAt: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface FormSubmission {
   id: string;
   formTemplateId: string;
   submittedBy?: number;
-  submittedAt: string;
+  submittedAt: Date;
 }
 
 export interface FormEntry {
