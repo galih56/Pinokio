@@ -27,7 +27,7 @@ export function ExpiryDateTimeField({
   onChange,
   label = "Expiry Date & Time",
   description = "Set when this should expire",
-  defaultExpiryDays = 7,
+  defaultExpiryDays = 1,
   allowNoExpiry = true,
   minDate = new Date(),
   maxDate,

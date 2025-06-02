@@ -8,6 +8,11 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export const getBaseRoute = (pathname: string) => {
+  const parts = pathname.split("/").filter(Boolean);
+  return parts.length > 0 ? `/${parts[0]}` : "/";
+};
+
 export function hasErrorsInTab(errors: FieldErrors, fieldNames: string[]) {
   return fieldNames.some((fieldName) => errors[fieldName]);
 }

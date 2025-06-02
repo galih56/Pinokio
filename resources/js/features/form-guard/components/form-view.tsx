@@ -36,7 +36,6 @@ import { useFormDetail } from "../api/get-form"
 import { adjustActiveBreadcrumbs } from "@/components/layout/breadcrumbs/breadcrumbs-store"
 import { Spinner } from "@/components/ui/spinner"
 
-// Define the token stats interface
 interface TokenStats {
   generated: number
   used: number
@@ -46,7 +45,7 @@ interface TokenStats {
 
 interface FormViewProps {
   formId: string
-  onGenerateLink: () => void
+  onGenerateLink?: () => void
 }
 
 export function FormView({ formId, onGenerateLink }: FormViewProps) {

@@ -182,6 +182,8 @@ export const FormsList = ({ onFormPrefetch }: FormsListProps) => {
         return (
           <span className="text-xs text-nowrap">
             {formatDate(form.createdAt)} 
+             <br />
+            {formatTime(form.createdAt)}
           </span>
         )
       },

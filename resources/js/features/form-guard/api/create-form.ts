@@ -6,8 +6,6 @@ import { api } from "@/lib/api-client"
 import type { MutationConfig } from "@/lib/react-query"
 import type { Form } from "@/types/api"
 
-import { getFormsQueryOptions } from "./get-forms"
-
 export const createFormInputSchema = z
   .object({
     title: z.string().min(1, { message: "Title is required." }),
@@ -19,7 +17,7 @@ export const createFormInputSchema = z
     identifierLabel: z.string().optional(),
     identifierDescription: z.string().optional(),
     identifierType: z.enum(["email", "number", "text"]).optional(),
-
+    expiresAt: z.date().optional().nullable(),
     timeLimit: z.coerce.number().min(0, { message: "Time limit cannot be negative." }).optional(),
     allowMultipleAttempts: z.boolean().default(false),
     isActive: z.boolean().default(true),
@@ -53,10 +51,7 @@ export const createFormInputSchema = z
 export type CreateFormInput = z.infer<typeof createFormInputSchema>
 
 export const createForm = (data: CreateFormInput): Promise<Form> => {
-  // Convert camelCase to snake_case before sending to API
-  const snakeCaseData = decamelizeKeys(data)
-
-  return api.post(`/forms`, snakeCaseData, {
+  return api.post(`/forms`, data, {
     headers: {
       "Content-Type": "multipart/form-data",
     },

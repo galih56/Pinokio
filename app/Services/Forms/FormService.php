@@ -2,11 +2,11 @@
 
 namespace App\Services\Forms;
 
-use App\Models\Forms\Form;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\QueryProcessor;
+use App\Models\Forms\Form;
 use App\Models\Forms\FormToken;
 use Illuminate\Support\Str;
 
@@ -39,6 +39,7 @@ class FormService
 
         return $perPage ? $query->paginate($perPage) : $query->get();
     }
+
     public function getById(int $id): ?Form
     {
         $this->model = Form::findOrFail($id);
@@ -50,7 +51,6 @@ class FormService
      */
     public function create(array $data): Form
     {
-        
         if (isset($data['form_url'])) {
             $data['form_code'] = $this->extractGoogleFormCode($data['form_url']);
         }

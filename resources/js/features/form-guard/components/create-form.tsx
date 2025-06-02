@@ -80,6 +80,7 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
       allowMultipleAttempts: false,
       isActive: true,
       proctored: false,
+      expiresAt: null
     },
   })
 

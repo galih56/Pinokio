@@ -7,6 +7,7 @@ import {
 } from '@/features/form-guard/api/get-form';
 import { NotFoundRoute } from '@/pages/not-found';
 import { FormView } from '@/features/form-guard/components/form-view';
+import { RouteErrorFallback } from '@/components/layout/error-fallbacks';
 
 export const formLoader =
   (queryClient: QueryClient) =>
@@ -37,15 +38,12 @@ export const FormRoute = () => {
 
   return (
     <div className='mt-6'>
-        <FormView formId={formId} />
-        <div className="mt-8">
-          <ErrorBoundary
-            fallback={
-              <div>Failed to load the data. Try to refresh the page.</div>
-            }
-          >
-          </ErrorBoundary>
-        </div>
+        <ErrorBoundary
+          FallbackComponent={RouteErrorFallback}
+          resetKeys={[formId]} // Reset when formId changes
+        >
+          <FormView formId={formId} />
+        </ErrorBoundary>
     </div>
   );
 };

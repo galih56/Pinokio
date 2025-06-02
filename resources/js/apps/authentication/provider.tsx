@@ -6,7 +6,7 @@ import { HelmetProvider } from 'react-helmet-async';
 
 import { Notifications } from '@/components/ui/notifications';
 import { queryClient, queryConfig } from '@/lib/react-query';
-import { MainErrorFallback } from '@/components/layout/main-fallback';
+import { MainErrorFallback } from '@/components/layout/error-fallbacks';
 import { Spinner } from '@/components/ui/spinner';
 import { Toaster } from '@/components/ui/toaster';
 

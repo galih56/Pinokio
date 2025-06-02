@@ -2,14 +2,18 @@
 
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Validation\ValidationException;
-
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Auth\AuthenticationException;
+
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\Routing\Exception\RouteNotFoundException;
+
 use App\Http\Middleware\RoleCheck;
 use App\Http\Middleware\DecodeHashParameter;
 use App\Helpers\ApiResponse;
-use Illuminate\Auth\AuthenticationException;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -24,61 +28,86 @@ return Application::configure(basePath: dirname(__DIR__))
             'throttle:api',
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
         ]);
+
         $middleware->statefulApi();
+
         $middleware->api()->alias([
             'role' => RoleCheck::class,
             'decode_id'=> DecodeHashParameter::class
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        // Handle generic exceptions for API requests
-        $exceptions->renderable(function (\Throwable $e, $request) {  // Fully qualified Throwable
+        $exceptions->renderable(function (\Throwable $e, $request) {
             if ($request->is('api/*') || $request->expectsJson()) {
-                // Handle Model Not Found (404)
-                if ($e instanceof ModelNotFoundException) {
-                    return ApiResponse::sendResponse(null, $e->getMessage(),'error', 500);
+                // Model not found
+                if (
+                    $e instanceof NotFoundHttpException &&
+                    $e->getPrevious() instanceof ModelNotFoundException
+                ) {
+                    $model = class_basename($e->getPrevious()->getModel());
+                    $message = match ($model) {
+                        'Form' => 'The form you are looking for does not exist.',
+                        'Issue' => 'The issue you are looking for does not exist.',
+                        'Task' => 'The task you are looking for does not exist.',
+                        'Project' => 'The project you are looking for does not exist.',
+                        'User' => 'The user you are looking for does not exist.',
+                        'UserRole' => 'The user role you are looking for does not exist.',
+                        'Team' => 'The team you are looking for does not exist.',
+                        'File' => 'The file you are looking for does not exist.',
+                        'Comment' => 'The comment you are looking for does not exist.',
+                        default => "$model you are looking for does not exist.",
+                    };
+
+                    return ApiResponse::sendResponse(null, $message, 'error', 404);
                 }
 
-                // Handle Validation Exceptions (422)
+                // Route not found
+                if ($e instanceof NotFoundHttpException || $e instanceof RouteNotFoundException) {
+                    return ApiResponse::sendResponse(null, 'Requested endpoint not found.', 'error', 404);
+                }
+
+                // Validation errors
                 if ($e instanceof ValidationException) {
-                    $errors = $e->errors(); 
-            
-                    return ApiResponse::sendResponse($errors, 'Invalid Inputs', 'error', 422);
+                    return ApiResponse::sendResponse($e->errors(), 'Invalid inputs.', 'error', 422);
                 }
 
-                // Handle Authorization Exceptions (403)
-                if ($e instanceof \Illuminate\Auth\Access\AuthorizationException || $e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException) {
-                    return ApiResponse::sendResponse(null, 'This action is unauthorized.','error', 403);
+                // Authorization error
+                if ($e instanceof \Illuminate\Auth\Access\AuthorizationException || $e instanceof AccessDeniedHttpException) {
+                    return ApiResponse::sendResponse(null, 'This action is unauthorized.', 'error', 403);
                 }
 
-                if ($e instanceof AuthenticationException || $e instanceof \Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException) {
-                    return ApiResponse::sendResponse(null, $e->getMessage(),'error', 401);
-                }
-                
-                if ($e instanceof \Symfony\Component\Routing\Exception\RouteNotFoundException) {
-                    return ApiResponse::sendResponse(null, $e->getMessage(),'error', 404);
+                // Authentication error
+                if ($e instanceof AuthenticationException) {
+                    return ApiResponse::sendResponse(null, 'Unauthenticated.', 'error', 401);
                 }
 
+                // Unexpected client-side value
                 if ($e instanceof \UnexpectedValueException) {
-                    return ApiResponse::sendResponse(null, $e->getMessage(),'error', 400);
-                    // HTTP 400 for client errors
+                    return ApiResponse::sendResponse(null, 'Unexpected input or parameter.', 'error', 400);
                 }
 
-                $debugMode = config('app.debug');
-                if (!$debugMode) {
-                    return ApiResponse::sendResponse(null, $e->getMessage(),'error', 500);
+                // Generic error (production)
+                $debug = config('app.debug');
+                if (!$debug) {
+                    \Log::error($e); // Log the error for debugging
+                    return ApiResponse::sendResponse(null, 'Internal server error.', 'error', 500);
                 }
-            }else{
-                
-                // Handle Authorization Exceptions (403)
-                if ($e instanceof AuthenticationException ) {
+
+                // Debug mode: show actual exception message
+                return ApiResponse::sendResponse(null, $e->getMessage(), 'error', 500);
+            } else {
+                // Web exception handlers
+
+                if ($e instanceof AuthenticationException || $e instanceof RouteNotFoundException) {
                     return redirect()->route('auth');
                 }
-                
-                // Handle Authorization Exceptions (403)
-                if ($e instanceof \Symfony\Component\Routing\Exception\RouteNotFoundException) {
-                    return redirect()->route('auth');
+
+                if ($e instanceof AccessDeniedHttpException) {
+                    return response()->view('errors.403', [], 403);
                 }
+
+                // Add custom handling for web if needed
             }
         });
-    })->create();
+    })
+    ->create();

@@ -5,7 +5,7 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { HelmetProvider } from 'react-helmet-async';
 
 import { queryClient } from '@/lib/react-query';
-import { MainErrorFallback } from '@/components/layout/main-fallback';
+import { MainErrorFallback } from '@/components/layout/error-fallbacks';
 import { Spinner } from '@/components/ui/spinner';
 
 type AppProviderProps = {

@@ -35,8 +35,9 @@ class FormResource extends JsonResource
             'is_active' => (bool) $this->is_active,
             'proctored' => (bool) $this->proctored,
 
-            'created_at' => $this->created_at?->toISOString(),
-            'updated_at' => $this->updated_at?->toISOString(),
+            'expires_at' => $this->expires_at,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
         ];
     }
 }

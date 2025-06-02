@@ -29,7 +29,6 @@ const BasicInformationStep = memo(({ form, updateFormData, editor }: BasicInform
     form.setValue("expiresAt", date)
     updateFormData({ expiresAt: date })
   }
-
   return (
     <Form {...form}>
       <div className="space-y-6">
@@ -58,9 +57,9 @@ const BasicInformationStep = memo(({ form, updateFormData, editor }: BasicInform
         <ExpiryDateTimeField
           value={expiresAt}
           onChange={handleExpiresAtChange}
-          label="Form Due Date"
+          label="Expires At"
           description="Set when this form should be completed by"
-          defaultExpiryDays={14}
+          defaultExpiryDays={1}
           allowNoExpiry={true}
           presets={[
             { label: "1 day", days: 1 },
