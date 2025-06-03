@@ -41,8 +41,9 @@ import { useUpdateForm } from "../api/update-form"
 import { useGenerateLinkDialog } from "./generate-link/use-generate-link-dialog"
 import { GenerateLinkDialog } from "./generate-link/generate-link-dialog"
 import { adjustActiveBreadcrumbs } from "@/components/layout/breadcrumbs/breadcrumbs-store"
+import { FormBuilder } from "./form-builder/form-builder"
 
-type EditingSection = "description" | "config" | "advanced" | "expiry" | null
+type EditingSection = "description" | "config" | "advanced" | "expiry" | "form-builder" | null
 
 interface FormViewProps {
   formId: string
@@ -67,14 +68,6 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
     },
   })
 
-  // Mock token stats - replace with real data
-  const [tokenStats] = useState({
-    generated: 45,
-    used: 32,
-    unused: 8,
-    expired: 5,
-  })
-
   const form = formQuery.data?.data
   adjustActiveBreadcrumbs(`/forms/:id`, `/forms/${formId}`, form?.title, [form])
 
@@ -95,7 +88,6 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
     provider: "Pinokio" | "Google Form"
     formCode?: string
     formUrl?: string
-    accessType: "public" | "token" | "identifier"
     isActive: boolean
   }) => {
     if (!form) return
@@ -106,7 +98,6 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
         provider: data.provider,
         formCode: data.formCode,
         formUrl: data.formUrl,
-        accessType: data.accessType,
         isActive: data.isActive,
       },
       formId,
@@ -143,45 +134,6 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
     })
   }
 
-  const getAccessTypeIcon = (accessType: string) => {
-    switch (accessType) {
-      case "public":
-        return <Globe className="h-4 w-4" />
-      case "token":
-        return <Key className="h-4 w-4" />
-      case "identifier":
-        return <UserCheck className="h-4 w-4" />
-      default:
-        return <Globe className="h-4 w-4" />
-    }
-  }
-
-  const getAccessTypeTitle = (accessType: string) => {
-    switch (accessType) {
-      case "public":
-        return "Open to Everyone"
-      case "token":
-        return "Authorized Link"
-      case "identifier":
-        return "Requires Personal ID"
-      default:
-        return "-"
-    }
-  }
-
-  const getAccessTypeColor = (accessType: string) => {
-    switch (accessType) {
-      case "public":
-        return "bg-green-100 text-green-800 border-green-200"
-      case "token":
-        return "bg-blue-100 text-blue-800 border-blue-200"
-      case "identifier":
-        return "bg-purple-100 text-purple-800 border-purple-200"
-      default:
-        return "bg-gray-100 text-gray-800 border-gray-200"
-    }
-  }
-
   const copyFormUrl = async () => {
     if (form?.formUrl) {
       await navigator.clipboard.writeText(form.formUrl)
@@ -193,7 +145,6 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
     }
   }
 
-  const completionRate = tokenStats.generated > 0 ? (tokenStats.used / tokenStats.generated) * 100 : 0
 
   if (formQuery.isPending) {
     return (
@@ -209,6 +160,10 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
         <p className="text-red-500">Failed to load form data</p>
       </div>
     )
+  }
+
+  if(editingSection == 'form-builder'){
+    return <FormBuilder />
   }
 
   return (
@@ -227,19 +182,15 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
                   {form.isActive ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
                   {form.isActive ? "Active" : "Inactive"}
                 </Badge>
-                <Badge variant="outline" className={`gap-1 ${getAccessTypeColor(form.accessType)}`}>
-                  {getAccessTypeIcon(form.accessType)}
-                  {form.accessType === "public"
-                    ? "Public Access"
-                    : form.accessType === "token"
-                      ? "Authorized Link"
-                      : "ID Required"}
-                </Badge>
               </div>
             </div>
           </div>
         </div>
         <div className="flex gap-2">
+          <Button variant="outline" size="sm" onClick={() => setEditingSection("form-builder")}>
+            <Edit className="h-4 w-4 mr-2" />
+            Edit Form
+          </Button>
           <Button size="sm">
             <Eye className="h-4 w-4 mr-2" />
             Preview
@@ -289,7 +240,6 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
               provider: form.provider,
               formCode: form.formCode,
               formUrl: form.formUrl,
-              accessType: form.accessType,
               isActive: form.isActive,
             }}
             onSave={handleSaveConfig}
@@ -355,15 +305,6 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
                   <Users className="h-4 w-4" />
                   Access Configuration
                 </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">Access Type</p>
-                    <div className="flex items-center gap-2">
-                      {getAccessTypeIcon(form.accessType)}
-                      <p className="text-sm capitalize">{getAccessTypeTitle(form.accessType)}</p>
-                    </div>
-                  </div>
-                </div>
               </div>
             </CardContent>
           </Card>
@@ -473,127 +414,7 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
           </CardContent>
         </Card>
       )}
-
-      {/* Assessment Progress Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Assessment Progress
-          </CardTitle>
-          <CardDescription>Track assessment completion and token usage</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Progress Overview */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* Completion Rate */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Completion Rate</span>
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`text-sm font-medium ${
-                        completionRate >= 80
-                          ? "text-green-600"
-                          : completionRate >= 50
-                            ? "text-yellow-600"
-                            : "text-red-600"
-                      }`}
-                    >
-                      {completionRate.toFixed(0)}%
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {completionRate >= 80
-                        ? "Great progress!"
-                        : completionRate >= 50
-                          ? "Good progress"
-                          : "Needs attention"}
-                    </span>
-                  </div>
-                </div>
-                <Progress value={completionRate} className="h-2" />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{tokenStats.used} completed</span>
-                  <span>{tokenStats.generated} total invites</span>
-                </div>
-              </div>
-
-              {/* Token Status Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                <div className="text-center p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-center justify-center mb-1">
-                    <Link2 className="h-4 w-4 text-blue-600" />
-                  </div>
-                  <p className="text-lg font-bold text-blue-700">{tokenStats.generated}</p>
-                  <p className="text-xs text-blue-600">Generated</p>
-                </div>
-
-                <div className="text-center p-3 bg-green-50 border border-green-200 rounded-lg">
-                  <div className="flex items-center justify-center mb-1">
-                    <CheckCircle className="h-4 w-4 text-green-600" />
-                  </div>
-                  <p className="text-lg font-bold text-green-700">{tokenStats.used}</p>
-                  <p className="text-xs text-green-600">Completed</p>
-                </div>
-
-                <div className="text-center p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                  <div className="flex items-center justify-center mb-1">
-                    <Clock className="h-4 w-4 text-gray-600" />
-                  </div>
-                  <p className="text-lg font-bold text-gray-700">{tokenStats.unused}</p>
-                  <p className="text-xs text-gray-600">Pending</p>
-                </div>
-
-                <div className="text-center p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                  <div className="flex items-center justify-center mb-1">
-                    <AlertTriangle className="h-4 w-4 text-orange-600" />
-                  </div>
-                  <p className="text-lg font-bold text-orange-700">{tokenStats.expired}</p>
-                  <p className="text-xs text-orange-600">Expired</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Actions */}
-            <div className="space-y-4">
-              <h4 className="text-sm font-medium">Quick Actions</h4>
-
-              <div className="space-y-2">
-                <Button size={"sm"}  onClick={() => handleGenerateLink(form)}  >
-                  <Link2 className="h-4 w-4 mr-2" />
-                  Get the link
-                </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Send className="h-4 w-4 mr-2" />
-                  Send Reminders
-                </Button>
-
-                <Button variant="outline" className="w-full justify-start">
-                  <Eye className="h-4 w-4 mr-2" />
-                  View Responses
-                </Button>
-
-                <Button variant="outline" className="w-full justify-start">
-                  <Clock className="h-4 w-4 mr-2" />
-                  Manage Expiry
-                </Button>
-              </div>
-
-              {tokenStats.expired > 0 && (
-                <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <AlertTriangle className="h-4 w-4 text-orange-600 flex-shrink-0" />
-                    <p className="text-xs text-orange-700">
-                      {tokenStats.expired} expired links. Consider regenerating links for pending applicants.
-                    </p>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+  
 
       {/* Metadata */}
       <Card>
@@ -620,7 +441,6 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
           </div>
         </CardContent>
       </Card>
-
       {/* Quick Actions */}
       {form.provider == "Pinokio" && (
         <Card>

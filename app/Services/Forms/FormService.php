@@ -22,7 +22,7 @@ class FormService
             'templates'
         ];
     }
-
+    
     public function __construct(
         Form $model,
     )

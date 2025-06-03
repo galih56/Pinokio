@@ -20,7 +20,7 @@ import { paths } from "@/apps/dashboard/paths"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Input } from "@/components/ui/input"
 import { useEffect, useState } from "react"
-import { formatDate, formatTime } from "@/lib/datetime"
+import { formatDate, formatSecondsToDuration, formatTime } from "@/lib/datetime"
 import { getFormQueryOptions } from "@/features/form-guard/api/get-form"
 import { useForms } from "@/features/form-guard/api/get-forms"
 import { useGenerateLinkDialog } from "./generate-link/use-generate-link-dialog"
@@ -149,7 +149,7 @@ export const FormsList = ({ onFormPrefetch }: FormsListProps) => {
       meta: { cellClassName: "max-w-[40vh]" },
       cell: ({ row }) => {
         const form = row.original
-        return <>{form.timeLimit}</>
+        return <>{formatSecondsToDuration(form.timeLimit)}</>
       },
     },
     {

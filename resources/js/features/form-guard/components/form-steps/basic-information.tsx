@@ -1,6 +1,6 @@
 "use client"
 
-import { memo } from "react"
+import { memo, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -24,11 +24,26 @@ const BasicInformationStep = memo(({ form, updateFormData, editor }: BasicInform
   // Get the current time limit value for display
   const timeLimit = form.watch("timeLimit") ? Math.floor(form.watch("timeLimit") / 60) : 15
   const expiresAt = form.watch("expiresAt")
+  const provider = form.watch("provider")
+  const isGoogleForm = provider === "Google Form"
 
   const handleExpiresAtChange = (date: Date | null) => {
     form.setValue("expiresAt", date)
     updateFormData({ expiresAt: date })
   }
+
+  // Auto-set requiresToken and requiresIdentifier for Google Forms
+  useEffect(() => {
+    if (isGoogleForm) {
+      form.setValue("requiresToken", true)
+      form.setValue("requiresIdentifier", true)
+      updateFormData({ 
+        requiresToken: true,
+        requiresIdentifier: true 
+      })
+    }
+  }, [isGoogleForm, form, updateFormData])
+
   return (
     <Form {...form}>
       <div className="space-y-6">
@@ -136,38 +151,6 @@ const BasicInformationStep = memo(({ form, updateFormData, editor }: BasicInform
               </FormItem>
             )
           }}
-        />
-
-        <FormField
-          control={form.control}
-          name="accessType"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Access Type *</FormLabel>
-              <FormDescription>
-                Controls who can access this form. Choose token or identifier for restricted access.
-              </FormDescription>
-              <FormControl>
-                <Select
-                  value={field.value}
-                  onValueChange={(value) => {
-                    field.onChange(value)
-                    updateFormData({ accessType: value })
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select access type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="public">Open to Everyone</SelectItem>
-                    <SelectItem value="token">Authorized Link</SelectItem>
-                    <SelectItem value="identifier">Requires Personal ID</SelectItem>
-                  </SelectContent>
-                </Select>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
         />
 
         <FormField

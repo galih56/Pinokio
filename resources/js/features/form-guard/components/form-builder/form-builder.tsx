@@ -8,8 +8,13 @@ import { FormResponses } from "./form-responses"
 import { Eye, Settings, BarChart3 } from "lucide-react"
 import type { FormSection } from "@/types/form"
 import { generateId } from "@/lib/utils"
+import { Form } from "@/types/api"
 
-export function FormBuilder() {
+type FormBuilderProps {
+  form : Form
+}
+
+export function FormBuilder({ form } : FormBuilderProps) {
   const [formSections, setFormSections] = useState<FormSection[]>([
     {
       id: generateId(),
@@ -18,8 +23,8 @@ export function FormBuilder() {
       fields: [],
     },
   ])
-  const [formTitle, setFormTitle] = useState("Untitled Form")
-  const [formDescription, setFormDescription] = useState("")
+  const [formTitle, setFormTitle] = useState(form.title)
+  const [formDescription, setFormDescription] = useState(form.description)
 
   return (
     <div className="max-w-6xl mx-auto">

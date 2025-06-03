@@ -70,13 +70,14 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
       title: "",
       description: "",
       provider: 'Pinokio',
-      accessType: undefined,
       formCode: "",
       formUrl: "",
       identifierLabel: "",
       identifierDescription: "",
       identifierType: undefined,
-      timeLimit: undefined,
+      timeLimit: 0,
+      requiresToken : false,
+      requiresIdentifier: false,
       allowMultipleAttempts: false,
       isActive: true,
       proctored: false,
@@ -164,7 +165,7 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
 
       switch (currentStepId) {
         case 1:
-          const step1Valid = await form.trigger(["title", "description", "provider", "accessType"])
+          const step1Valid = await form.trigger(["title", "description", "provider"])
           if (!step1Valid) {
             toast.error("Please fill in all required fields")
           }
@@ -180,6 +181,12 @@ export default function CreateForm({ onSuccess, onError }: CreateFormType) {
           }
           return true
         case 3:
+          const fieldsToValidate: (keyof CreateFormInput)[] = ["timeLimit"]
+          const step3Valid = await form.trigger(fieldsToValidate)
+          if (!step3Valid) {
+            toast.error("Please fill in all required fields")
+          }
+          return step3Valid
           return true
         default:
           return true

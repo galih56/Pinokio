@@ -7,6 +7,7 @@ import { Form } from '@/types/api';
 
 import { getFormQueryOptions } from './get-form';
 
+
 export const updateFormSchema = z
   .object({
     title: z.string().min(1, { message: "Title is required." }),
@@ -14,7 +15,6 @@ export const updateFormSchema = z
     provider: z.enum(["Pinokio", "Google Form"], { message: "Form provider is required." }),
     formCode: z.string().optional(),
     formUrl: z.string().url({ message: "Invalid URL." }).optional(),
-    accessType: z.enum(["public", "token", "identifier"], { message: "Access type is required." }),
     identifierLabel: z.string().optional(),
     identifierDescription: z.string().optional(),
     identifierType: z.enum(["email", "number", "text"]).optional(),
@@ -23,28 +23,30 @@ export const updateFormSchema = z
     allowMultipleAttempts: z.boolean().default(false),
     isActive: z.boolean().default(true),
     proctored: z.boolean().default(false),
+    requiresToken: z.boolean().default(false),
+    requiresIdentifier: z.boolean().default(false),
   })
   .refine(
     (data) => {
       if (data.provider === "Google Form" && (!data.formCode || !data.formUrl)) {
-        return false
+        return false;
       }
-      return true
+      return true;
     },
     {
-      message: "Google form must have both code and URL.",
+      message: "Google Form must have both a form code and URL.",
       path: ["formCode"],
     },
   )
   .refine(
     (data) => {
-      if (data.accessType === "identifier" && (!data.identifierLabel || !data.identifierType)) {
-        return false
+      if (data.requiresIdentifier && (!data.identifierLabel || !data.identifierType)) {
+        return false;
       }
-      return true
+      return true;
     },
     {
-      message: "Identifier label and type are required when access type is 'identifier'.",
+      message: "Identifier label and type are required when identifier access is enabled.",
       path: ["identifierLabel"],
     },
   );

@@ -19,14 +19,12 @@ interface ConfigSectionEditProps {
     provider: "Pinokio" | "Google Form"
     formCode?: string
     formUrl?: string
-    accessType: "public" | "token" | "identifier"
     isActive: boolean
   }
   onSave: (data: {
     provider: "Pinokio" | "Google Form"
     formCode?: string
     formUrl?: string
-    accessType: "public" | "token" | "identifier"
     isActive: boolean
   }) => void
   onCancel: () => void
@@ -37,7 +35,6 @@ const configSchema = z.object({
   provider: z.enum(["Pinokio", "Google Form"]),
   formCode: z.string().optional(),
   formUrl: z.string().url({ message: "Invalid URL." }).optional(),
-  accessType: z.enum(["public", "token", "identifier"]),
   isActive: z.boolean(),
 })
 
@@ -54,7 +51,6 @@ export function ConfigSectionEdit({ initialData, onSave, onCancel, isPending }: 
       provider: initialData.provider,
       formCode: initialData.formCode || "",
       formUrl: initialData.formUrl || "",
-      accessType: initialData.accessType,
       isActive: initialData.isActive,
     },
   })
@@ -158,51 +154,6 @@ export function ConfigSectionEdit({ initialData, onSave, onCancel, isPending }: 
                 />
               </div>
 
-              <Label>Access Type</Label>
-              <Controller
-                name="accessType"
-                control={control}
-                render={({ field }) => (
-                  <div className="space-y-2">
-                    {[
-                      {
-                        value: "public",
-                        label: "Open to Everyone",
-                        icon: Globe,
-                        desc: "Anyone can access this form",
-                      },
-                      { value: "token", label: "Authorized Link", icon: Key, desc: "Share link with authorized token" },
-                      {
-                        value: "identifier",
-                        label: "Requires Personal ID",
-                        icon: UserCheck,
-                        desc: "User must provide ID",
-                      },
-                    ].map(({ value, label, icon: Icon, desc }) => (
-                      <div
-                        key={value}
-                        className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                          field.value === value ? "border-primary bg-primary/5" : "border-border hover:bg-muted/50"
-                        }`}
-                        onClick={() => field.onChange(value)}
-                      >
-                        <div className="flex items-center gap-2">
-                          <Icon className="h-4 w-4" />
-                          <div className="flex-1">
-                            <p className="text-sm font-medium">{label}</p>
-                            <p className="text-xs text-muted-foreground">{desc}</p>
-                          </div>
-                          <div
-                            className={`w-3 h-3 rounded-full border-2 ${
-                              field.value === value ? "border-primary bg-primary" : "border-muted-foreground"
-                            }`}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              />
             </div>
 
             <div className="flex gap-2">
