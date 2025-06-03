@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { addDays, endOfDay, format, isAfter, isBefore } from "date-fns"
+import { useState, useEffect, useMemo } from "react"
 import { Calendar, Clock, AlertCircle, X } from "lucide-react"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Switch } from "@/components/ui/switch"
-import { formatDateTime } from "@/lib/datetime"
+import { cn } from "@/lib/utils"
+import { DateTimePickerInput } from "@/components/ui/date-picker/datetime-picker-input"
+import { DateTimeInput } from "@/components/ui/date-picker/date-time-picker"
 
 interface ExpiryDateTimeFieldProps {
   value: Date | null
@@ -20,6 +20,38 @@ interface ExpiryDateTimeFieldProps {
   maxDate?: Date
   presets?: Array<{ label: string; days: number }>
   className?: string
+  variant?: "popover" | "select"
+}
+
+// Utility functions to replace date-fns
+const addDays = (date: Date, days: number): Date => {
+  const result = new Date(date)
+  result.setDate(result.getDate() + days)
+  return result
+}
+
+const endOfDay = (date: Date): Date => {
+  const result = new Date(date)
+  result.setHours(23, 59, 59, 999)
+  return result
+}
+
+const isBefore = (date: Date, dateToCompare: Date): boolean => {
+  return date.getTime() < dateToCompare.getTime()
+}
+
+const isAfter = (date: Date, dateToCompare: Date): boolean => {
+  return date.getTime() > dateToCompare.getTime()
+}
+
+const formatDateTime = (date: Date): string => {
+  return date.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
 }
 
 export function ExpiryDateTimeField({
@@ -39,130 +71,112 @@ export function ExpiryDateTimeField({
     { label: "1 month", days: 30 },
   ],
   className = "",
+  variant = "popover",
 }: ExpiryDateTimeFieldProps) {
-  const [dateValue, setDateValue] = useState<string>("")
-  const [timeValue, setTimeValue] = useState<string>("")
-  const [hasExpiry, setHasExpiry] = useState<boolean>(true)
+  // Track if expiry is enabled (can turn off for no-expiry mode)
+  const [hasExpiry, setHasExpiry] = useState<boolean>(value !== null)
 
-  // Initialize values when component mounts or value changes
+  // Set default expiry if no value provided
   useEffect(() => {
-    if (value) {
-      setDateValue(format(value, "yyyy-MM-dd"))
-      setTimeValue(format(value, "HH:mm"))
-      setHasExpiry(true)
-    } else {
-      // Set default expiry if no value provided
-      if (hasExpiry && !dateValue && !timeValue) {
-        const defaultExpiry = endOfDay(addDays(new Date(), defaultExpiryDays))
-        setDateValue(format(defaultExpiry, "yyyy-MM-dd"))
-        setTimeValue(format(defaultExpiry, "HH:mm"))
-        onChange(defaultExpiry)
-      } else if (!hasExpiry) {
-        setDateValue("")
-        setTimeValue("")
-      }
+    if (!hasExpiry) return
+    if (!value) {
+      const defaultExpiry = endOfDay(addDays(new Date(), defaultExpiryDays))
+      onChange(defaultExpiry)
     }
-  }, [value, defaultExpiryDays, hasExpiry])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasExpiry])
 
-  const handleDateChange = (newDate: string) => {
-    setDateValue(newDate)
-    updateDateTime(newDate, timeValue)
-  }
+  // Get preset dates for easy comparison
+  const presetDates = useMemo(() => {
+    return presets.map((preset) => ({
+      label: preset.label,
+      date: endOfDay(addDays(new Date(), preset.days)),
+      days: preset.days,
+    }))
+  }, [presets])
 
-  const handleTimeChange = (newTime: string) => {
-    setTimeValue(newTime)
-    updateDateTime(dateValue, newTime)
-  }
-
-  const updateDateTime = (date: string, time: string) => {
+  /** Handle when the user picks a date/time from DateTimePickerInput */
+  function handleInputChange(date: Date | undefined) {
     if (!hasExpiry) {
+      if (value !== null) onChange(null)
+      return
+    }
+    if (!date) {
       onChange(null)
       return
     }
-
-    if (date && time) {
-      const newDateTime = new Date(`${date}T${time}`)
-
-      // Validate against min/max dates
-      if (minDate && isBefore(newDateTime, minDate)) {
-        return // Don't update if before min date
-      }
-      if (maxDate && isAfter(newDateTime, maxDate)) {
-        return // Don't update if after max date
-      }
-
-      onChange(newDateTime)
-    }
+    // Check min/max
+    if (minDate && isBefore(date, minDate)) return
+    if (maxDate && isAfter(date, maxDate)) return
+    onChange(date)
   }
 
-  const handlePresetClick = (days: number) => {
+  /** Preset badge click sets date & time to preset's end-of-day */
+  function handlePresetClick(days: number) {
     const presetDate = endOfDay(addDays(new Date(), days))
-    setDateValue(format(presetDate, "yyyy-MM-dd"))
-    setTimeValue(format(presetDate, "HH:mm"))
     setHasExpiry(true)
     onChange(presetDate)
   }
 
-  const handleExpiryToggle = (enabled: boolean) => {
+  /** Toggle expiry on/off */
+  function handleExpiryToggle(enabled: boolean) {
     setHasExpiry(enabled)
     if (!enabled) {
-      setDateValue("")
-      setTimeValue("")
       onChange(null)
     } else {
-      // Set default when enabling
       const defaultExpiry = endOfDay(addDays(new Date(), defaultExpiryDays))
-      setDateValue(format(defaultExpiry, "yyyy-MM-dd"))
-      setTimeValue(format(defaultExpiry, "HH:mm"))
       onChange(defaultExpiry)
     }
   }
 
-  const clearExpiry = () => {
-    setDateValue("")
-    setTimeValue("")
+  /** Clear expiry (set no expiry) */
+  function clearExpiry() {
     setHasExpiry(false)
     onChange(null)
   }
 
-  const isExpired = () => {
-    if (!value) return false
-    return isBefore(value, new Date())
+  function isExpired() {
+    return value && isBefore(value, new Date())
   }
 
-  const isValidDateTime = () => {
+  function isValidDateTime(dt: Date | null): boolean {
     if (!hasExpiry) return true
-    if (!dateValue || !timeValue) return false
-
-    const dateTime = new Date(`${dateValue}T${timeValue}`)
-
-    if (minDate && isBefore(dateTime, minDate)) return false
-    if (maxDate && isAfter(dateTime, maxDate)) return false
-
+    if (!dt) return false
+    if (minDate && isBefore(dt, minDate)) return false
+    if (maxDate && isAfter(dt, maxDate)) return false
     return true
   }
 
-  const getValidationMessage = () => {
+  /** For error messages */
+  function getValidationMessage() {
     if (!hasExpiry) return null
-    if (!dateValue || !timeValue) return "Please select both date and time"
-
-    const dateTime = new Date(`${dateValue}T${timeValue}`)
-
-    if (minDate && isBefore(dateTime, minDate)) {
+    if (!value) return "Please select both date and time"
+    if (minDate && isBefore(value, minDate)) {
       return `Date must be after ${formatDateTime(minDate)}`
     }
-    if (maxDate && isAfter(dateTime, maxDate)) {
+    if (maxDate && isAfter(value, maxDate)) {
       return `Date must be before ${formatDateTime(maxDate)}`
     }
     if (isExpired()) {
       return "Selected date/time is in the past"
     }
-
     return null
   }
 
+  // Check if a preset is currently selected
+  function isPresetSelected(preset: { date: Date; days: number }) {
+    if (!value) return false
+    return (
+      value.getDate() === preset.date.getDate() &&
+      value.getMonth() === preset.date.getMonth() &&
+      value.getFullYear() === preset.date.getFullYear() &&
+      value.getHours() === preset.date.getHours() &&
+      value.getMinutes() === preset.date.getMinutes()
+    )
+  }
+
   return (
-    <div className={`space-y-4 ${className}`}>
+    <div className={cn("space-y-4", className)}>
       {/* Header */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
@@ -183,21 +197,16 @@ export function ExpiryDateTimeField({
       </div>
 
       {hasExpiry && (
-        <div>
+        <div className="space-y-4">
           {/* Quick Presets */}
           <div className="flex flex-wrap gap-2">
-            {presets.map((preset) => {
-              const presetDate = endOfDay(addDays(new Date(), preset.days))
-              const isSelected =
-                value &&
-                format(value, "yyyy-MM-dd") === format(presetDate, "yyyy-MM-dd") &&
-                format(value, "HH:mm") === format(presetDate, "HH:mm")
-
+            {presetDates.map((preset) => {
+              const isSelected = isPresetSelected(preset)
               return (
                 <Badge
                   key={preset.days}
                   variant={isSelected ? "default" : "outline"}
-                  className="cursor-pointer hover:bg-primary/10"
+                  className="cursor-pointer hover:bg-primary/10 transition-colors"
                   onClick={() => handlePresetClick(preset.days)}
                 >
                   {preset.label}
@@ -207,7 +216,7 @@ export function ExpiryDateTimeField({
             {value && (
               <Badge
                 variant="outline"
-                className="cursor-pointer hover:bg-destructive/10 text-destructive border-destructive"
+                className="cursor-pointer hover:bg-destructive/10 text-destructive border-destructive transition-colors"
                 onClick={clearExpiry}
               >
                 <X className="h-3 w-3 mr-1" />
@@ -216,38 +225,27 @@ export function ExpiryDateTimeField({
             )}
           </div>
 
-          {/* Date/Time Inputs */}
+          {/* DateTime Picker */}
           <div className="space-y-3">
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <Label htmlFor="expiry-date" className="text-sm font-medium">
-                  Date
-                </Label>
-                <Input
-                  id="expiry-date"
-                  type="date"
-                  value={dateValue}
-                  onChange={(e) => handleDateChange(e.target.value)}
-                  min={minDate ? format(minDate, "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd")}
-                  max={maxDate ? format(maxDate, "yyyy-MM-dd") : undefined}
-                  className="mt-1"
-                  style={{ colorScheme: "light" }}
-                />
-              </div>
-              <div className="flex-1">
-                <Label htmlFor="expiry-time" className="text-sm font-medium">
-                  Time
-                </Label>
-                <Input
-                  id="expiry-time"
-                  type="time"
-                  value={timeValue}
-                  onChange={(e) => handleTimeChange(e.target.value)}
-                  className="mt-1"
-                  style={{ colorScheme: "light" }}
-                />
-              </div>
-            </div>
+            {variant === "popover" ? (
+              <DateTimePickerInput
+                value={hasExpiry ? (value ?? undefined) : undefined}
+                onChange={handleInputChange}
+                showTimeSelect={true}
+                minDate={minDate}
+                maxDate={maxDate}
+                placeholder="Select expiry date and time"
+              />
+            ) : (
+              <DateTimeInput
+                value={hasExpiry ? (value ?? undefined) : undefined}
+                onChange={handleInputChange}
+                showTimeSelect={true}
+                minDate={minDate}
+                maxDate={maxDate}
+                placeholder="Select expiry date and time"
+              />
+            )}
 
             {/* Validation Message */}
             {getValidationMessage() && (
@@ -258,7 +256,7 @@ export function ExpiryDateTimeField({
             )}
 
             {/* Display Current Selection */}
-            {isValidDateTime() && value && (
+            {isValidDateTime(value) && value && (
               <div className="p-3 bg-muted rounded-lg">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-muted-foreground">Will expire:</span>
@@ -278,10 +276,10 @@ export function ExpiryDateTimeField({
 
       {/* No Expiry State */}
       {!hasExpiry && allowNoExpiry && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+        <div className="p-3 bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg">
           <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-green-600" />
-            <span className="text-sm text-green-700 font-medium">
+            <Clock className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <span className="text-sm text-green-700 dark:text-green-300 font-medium">
               No expiry date set - this will remain active indefinitely
             </span>
           </div>

@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/form"
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import DateTimePickerInput from "@/components/ui/date-picker/date-picker-input";
+import DateTimePickerInput from "@/components/ui/date-picker/datetime-picker-input";
 import { FileInput, FileUploader, FileUploaderContent, FileUploaderItem } from "@/components/ui/file-upload";
 import { DropzoneOptions } from "react-dropzone";
 import { GuestIssuerInputs } from "./guest-issuer-inputs";

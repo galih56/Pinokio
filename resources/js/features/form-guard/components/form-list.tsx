@@ -23,9 +23,8 @@ import { useEffect, useState } from "react"
 import { formatDate, formatTime } from "@/lib/datetime"
 import { getFormQueryOptions } from "@/features/form-guard/api/get-form"
 import { useForms } from "@/features/form-guard/api/get-forms"
-import { useGenerateFormLink } from "../api/create-form-link"
-import { useDisclosure } from "@/hooks/use-disclosure" 
-import { GenerateLinkDialog } from "./generate-link-dialog"
+import { useGenerateLinkDialog } from "./generate-link/use-generate-link-dialog"
+import { GenerateLinkDialog } from "./generate-link/generate-link-dialog"
 
 export type FormsListProps = {
   onFormPrefetch?: (id: string) => void
@@ -44,43 +43,15 @@ export const FormsList = ({ onFormPrefetch }: FormsListProps) => {
 
   const [searchTerm, setSearchTerm] = useState(search)
 
-  const { isOpen, open, close } = useDisclosure()
-  const [selectedForm, setSelectedForm] = useState<Form | null>(null)
-  const [generatedLink, setGeneratedLink] = useState<string | null>(null)
-
-  const generateFormLinkMutation = useGenerateFormLink({
-    mutationConfig: {
-      onSuccess: (form) => {
-        setGeneratedLink(form.formUrl || null)
-      },
-    },
-  })
-
-  const handleGenerateLink = (form: Form) => {
-    setSelectedForm(form)
-    setGeneratedLink(null)
-    open()
-  }
-
-  
-  const handleGenerateLinkWithExpiry = (formId: string, expiresAt: Date | null) => {
-    generateFormLinkMutation.mutate({
-      formId,
-      expiresAt,
-    })
-  }
-
-  
-  const handleDialogClose = (open: boolean) => {
-    if (!open) {
-      close()
-      // Reset state when closing
-      setTimeout(() => {
-        setSelectedForm(null)
-        setGeneratedLink(null)
-      }, 150)
-    }
-  }
+  const {
+    isOpen,
+    selectedForm,
+    generatedLink,
+    isGenerating,
+    handleGenerateLink,
+    handleGenerateLinkWithExpiry,
+    handleDialogClose,
+  } = useGenerateLinkDialog()
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -128,7 +99,7 @@ export const FormsList = ({ onFormPrefetch }: FormsListProps) => {
               </Link>
               <DropdownMenuItem onClick={() => handleGenerateLink(form)}>
                 <LinkIcon className="h-4 w-4 mr-2" />
-                Generate Link
+                Get the link
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </DropdownMenuContent>
@@ -173,6 +144,15 @@ export const FormsList = ({ onFormPrefetch }: FormsListProps) => {
       },
     },
     {
+      accessorKey: "timeLimit",
+      header: "Time Limit",
+      meta: { cellClassName: "max-w-[40vh]" },
+      cell: ({ row }) => {
+        const form = row.original
+        return <>{form.timeLimit}</>
+      },
+    },
+    {
       accessorKey: "createdAt",
       header: "Created At",
       cell: ({ row }) => {
@@ -181,8 +161,8 @@ export const FormsList = ({ onFormPrefetch }: FormsListProps) => {
 
         return (
           <span className="text-xs text-nowrap">
-            {formatDate(form.createdAt)} 
-             <br />
+            {formatDate(form.createdAt)}
+            <br />
             {formatTime(form.createdAt)}
           </span>
         )
@@ -236,7 +216,7 @@ export const FormsList = ({ onFormPrefetch }: FormsListProps) => {
         item={selectedForm}
         onGenerateLink={handleGenerateLinkWithExpiry}
         generatedLink={generatedLink}
-        isGenerating={generateFormLinkMutation.isPending}
+        isGenerating={isGenerating}
         title="Generate Form Link"
         description="Generate a shareable link for this form with custom expiry settings"
         itemTypeLabel="Form"

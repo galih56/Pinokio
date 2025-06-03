@@ -125,7 +125,7 @@ class FormController extends Controller
             $form = $this->formService->update($id, $request->all());
 
             DB::commit();
-            return ApiResponse::sendResponse( $form , 'Form Succesdsful','success',201);
+            return ApiResponse::sendResponse( $form , 'Form Update Succesdsful','success',201);
 
         }catch(\Exception $ex){
             return ApiResponse::rollback($ex);
@@ -139,6 +139,6 @@ class FormController extends Controller
     {
         $this->formService->deleteForm($id);
         
-        return ApiResponse::sendResponse('Form Deleted Successful','',204);
+        return ApiResponse::sendResponse('Form Delete Successful','',204);
     }
 }

@@ -10,8 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { formatDateTime } from "@/lib/datetime"
 import { toast } from "sonner"
-import { TimeLimitField } from "./time-limit-field"
-import { ExpiryDateTimeField } from "./expiry-date-time-field"
+import { TimeLimitField } from "../time-limit-field"
+import { ExpiryDateTimeField } from "../expiry-date-time-field"
 import DialogOrDrawer from "@/components/layout/dialog-or-drawer"
 
 export interface GenerateLinkItem {
@@ -42,7 +42,7 @@ export function GenerateLinkDialog<T extends GenerateLinkItem>({
   onGenerateLink,
   generatedLink,
   isGenerating,
-  title = "Generate Link",
+  title = "Get the link",
   description = "Generate a shareable link with custom expiry settings",
   itemTypeLabel = "item",
   defaultExpiryDays = 7,
@@ -194,7 +194,7 @@ export function GenerateLinkDialog<T extends GenerateLinkItem>({
                 ) : (
                   <>
                     <LinkIcon className="h-4 w-4 mr-2" />
-                    Generate Link
+                    Get the link
                   </>
                 )}
               </Button>

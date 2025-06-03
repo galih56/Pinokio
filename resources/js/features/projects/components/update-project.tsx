@@ -23,7 +23,7 @@ import {
 
 import { Button } from '@/components/ui/button';
 import { Authorization, ROLES } from '@/lib/authorization';
-import { DatePicker } from '@/components/ui/date-picker/date-picker';
+import { DatePicker } from '@/components/ui/date-picker/date-time-picker';
 
 import { useIssue } from '../api/get-issue';
 import {

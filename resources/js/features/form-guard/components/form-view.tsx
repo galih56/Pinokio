@@ -5,8 +5,6 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Progress } from "@/components/ui/progress"
-import { formatDate, formatDateTime } from "@/lib/datetime"
-import DOMPurify from "dompurify"
 import {
   FileText,
   Settings,
@@ -25,23 +23,26 @@ import {
   ExternalLink,
   Copy,
   Edit,
-  Link,
   Send,
   Clock,
   AlertTriangle,
+  Link,
 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
+import DOMPurify from "dompurify"
+import { formatDate, formatDateTime } from "@/lib/datetime"
+import { DescriptionSectionEdit } from "./form-sections/description-section-edit"
+import { ConfigSectionEdit } from "./form-sections/config-section-edit"
+import { AdvancedSectionEdit } from "./form-sections/advanced-section-edit"
+import { ExpirySectionEdit } from "./form-sections/expiry-section-edit"
 import { useFormDetail } from "../api/get-form"
+import { useUpdateForm } from "../api/update-form"
+import { useGenerateLinkDialog } from "./generate-link/use-generate-link-dialog"
+import { GenerateLinkDialog } from "./generate-link/generate-link-dialog"
 import { adjustActiveBreadcrumbs } from "@/components/layout/breadcrumbs/breadcrumbs-store"
-import { Spinner } from "@/components/ui/spinner"
 
-interface TokenStats {
-  generated: number
-  used: number
-  unused: number
-  expired: number
-}
+type EditingSection = "description" | "config" | "advanced" | "expiry" | null
 
 interface FormViewProps {
   formId: string
@@ -49,45 +50,97 @@ interface FormViewProps {
 }
 
 export function FormView({ formId, onGenerateLink }: FormViewProps) {
+  const [editingSection, setEditingSection] = useState<EditingSection>(null)
   const [copiedUrl, setCopiedUrl] = useState(false)
-  const [tokenStats, setTokenStats] = useState<TokenStats>({
+
+  const { isOpen, selectedForm, generatedLink, isGenerating, handleGenerateLink , handleGenerateLinkWithExpiry, handleDialogClose } =
+    useGenerateLinkDialog();
+
+  const formQuery = useFormDetail({ formId })
+  const updateFormMutation = useUpdateForm({
+    formId,
+    mutationConfig: {
+      onSuccess: () => {
+        setEditingSection(null)
+      },
+      onError: (error: any) => {},
+    },
+  })
+
+  // Mock token stats - replace with real data
+  const [tokenStats] = useState({
     generated: 45,
     used: 32,
     unused: 8,
     expired: 5,
   })
 
-  const formQuery = useFormDetail({
-    formId,
-  })
-
-  
-  const form = formQuery?.data?.data
+  const form = formQuery.data?.data
   adjustActiveBreadcrumbs(`/forms/:id`, `/forms/${formId}`, form?.title, [form])
 
-  if (!formId) {
-    return <h1>Unrecognized Request</h1>
+  const handleSaveDescription = (data: { title: string; description?: string }) => {
+    if (!form) return
+
+    updateFormMutation.mutate({
+      data: {
+        ...form,
+        title: data.title,
+        description: data.description,
+      },
+      formId,
+    })
   }
 
-  if (formQuery.isPending) {
-    return (
-      <div className="flex h-48 w-full items-center justify-center">
-        <Spinner size="lg" />
-      </div>
-    )
+  const handleSaveConfig = (data: {
+    provider: "Pinokio" | "Google Form"
+    formCode?: string
+    formUrl?: string
+    accessType: "public" | "token" | "identifier"
+    isActive: boolean
+  }) => {
+    if (!form) return
+
+    updateFormMutation.mutate({
+      data: {
+        ...form,
+        provider: data.provider,
+        formCode: data.formCode,
+        formUrl: data.formUrl,
+        accessType: data.accessType,
+        isActive: data.isActive,
+      },
+      formId,
+    })
   }
 
-  if (!form) return null
-  
-  const copyFormUrl = async () => {
-    if (form.formUrl) {
-      await navigator.clipboard.writeText(form.formUrl)
-      setCopiedUrl(true)
-      toast.info("URL Copied", {
-        description: "Form URL has been copied to clipboard",
-      })
-      setTimeout(() => setCopiedUrl(false), 2000)
-    }
+  const handleSaveAdvanced = (data: {
+    proctored: boolean
+    timeLimit?: number
+    allowMultipleAttempts: boolean
+  }) => {
+    if (!form) return
+
+    updateFormMutation.mutate({
+      data: {
+        ...form,
+        proctored: data.proctored,
+        timeLimit: data.timeLimit,
+        allowMultipleAttempts: data.allowMultipleAttempts,
+      },
+      formId,
+    })
+  }
+
+  const handleSaveExpiry = (data: { expiresAt: Date | null }) => {
+    if (!form) return
+
+    updateFormMutation.mutate({
+      data: {
+        ...form,
+        expiresAt: data.expiresAt,
+      },
+      formId,
+    })
   }
 
   const getAccessTypeIcon = (accessType: string) => {
@@ -129,18 +182,34 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
     }
   }
 
-  const getProviderIcon = (provider: string) => {
-    switch (provider) {
-      case "Google Form":
-        return "🔗"
-      case "Pinokio":
-        return "📝"
-      default:
-        return "📄"
+  const copyFormUrl = async () => {
+    if (form?.formUrl) {
+      await navigator.clipboard.writeText(form.formUrl)
+      setCopiedUrl(true)
+      toast.info("URL Copied", {
+        description: "Form URL has been copied to clipboard",
+      })
+      setTimeout(() => setCopiedUrl(false), 2000)
     }
   }
 
   const completionRate = tokenStats.generated > 0 ? (tokenStats.used / tokenStats.generated) * 100 : 0
+
+  if (formQuery.isPending) {
+    return (
+      <div className="flex h-48 w-full items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (formQuery.isError || !form) {
+    return (
+      <div className="flex h-48 w-full items-center justify-center">
+        <p className="text-red-500">Failed to load form data</p>
+      </div>
+    )
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -171,149 +240,241 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
-            <Edit className="h-4 w-4 mr-2" />
-            Edit Form
-          </Button>
           <Button size="sm">
             <Eye className="h-4 w-4 mr-2" />
             Preview
           </Button>
-          <Button variant="outline" size="sm" onClick={onGenerateLink}>
+          <Button size={"sm"}  onClick={() => handleGenerateLink(form)}  >
             <Link className="h-4 w-4 mr-2" />
-            Generate Link
+            Get the link
           </Button>
         </div>
       </div>
 
       {/* Description Card */}
-      {form.description && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="h-5 w-5" />
-              Description
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div
-              className="prose prose-sm max-w-none"
-              dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(form.description) }}
-            />
-          </CardContent>
-        </Card>
+      {editingSection === "description" ? (
+        <DescriptionSectionEdit
+          initialData={{
+            title: form.title,
+            description: form.description,
+          }}
+          onSave={handleSaveDescription}
+          onCancel={() => setEditingSection(null)}
+          isPending={updateFormMutation.isPending}
+        />
+      ) : (
+        form.description && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Description
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div
+                className="prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(form.description) }}
+              />
+            </CardContent>
+          </Card>
+        )
       )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Form Configuration */}
-        <Card className="lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Settings className="h-5 w-5" />
-              Form Configuration
-            </CardTitle>
-            <CardDescription>Basic settings and provider information</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {/* Provider Section */}
-            <div className="space-y-3">
-              <h4 className="font-medium flex items-center gap-2">
-                <span className="text-lg">{getProviderIcon(form.provider)}</span>
-                Provider Details
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Provider</p>
-                  <p className="text-sm">{form.provider}</p>
+        {editingSection === "config" ? (
+          <ConfigSectionEdit
+            initialData={{
+              provider: form.provider,
+              formCode: form.formCode,
+              formUrl: form.formUrl,
+              accessType: form.accessType,
+              isActive: form.isActive,
+            }}
+            onSave={handleSaveConfig}
+            onCancel={() => setEditingSection(null)}
+            isPending={updateFormMutation.isPending}
+          />
+        ) : (
+          <Card className="lg:col-span-2">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Form Configuration
+                  </CardTitle>
+                  <CardDescription>Basic settings and provider information</CardDescription>
                 </div>
-                {form.formUrl && (
+                <Button variant="outline" size="sm" onClick={() => setEditingSection("config")}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Provider Section */}
+              <div className="space-y-3">
+                <h4 className="font-medium flex items-center gap-2">
+                  <span className="text-lg">{form.provider === "Google Form" ? "🔗" : "📝"}</span>
+                  Provider Details
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <p className="text-sm font-medium text-muted-foreground">Form URL</p>
+                    <p className="text-sm font-medium text-muted-foreground">Provider</p>
+                    <p className="text-sm">{form.provider}</p>
+                  </div>
+                  {form.formUrl && (
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium text-muted-foreground">Form URL</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm truncate flex-1">{form.formUrl}</p>
+                        <Button variant="ghost" size="sm" onClick={copyFormUrl} className="h-6 w-6 p-0">
+                          {copiedUrl ? <CheckCircle className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => window.open(form.formUrl, "_blank")}
+                          className="h-6 w-6 p-0"
+                        >
+                          <ExternalLink className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Access Configuration */}
+              <div className="space-y-3">
+                <h4 className="font-medium flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Access Configuration
+                </h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium text-muted-foreground">Access Type</p>
                     <div className="flex items-center gap-2">
-                      <p className="text-sm truncate flex-1">{form.formUrl}</p>
-                      <Button variant="ghost" size="sm" onClick={copyFormUrl} className="h-6 w-6 p-0">
-                        {copiedUrl ? <CheckCircle className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => window.open(form.formUrl, "_blank")}
-                        className="h-6 w-6 p-0"
-                      >
-                        <ExternalLink className="h-3 w-3" />
-                      </Button>
+                      {getAccessTypeIcon(form.accessType)}
+                      <p className="text-sm capitalize">{getAccessTypeTitle(form.accessType)}</p>
                     </div>
                   </div>
-                )}
-              </div>
-            </div>
-
-            <Separator />
-
-            {/* Access Configuration */}
-            <div className="space-y-3">
-              <h4 className="font-medium flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Access Configuration
-              </h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <p className="text-sm font-medium text-muted-foreground">Access Type</p>
-                  <div className="flex items-center gap-2">
-                    {getAccessTypeIcon(form.accessType)}
-                    <p className="text-sm capitalize">{getAccessTypeTitle(form.accessType)}</p>
-                  </div>
                 </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Advanced Settings */}
+        {editingSection === "advanced" ? (
+          <AdvancedSectionEdit
+            initialData={{
+              proctored: form.proctored,
+              timeLimit: form.timeLimit,
+              allowMultipleAttempts: form.allowMultipleAttempts,
+            }}
+            onSave={handleSaveAdvanced}
+            onCancel={() => setEditingSection(null)}
+            isPending={updateFormMutation.isPending}
+          />
+        ) : (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    Advanced Settings
+                  </CardTitle>
+                  <CardDescription>Security and behavior options</CardDescription>
+                </div>
+                <Button variant="outline" size="sm" onClick={() => setEditingSection("advanced")}>
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Proctoring */}
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Eye className="h-4 w-4" />
+                  <span className="text-sm font-medium">Proctoring</span>
+                </div>
+                <Badge variant={form.proctored ? "default" : "secondary"}>
+                  {form.proctored ? "Enabled" : "Disabled"}
+                </Badge>
+              </div>
+
+              {/* Time Limit */}
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <Timer className="h-4 w-4" />
+                  <span className="text-sm font-medium">Time Limit</span>
+                </div>
+                <Badge variant="outline">{form.timeLimit ? `${form.timeLimit} min` : "No limit"}</Badge>
+              </div>
+
+              {/* Multiple Attempts */}
+              <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4" />
+                  <span className="text-sm font-medium">Multiple Attempts</span>
+                </div>
+                <Badge variant={form.allowMultipleAttempts ? "default" : "secondary"}>
+                  {form.allowMultipleAttempts ? "Allowed" : "Not allowed"}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Expiry Settings */}
+      {editingSection === "expiry" ? (
+        <ExpirySectionEdit
+          initialData={{
+            expiresAt: form.expiresAt ? new Date(form.expiresAt) : null,
+          }}
+          onSave={handleSaveExpiry}
+          onCancel={() => setEditingSection(null)}
+          isPending={updateFormMutation.isPending}
+        />
+      ) : (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Shield className="h-5 w-5" />
-              Advanced Settings
-            </CardTitle>
-            <CardDescription>Security and behavior options</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Calendar className="h-5 w-5" />
+                  Expiry Settings
+                </CardTitle>
+                <CardDescription>When this form will expire</CardDescription>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setEditingSection("expiry")}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Proctoring */}
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Eye className="h-4 w-4" />
-                <span className="text-sm font-medium">Proctoring</span>
+          <CardContent>
+            <div className="p-3 bg-muted/50 rounded-lg">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Expiry Date</span>
+                <Badge variant={form.expiresAt ? "outline" : "secondary"}>
+                  {form.expiresAt ? formatDateTime(form.expiresAt) : "No expiry"}
+                </Badge>
               </div>
-              <Badge variant={form.proctored ? "default" : "secondary"}>
-                {form.proctored ? "Enabled" : "Disabled"}
-              </Badge>
-            </div>
-
-            {/* Time Limit */}
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-2">
-                <Timer className="h-4 w-4" />
-                <span className="text-sm font-medium">Time Limit</span>
-              </div>
-              <Badge variant="outline">{form.timeLimit ? `${form.timeLimit} min` : "No limit"}</Badge>
-            </div>
-
-            {/* Multiple Attempts */}
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <div className="flex items-center gap-2">
-                <RefreshCw className="h-4 w-4" />
-                <span className="text-sm font-medium">Multiple Attempts</span>
-              </div>
-              <Badge variant={form.allowMultipleAttempts ? "default" : "secondary"}>
-                {form.allowMultipleAttempts ? "Allowed" : "Not allowed"}
-              </Badge>
             </div>
           </CardContent>
         </Card>
-      </div>
+      )}
 
-      {/* Assessment Progress Card - NEW */}
+      {/* Assessment Progress Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -399,11 +560,10 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
               <h4 className="text-sm font-medium">Quick Actions</h4>
 
               <div className="space-y-2">
-                <Button className="w-full justify-start" onClick={onGenerateLink}>
+                <Button size={"sm"}  onClick={() => handleGenerateLink(form)}  >
                   <Link2 className="h-4 w-4 mr-2" />
-                  Generate New Link
+                  Get the link
                 </Button>
-
                 <Button variant="outline" className="w-full justify-start">
                   <Send className="h-4 w-4 mr-2" />
                   Send Reminders
@@ -455,7 +615,7 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Due Date</p>
-              <p className="text-sm">{form.dueDate ? formatDate(form.dueDate) : "No due date"}</p>
+              <p className="text-sm">{form.expiresAt ? formatDate(form.expiresAt) : "No due date"}</p>
             </div>
           </div>
         </CardContent>
@@ -494,6 +654,19 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
           </CardContent>
         </Card>
       )}
+
+      <GenerateLinkDialog
+        isOpen={isOpen}
+        onOpenChange={handleDialogClose}
+        item={selectedForm}
+        onGenerateLink={handleGenerateLinkWithExpiry}
+        generatedLink={generatedLink}
+        isGenerating={isGenerating}
+        title="Generate Form Link"
+        description="Generate a shareable link for this form with custom expiry settings"
+        itemTypeLabel="Form"
+        defaultExpiryDays={1}
+      />
     </div>
   )
 }
