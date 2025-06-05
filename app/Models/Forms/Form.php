@@ -34,8 +34,4 @@ class Form extends Model
         return $this->hasMany(FormAttempt::class);
     }
 
-    public function template()
-    {
-        return $this->hasOne(FormTemplate::class);
-    }
 }

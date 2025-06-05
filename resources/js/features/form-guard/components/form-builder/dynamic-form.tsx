@@ -13,13 +13,15 @@ import { Textarea } from "@/components/ui/textarea"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
 import type { FormSection } from "@/types/form"
-import { useMutation } from "@tanstack/react-query"
+import { useState } from "react"
+import { toast } from "sonner"
 
 interface DynamicFormProps {
+  formId?: string
   sections: FormSection[]
   title: string
   description: string
-  onSubmit: (data: any) => void
+  onSubmit?: (data: any) => void
 }
 
 function createFormSchema(sections: FormSection[]) {
@@ -66,34 +68,45 @@ function createFormSchema(sections: FormSection[]) {
   return z.object(schemaFields)
 }
 
-export function DynamicForm({ sections, title, description, onSubmit }: DynamicFormProps) {
+export function DynamicForm({ formId, sections, title, description, onSubmit }: DynamicFormProps) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const allFields = sections.flatMap((section) => section.fields)
   const schema = createFormSchema(sections)
+
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: allFields.reduce(
       (acc, field) => {
-        acc[field.id] = field.type === "checkbox" ? [] : ""
+        acc[field.id] = field.type === "checkbox" ? [] : field.defaultValue || ""
         return acc
       },
       {} as Record<string, any>,
     ),
   })
 
-  const submitMutation = useMutation({
-    mutationFn: async (data: any) => {
+  const handleSubmit = async (data: any) => {
+    setIsSubmitting(true)
+
+    try {
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000))
-      return data
-    },
-    onSuccess: (data) => {
-      onSubmit(data)
-      form.reset()
-    },
-  })
 
-  const handleSubmit = (data: any) => {
-    submitMutation.mutate(data)
+      if (formId) {
+        console.log("Form response submitted:", { formId, data })
+        toast.success("Form submitted successfully!")
+      } else {
+        console.log("Preview form submitted:", data)
+        toast.success("Form submitted successfully! (Preview mode)")
+      }
+
+      onSubmit?.(data)
+      form.reset()
+    } catch (error) {
+      console.error("Form submission error:", error)
+      toast.error("Failed to submit form. Please try again.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   if (sections.length === 0 || allFields.length === 0) {
@@ -221,8 +234,8 @@ export function DynamicForm({ sections, title, description, onSubmit }: DynamicF
             </div>
           ))}
 
-          <Button type="submit" className="w-full" disabled={submitMutation.isPending}>
-            {submitMutation.isPending ? "Submitting..." : "Submit"}
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
+            {isSubmitting ? "Submitting..." : "Submit"}
           </Button>
         </form>
       </Form>

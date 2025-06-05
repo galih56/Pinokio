@@ -173,17 +173,16 @@ export const getCommentableCreator = (commentable?: Issue | Project | Task) => {
 
     return null;
 };
-
 export interface Form {
   id: string;
   title: string;
   type: 'internal' | 'google';
   formCode?: string;
-  provider : 'Pinokio' | 'Google Form'
+  provider: 'Pinokio' | 'Google Form';
   formUrl?: string;
   description?: string;
-  requiresToken : boolean,
-  requiresIdentifier: boolean,
+  requiresToken: boolean;
+  requiresIdentifier: boolean;
   identifierLabel?: string;
   identifierDescription?: string;
   identifierType?: string;
@@ -194,24 +193,21 @@ export interface Form {
   expiresAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
-}
 
-export interface FormTemplate {
-  id: string;
-  formId: string;
-  description?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  // NEW: add optional relations for convenience (optional in TS)
+  groups?: FormGroup[];  // groups belong directly to Form now
 }
 
 export interface FormGroup {
   id: string;
-  formTemplateId: string;
+  formId: string; 
   name: string;
   description?: string;
   order: number;
   createdAt: Date;
   updatedAt: Date;
+
+  fields?: FormField[];
 }
 
 export interface FieldType {
@@ -233,6 +229,8 @@ export interface FormField {
   order: number;
   createdAt: Date;
   updatedAt: Date;
+
+  options?: FormFieldOption[];
 }
 
 export interface FormFieldOption {
@@ -272,7 +270,7 @@ export interface FormAttempt {
 
 export interface FormSubmission {
   id: string;
-  formTemplateId: string;
+  formId: string;
   submittedBy?: number;
   submittedAt: Date;
 }
@@ -283,5 +281,4 @@ export interface FormEntry {
   formFieldId: string;
   value: string;
 }
-
 

@@ -73,6 +73,19 @@ export const createAppRouter = (queryClient: QueryClient) => {
           },
           ErrorBoundary: AppRootErrorBoundary,
         },
+        {
+          path: paths.formBuilder.path,
+          lazy: async () => {
+            const { FormRoute, formLoader } = await import(
+              '@/pages/app/form-guard/form-builder'
+            );
+            return {
+              Component: FormRoute,
+              loader: formLoader(queryClient),
+            };
+          },
+          ErrorBoundary: AppRootErrorBoundary,
+        },
         /*
         {
           path: paths.tasks.path,

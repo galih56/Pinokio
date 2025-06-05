@@ -1,6 +1,5 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -10,102 +9,33 @@ import { FieldTypeSelector } from "./field-type-selector"
 import { FieldEditor } from "./field-editor"
 import { SectionEditor } from "./section-editor"
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"
-import type { FormSection, FormField, FieldType } from "@/types/form"
+import type { FieldType } from "@/types/form"
 import { GripVertical, Trash2, Plus, FolderPlus, ImageIcon } from "lucide-react"
-import { generateId } from "@/lib/utils"
+import { useFormBuilderStore, useFormTemplate, useFormSelection } from "../../store/form-builder-store"
 
-interface FormDesignerProps {
-  formSections: FormSection[]
-  setFormSections: (sections: FormSection[]) => void
-  formTitle: string
-  setFormTitle: (title: string) => void
-  formDescription: string
-  setFormDescription: (description: string) => void
-}
+export function FormDesigner() {
+  const { formTitle, formDescription, formSections } = useFormTemplate()
+  const { selectedFieldId, selectedSectionId } = useFormSelection()
 
-export function FormDesigner({
-  formSections,
-  setFormSections,
-  formTitle,
-  setFormTitle,
-  formDescription,
-  setFormDescription,
-}: FormDesignerProps) {
-  const [selectedField, setSelectedField] = useState<string | null>(null)
-  const [selectedSection, setSelectedSection] = useState<string | null>(null)
+  const {
+    setFormTitle,
+    setFormDescription,
+    addSection,
+    updateSection,
+    deleteSection,
+    reorderSections,
+    addField,
+    updateField,
+    deleteField,
+    moveField,
+    selectField,
+    selectSection,
+  } = useFormBuilderStore()
 
-  // Auto-select first section when form loads
-  useEffect(() => {
-    if (formSections.length > 0 && !selectedSection && !selectedField) {
-      setSelectedSection(formSections[0].id)
-    }
-  }, [formSections, selectedSection, selectedField])
-
-  const addSection = () => {
-    const newSection: FormSection = {
-      id: generateId(),
-      title: `Section ${formSections.length + 1}`,
-      description: "",
-      fields: [],
-    }
-    setFormSections([...formSections, newSection])
-    setSelectedSection(newSection.id)
-    setSelectedField(null)
-  }
-
-  const addField = (type: FieldType) => {
-    // Use selected section, or default to first section if none selected
-    const targetSectionId = selectedSection || formSections[0]?.id
-    if (!targetSectionId) return
-
-    const newField: FormField = {
-      id: generateId(),
-      type,
-      label: `${type.charAt(0).toUpperCase() + type.slice(1)} Field`,
-      placeholder: "",
-      required: false,
-      options: type === "select" || type === "radio" || type === "checkbox" ? ["Option 1"] : undefined,
-    }
-
-    setFormSections(
-      formSections.map((section) =>
-        section.id === targetSectionId ? { ...section, fields: [...section.fields, newField] } : section,
-      ),
-    )
-    setSelectedField(newField.id)
-    setSelectedSection(targetSectionId) // Keep the section selected
-  }
-
-  const updateField = (fieldId: string, updates: Partial<FormField>) => {
-    setFormSections(
-      formSections.map((section) => ({
-        ...section,
-        fields: section.fields.map((field) => (field.id === fieldId ? { ...field, ...updates } : field)),
-      })),
-    )
-  }
-
-  const updateSection = (sectionId: string, updates: Partial<FormSection>) => {
-    setFormSections(formSections.map((section) => (section.id === sectionId ? { ...section, ...updates } : section)))
-  }
-
-  const deleteField = (fieldId: string) => {
-    setFormSections(
-      formSections.map((section) => ({
-        ...section,
-        fields: section.fields.filter((field) => field.id !== fieldId),
-      })),
-    )
-    if (selectedField === fieldId) {
-      setSelectedField(null)
-    }
-  }
-
-  const deleteSection = (sectionId: string) => {
-    if (formSections.length <= 1) return // Keep at least one section
-    setFormSections(formSections.filter((section) => section.id !== sectionId))
-    if (selectedSection === sectionId) {
-      setSelectedSection(null)
+  const addFieldToSection = (type: FieldType) => {
+    const targetSectionId = selectedSectionId || formSections[0]?.id
+    if (targetSectionId) {
+      addField(targetSectionId, type)
     }
   }
 
@@ -116,53 +46,34 @@ export function FormDesigner({
 
     // Handle section reordering
     if (result.type === "SECTION") {
-      const newSections = Array.from(formSections)
-      const [reorderedSection] = newSections.splice(source.index, 1)
-      newSections.splice(destination.index, 0, reorderedSection)
-      setFormSections(newSections)
+      reorderSections(source.index, destination.index)
       return
     }
 
-    // Handle field reordering within sections
-    const sourceSectionIndex = formSections.findIndex((s) => s.id === source.droppableId)
-    const destSectionIndex = formSections.findIndex((s) => s.id === destination.droppableId)
+    // Handle field reordering
+    const sourceSection = formSections.find((s) => s.id === source.droppableId)
+    const destSection = formSections.find((s) => s.id === destination.droppableId)
 
-    if (sourceSectionIndex === -1 || destSectionIndex === -1) return
+    if (!sourceSection || !destSection) return
 
-    const newSections = [...formSections]
+    const fieldId = sourceSection.fields[source.index]?.id
+    if (!fieldId) return
 
-    // Moving within the same section
-    if (source.droppableId === destination.droppableId) {
-      const fields = Array.from(newSections[sourceSectionIndex].fields)
-      const [reorderedField] = fields.splice(source.index, 1)
-      fields.splice(destination.index, 0, reorderedField)
-      newSections[sourceSectionIndex] = { ...newSections[sourceSectionIndex], fields }
-    } else {
-      // Moving between sections
-      const sourceFields = Array.from(newSections[sourceSectionIndex].fields)
-      const destFields = Array.from(newSections[destSectionIndex].fields)
-      const [movedField] = sourceFields.splice(source.index, 1)
-      destFields.splice(destination.index, 0, movedField)
-
-      newSections[sourceSectionIndex] = { ...newSections[sourceSectionIndex], fields: sourceFields }
-      newSections[destSectionIndex] = { ...newSections[destSectionIndex], fields: destFields }
-    }
-
-    setFormSections(newSections)
+    moveField(fieldId, source.droppableId, destination.droppableId, destination.index)
   }
 
   const getSelectedField = () => {
-    if (!selectedField) return null
+    if (!selectedFieldId) return null
     for (const section of formSections) {
-      const field = section.fields.find((f) => f.id === selectedField)
+      const field = section.fields.find((f) => f.id === selectedFieldId)
       if (field) return field
     }
     return null
   }
 
   const getSelectedSection = () => {
-    if (!selectedSection) return null
-    return formSections.find((s) => s.id === selectedSection) || null
+    if (!selectedSectionId) return null
+    return formSections.find((s) => s.id === selectedSectionId) || null
   }
 
   return (
@@ -223,14 +134,11 @@ export function FormDesigner({
                             {/* Section Header */}
                             <div
                               className={`flex items-center gap-3 mb-4 p-3 rounded cursor-pointer transition-colors ${
-                                selectedSection === section.id
+                                selectedSectionId === section.id
                                   ? "bg-blue-50 border border-blue-200"
                                   : "bg-gray-50 hover:bg-gray-100"
                               }`}
-                              onClick={() => {
-                                setSelectedSection(section.id)
-                                setSelectedField(null)
-                              }}
+                              onClick={() => selectSection(section.id)}
                             >
                               <div {...provided.dragHandleProps}>
                                 <GripVertical className="h-4 w-4 text-gray-400" />
@@ -249,7 +157,7 @@ export function FormDesigner({
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  addField("text")
+                                  addField(section.id, "text")
                                 }}
                               >
                                 <Plus className="h-4 w-4" />
@@ -282,14 +190,11 @@ export function FormDesigner({
                                           ref={provided.innerRef}
                                           {...provided.draggableProps}
                                           className={`p-3 border rounded cursor-pointer transition-colors ${
-                                            selectedField === field.id
+                                            selectedFieldId === field.id
                                               ? "border-blue-500 bg-blue-50"
                                               : "border-gray-200 hover:border-gray-300 bg-white"
                                           }`}
-                                          onClick={() => {
-                                            setSelectedField(field.id)
-                                            setSelectedSection(null)
-                                          }}
+                                          onClick={() => selectField(field.id)}
                                         >
                                           <div className="flex items-center gap-3">
                                             <div {...provided.dragHandleProps}>
@@ -342,22 +247,22 @@ export function FormDesigner({
       {/* Controls Panel */}
       <div className="space-y-6">
         <FieldTypeSelector
-          onAddField={addField}
+          onAddField={addFieldToSection}
           targetSection={
-            selectedSection
-              ? formSections.find((s) => s.id === selectedSection)?.title
+            selectedSectionId
+              ? formSections.find((s) => s.id === selectedSectionId)?.title
               : formSections[0]?.title || "No sections available"
           }
         />
 
-        {selectedField && (
-          <FieldEditor field={getSelectedField()!} onUpdate={(updates) => updateField(selectedField, updates)} />
+        {selectedFieldId && (
+          <FieldEditor field={getSelectedField()!} onUpdate={(updates) => updateField(selectedFieldId, updates)} />
         )}
 
-        {selectedSection && (
+        {selectedSectionId && (
           <SectionEditor
             section={getSelectedSection()!}
-            onUpdate={(updates) => updateSection(selectedSection, updates)}
+            onUpdate={(updates) => updateSection(selectedSectionId, updates)}
           />
         )}
       </div>

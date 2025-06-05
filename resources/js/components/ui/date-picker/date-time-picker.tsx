@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 interface DateTimeInputProps {
   value: Date | undefined
   onChange: (value: Date | undefined) => void
-  disabled?: boolean
+  disabledDate?: (date: Date) => boolean
   className?: string
   placeholder?: string
   showTimeSelect?: boolean
@@ -23,7 +23,7 @@ interface DateTimeInputProps {
 export function DateTimeInput({
   value,
   onChange,
-  disabled,
+  disabledDate,
   className,
   placeholder = "Pick a date",
   showTimeSelect = true,
@@ -98,7 +98,7 @@ export function DateTimeInput({
               id="date"
               variant={"outline"}
               className={cn("w-full justify-start text-left font-normal", !date && "text-muted-foreground")}
-              disabled={disabled}
+              disabled={disabledDate}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {date ? format(date, "PPP") : placeholder}
@@ -110,7 +110,7 @@ export function DateTimeInput({
               selected={date}
               onSelect={handleDateSelect}
               initialFocus
-              disabled={disabled}
+              disabled={disabledDate}
               minDate={minDate}
               maxDate={maxDate}
             />
@@ -126,7 +126,7 @@ export function DateTimeInput({
             <Select
               value={date ? date.getHours().toString().padStart(2, "0") : undefined}
               onValueChange={handleHourChange}
-              disabled={disabled}
+              disabled={disabledDate}
             >
               <SelectTrigger className="w-[70px]">
                 <SelectValue placeholder="HH" />
@@ -146,7 +146,7 @@ export function DateTimeInput({
             <Select
               value={date ? date.getMinutes().toString().padStart(2, "0") : undefined}
               onValueChange={handleMinuteChange}
-              disabled={disabled}
+              disabled={disabledDate}
             >
               <SelectTrigger className="w-[70px]">
                 <SelectValue placeholder="MM" />

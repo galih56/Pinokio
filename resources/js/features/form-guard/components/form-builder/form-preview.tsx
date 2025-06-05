@@ -2,15 +2,11 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DynamicForm } from "./dynamic-form"
-import type { FormSection } from "@/types/form"
+import { useFormTemplate } from "../../store/form-builder-store"
 
-interface FormPreviewProps {
-  formSections: FormSection[]
-  formTitle: string
-  formDescription: string
-}
+export function FormPreview() {
+  const { formTitle, formDescription, formSections } = useFormTemplate()
 
-export function FormPreview({ formSections, formTitle, formDescription }: FormPreviewProps) {
   return (
     <div className="max-w-2xl mx-auto">
       <Card>
@@ -24,7 +20,6 @@ export function FormPreview({ formSections, formTitle, formDescription }: FormPr
             description={formDescription}
             onSubmit={(data) => {
               console.log("Form submitted:", data)
-              alert("Form submitted successfully! Check console for data.")
             }}
           />
         </CardContent>

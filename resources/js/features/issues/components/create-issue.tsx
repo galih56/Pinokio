@@ -164,7 +164,7 @@ export default function CreateIssue({
                     <DateTimePickerInput
                       value={field.value || undefined}
                       onChange={field.onChange}
-                      disabledDate={(date) => date < new Date()}
+                      disabledDate={(date : Date) => date < new Date()}
                     />
                   </FormControl>
                   {errors.dueDate && <FormMessage> {errors.dueDate.message} </FormMessage>}

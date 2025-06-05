@@ -26,7 +26,7 @@ import {
   Send,
   Clock,
   AlertTriangle,
-  Link,
+  LinkIcon,
 } from "lucide-react"
 import { useState } from "react"
 import { toast } from "sonner"
@@ -41,7 +41,7 @@ import { useUpdateForm } from "../api/update-form"
 import { useGenerateLinkDialog } from "./generate-link/use-generate-link-dialog"
 import { GenerateLinkDialog } from "./generate-link/generate-link-dialog"
 import { adjustActiveBreadcrumbs } from "@/components/layout/breadcrumbs/breadcrumbs-store"
-import { FormBuilder } from "./form-builder/form-builder"
+import { Link } from "react-router-dom"
 
 type EditingSection = "description" | "config" | "advanced" | "expiry" | "form-builder" | null
 
@@ -162,10 +162,6 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
     )
   }
 
-  if(editingSection == 'form-builder'){
-    return <FormBuilder />
-  }
-
   return (
     <div className="container mx-auto p-6 space-y-6">
       {/* Header Section */}
@@ -187,16 +183,18 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
           </div>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={() => setEditingSection("form-builder")}>
-            <Edit className="h-4 w-4 mr-2" />
-            Edit Form
-          </Button>
+          <Link to="./template">
+            <Button variant="outline" size="sm" >
+              <Edit className="h-4 w-4 mr-2" />
+              Edit Form
+            </Button>
+          </Link>
           <Button size="sm">
             <Eye className="h-4 w-4 mr-2" />
             Preview
           </Button>
           <Button size={"sm"}  onClick={() => handleGenerateLink(form)}  >
-            <Link className="h-4 w-4 mr-2" />
+            <LinkIcon className="h-4 w-4 mr-2" />
             Get the link
           </Button>
         </div>
