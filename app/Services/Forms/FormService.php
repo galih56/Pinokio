@@ -6,7 +6,11 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use App\Helpers\QueryProcessor;
+use App\Models\Forms\FieldType;
 use App\Models\Forms\Form;
+use App\Models\Forms\FormField;
+use App\Models\Forms\FormFieldOption;
+use App\Models\Forms\FormSection;
 use App\Models\Forms\FormToken;
 use Illuminate\Support\Str;
 
@@ -47,7 +51,7 @@ class FormService
     }
 
     /**
-     * Create a new tag.
+     * Create a new form.
      */
     public function create(array $data): Form
     {
@@ -60,7 +64,7 @@ class FormService
     }
 
     /**
-     * Update an existing tag.
+     * Update an existing form.
      */
     public function update(int $id, array $data): Form
     {
@@ -69,13 +73,81 @@ class FormService
         return $model;
     }
 
+    public function updateFormLayout(int $id, array $data){
+        $model = $this->model->find($id);
+            
+        DB::transaction(function () use ($data, $model) {
+            $model->update([
+                'title' => $data['title'],
+                'description' => $data['description'] ?? null,
+            ]);
+
+            $sectionOrder = 0;
+
+            foreach ($data['sections'] as $sectionData) {
+                $section = FormSection::updateOrCreate(
+                    ['id' => $sectionData['id'], 'form_id' => $model->id],
+                    [
+                        'name' => $sectionData['title'],
+                        'description' => $sectionData['description'] ?? null,
+                        'order' => $sectionOrder++,
+                        'image_url' => $sectionData['image'] ?? null,
+                    ]
+                );
+
+                $fieldOrder = 0;
+
+                foreach ($sectionData['fields'] as $fieldData) {
+                    $field = FormField::updateOrCreate(
+                        ['id' => $fieldData['id'], 'form_section_id' => $section->id],
+                        [
+                            'label' => $fieldData['label'],
+                            'name' => \Str::slug($fieldData['label'], '_'),
+                            'placeholder' => $fieldData['placeholder'] ?? null,
+                            'is_required' => $fieldData['required'] ?? false,
+                            'order' => $fieldOrder++,
+                            'form_field_type_id' => $this->resolveFieldTypeId($fieldData['type']),
+                            'min' => $fieldData['min'] ?? null,
+                            'max' => $fieldData['max'] ?? null,
+                            'rows' => $fieldData['rows'] ?? null,
+                            'image_url' => $fieldData['image'] ?? null,
+                            'default_value' => $fieldData['defaultValue'] ?? null,
+                        ]
+                    );
+
+                    // Handle field options (only for selectable types)
+                    $selectableTypes = ['select', 'radio', 'checkbox'];
+                    if (in_array($fieldData['type'], $selectableTypes)) {
+                        // Remove old options
+                        $field->options()->delete();
+
+                        // Add new options
+                        foreach ($fieldData['options'] ?? [] as $option) {
+                            FormFieldOption::create([
+                                'form_field_id' => $field->id,
+                                'label' => $option,
+                                'value' => \Str::slug($option),
+                            ]);
+                        }
+                    }
+                }
+            }
+        });
+    }
     /**
-     * Delete a tag.
+     * Delete a form.
      */
     public function delete(int $id): bool
     {
         $model = $this->model->find($id);
         return $model->delete();
+    }
+
+    public function getFormWithLayout(int $id){
+        return Form::with([
+            'sections.fields.options',
+            'sections.fields.fieldType',
+        ])->findOrFail($id);
     }
 
     public function generateToken(Form $form, array $data): string
@@ -117,5 +189,11 @@ class FormService
         }
 
         return $matches[1];
+    }
+    
+    protected function resolveFieldTypeId(string $type): int
+    {
+        return FieldType::where('name', $type)->value('id')
+            ?? throw new \RuntimeException("Invalid field type: {$type}");
     }
 }

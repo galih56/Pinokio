@@ -14,13 +14,26 @@ class UpdateFormRequest extends BaseRequest
 
     protected function prepareForValidation()
     {
-        $this->merge([
-            'allow_multiple_attempts' => $this->boolean('allow_multiple_attempts'),
-            'proctored' => $this->boolean('proctored'),
-            'requires_token' => $this->boolean('requires_token'),
-            'requires_identifier' => $this->boolean('requires_identifier'),
-            'is_active' => $this->boolean('is_active'),
-        ]);
+        if ($this->has('form_url')) {
+            $this->merge([
+                'form_url' => strtolower($this->input('form_url'))
+            ]);
+        }
+        
+        $booleanFields = [
+            'allow_multiple_attempts',
+            'proctored',
+            'requires_token',
+            'requires_identifier',
+            'is_active',
+        ];
+
+        foreach ($booleanFields as $field) {
+            $this->merge([
+                $field => $this->boolean($field),
+            ]);
+        }
+
 
         // Auto-set requires_token and requires_identifier for Google Forms
         if ($this->input('provider') === 'Google Form' && $this->boolean('proctored')) {
@@ -39,11 +52,15 @@ class UpdateFormRequest extends BaseRequest
         $requiresIdentifier = $this->boolean('requires_identifier');
 
         return [
-            'title' => ['required', 'string', 'max:255'],
+            'title' => ['sometimes', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
 
             'provider' => ['required', Rule::in(['Pinokio', 'Google Form'])],
-            'form_code' => ['nullable', 'string'],
+            'form_code' => [
+                'nullable', 
+                'string',
+                Rule::unique('forms', 'form_code')->ignore($this->route('form')),
+            ],
 
             'form_url' => [
                 Rule::requiredIf($isGoogleForm),

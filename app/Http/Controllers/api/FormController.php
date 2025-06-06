@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Form\StoreFormRequest;
 use App\Http\Requests\Form\UpdateFormRequest;
 use App\Http\Requests\Form\GenerateLinkRequest;
+use App\Http\Requests\Form\UpdateFormLayoutRequest;
 use App\Http\Resources\FormResource;
 use Illuminate\Support\Facades\DB;
 use App\Services\Forms\FormService;
@@ -19,6 +20,12 @@ class FormController extends Controller
     public function __construct(FormService $formService)
     {
         $this->formService = $formService;
+    }
+
+    public function getFormWithLayout($id){
+        $form = $this->formService->getFormWithLayout($id);
+
+        return ApiResponse::sendResponse(new FormResource($form),'', 'success', 200);
     }
 
     public function generateLink(GenerateLinkRequest $request, $id) {
@@ -125,19 +132,36 @@ class FormController extends Controller
             $form = $this->formService->update($id, $request->all());
 
             DB::commit();
-            return ApiResponse::sendResponse( $form , 'Form Update Succesdsful','success',201);
+            return ApiResponse::sendResponse( $form , 'Form Update Successful','success',201);
 
         }catch(\Exception $ex){
             return ApiResponse::rollback($ex);
         }
     }
 
+
+    /**
+     * Update data related to form builder (layout)
+     */
+    public function updateFormLayout($id, UpdateFormLayoutRequest $request)
+    {
+        DB::beginTransaction();
+        try{
+            $form = $this->formService->update($id, $request->all());
+
+            DB::commit();
+            return ApiResponse::sendResponse( $form , 'Form Update Successful','success',201);
+
+        }catch(\Exception $ex){
+            return ApiResponse::rollback($ex);
+        }
+    }
     /**
      * Remove the specified resource from storage.
      */
     public function destroy($id)
     {
-        $this->formService->deleteForm($id);
+        $this->formService->delete($id);
         
         return ApiResponse::sendResponse('Form Delete Successful','',204);
     }

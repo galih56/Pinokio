@@ -9,7 +9,7 @@ interface FormBuilderState {
   // Current form being edited
   formId?: string
   formTitle: string
-  formDescription: string
+  formDescription?: string
   formSections: FormSection[]
 
   // UI state
@@ -357,7 +357,7 @@ export const useFormBuilderStore = create<FormBuilderState>()(
 )
 
 // Stable selectors using useShallow to prevent unnecessary re-renders
-export const useFormTemplate = () =>
+export const useFormLayout = () =>
   useFormBuilderStore(
     useShallow((state) => ({
       formId: state.formId,

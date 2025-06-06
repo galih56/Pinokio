@@ -173,6 +173,7 @@ export const getCommentableCreator = (commentable?: Issue | Project | Task) => {
 
     return null;
 };
+
 export interface Form {
   id: string;
   title: string;
@@ -193,12 +194,9 @@ export interface Form {
   expiresAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
-
-  // NEW: add optional relations for convenience (optional in TS)
-  groups?: FormGroup[];  // groups belong directly to Form now
 }
 
-export interface FormGroup {
+export interface FormSection {
   id: string;
   formId: string; 
   name: string;
@@ -207,7 +205,30 @@ export interface FormGroup {
   createdAt: Date;
   updatedAt: Date;
 
-  fields?: FormField[];
+  sections: Array<{
+    id: string;
+    name: string;
+    description?: string;
+    order: number;
+    fields: Array<{
+      id: string;
+      label: string;
+      name: string;
+      placeholder?: string;
+      isRequired: boolean;
+      order: number;
+      type: {
+        id: string;
+        name: string;
+        description?: string;
+      };
+      options?: Array<{
+        id: string;
+        label: string;
+        value: string;
+      }>;
+    }>;
+  }>;
 }
 
 export interface FieldType {
@@ -220,7 +241,7 @@ export interface FieldType {
 
 export interface FormField {
   id: string;
-  formGroupId: string;
+  FormSectionId: string;
   fieldTypeId: string;
   label: string;
   name: string;

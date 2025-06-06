@@ -2,10 +2,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DynamicForm } from "./dynamic-form"
-import { useFormTemplate } from "../../store/form-builder-store"
+import { useFormLayout } from "../../store/form-builder-store"
 
 export function FormPreview() {
-  const { formTitle, formDescription, formSections } = useFormTemplate()
+  const { formTitle, formDescription, formSections } = useFormLayout()
 
   return (
     <div className="max-w-2xl mx-auto">

@@ -1,48 +1,49 @@
 import { QueryClient } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useParams, LoaderFunctionArgs } from 'react-router-dom';
+import { useParams, LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
 
 import { NotFoundRoute } from '@/pages/not-found';
-import { FormView } from '@/features/form-guard/components/form-view';
 import { RouteErrorFallback } from '@/components/layout/error-fallbacks';
-import { getFormTemplateQueryOptions } from '@/features/form-guard/api/use-get-form-template';
+import { getFormLayoutQueryOptions } from '@/features/form-guard/api/use-get-form-layout';
 import { FormBuilder } from '@/features/form-guard/components/form-builder/form-builder';
+import { adjustActiveBreadcrumbs } from '@/components/layout/breadcrumbs/breadcrumbs-store';
 
-export const formLoader =
+type LoaderData = {
+  formId: string;
+  form: any;
+};
+
+export const formLayoutLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {
     const formId = params.id as string;
+    const formQuery = getFormLayoutQueryOptions(formId);
 
-    const formQuery = getFormTemplateQueryOptions(formId);
+    const form = await queryClient.ensureQueryData(formQuery)
     
-    const promises = [
-      queryClient.getQueryData(formQuery.queryKey) ??
-        (await queryClient.fetchQuery(formQuery)),
-    ] as const;
-
-    const [form] = await Promise.all(promises);
-
     return {
+      formId,
       form,
     };
 };
 
-export const FormRoute = () => {
-  const params = useParams();
-  const formId = params.id;
+export const FormBuilderRoute = () => {
+  const { formId, form } = useLoaderData() as LoaderData;
+
+  adjustActiveBreadcrumbs(`/forms/:id/layout`, `/forms/${formId}/layout`, form?.title, [form])
 
   if(!formId) {
     return <NotFoundRoute/>
   }
 
   return (
-    <div className='mt-6'>
-        <ErrorBoundary
-          FallbackComponent={RouteErrorFallback}
-          resetKeys={[formId]} // Reset when formId changes
-        >
-          <FormBuilder formId={formId} />
-        </ErrorBoundary>
+    <div className="mt-6">
+      <ErrorBoundary
+        FallbackComponent={RouteErrorFallback}
+        resetKeys={[formId]}
+      >
+        <FormBuilder formId={formId} initialData={form?.data} />
+      </ErrorBoundary>
     </div>
   );
 };

@@ -11,10 +11,15 @@ import { SectionEditor } from "./section-editor"
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"
 import type { FieldType } from "@/types/form"
 import { GripVertical, Trash2, Plus, FolderPlus, ImageIcon } from "lucide-react"
-import { useFormBuilderStore, useFormTemplate, useFormSelection } from "../../store/form-builder-store"
+import { useFormBuilderStore, useFormLayout, useFormSelection } from "../../store/form-builder-store"
+import DialogOrDrawer from "@/components/layout/dialog-or-drawer"
+import { useDisclosure } from "@/hooks/use-disclosure"
 
 export function FormDesigner() {
-  const { formTitle, formDescription, formSections } = useFormTemplate()
+  const { isOpen : isFieldTypeSelectorOpen, toggle : toggleFieldTypeSelector, open : openFieldTypeSelector, close : closeFieldTypeSelector } = useDisclosure();
+  const { isOpen : isSectionEditorOpen, toggle : toggleSectionEditor, open : openSectionEditor, close : closeSectionEditor } = useDisclosure();
+  const { isOpen : isFieldEditorOpen, toggle : toggleFieldEditor, open : openFieldEditor, close : closeFieldEditor } = useDisclosure();
+  const { formTitle, formDescription, formSections } = useFormLayout()
   const { selectedFieldId, selectedSectionId } = useFormSelection()
 
   const {
@@ -35,7 +40,8 @@ export function FormDesigner() {
   const addFieldToSection = (type: FieldType) => {
     const targetSectionId = selectedSectionId || formSections[0]?.id
     if (targetSectionId) {
-      addField(targetSectionId, type)
+      addField(targetSectionId, type);
+      closeFieldTypeSelector();
     }
   }
 
@@ -138,7 +144,11 @@ export function FormDesigner() {
                                   ? "bg-blue-50 border border-blue-200"
                                   : "bg-gray-50 hover:bg-gray-100"
                               }`}
-                              onClick={() => selectSection(section.id)}
+                              onClick={() => {
+                                console.log("CHECK")
+                                selectSection(section.id)
+                                openSectionEditor();
+                              }}
                             >
                               <div {...provided.dragHandleProps}>
                                 <GripVertical className="h-4 w-4 text-gray-400" />
@@ -157,7 +167,8 @@ export function FormDesigner() {
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  addField(section.id, "text")
+                                  addField(section.id, "text");
+                                  openFieldTypeSelector();
                                 }}
                               >
                                 <Plus className="h-4 w-4" />
@@ -168,6 +179,7 @@ export function FormDesigner() {
                                 onClick={(e) => {
                                   e.stopPropagation()
                                   deleteSection(section.id)
+                                  closeSectionEditor();
                                 }}
                                 disabled={formSections.length <= 1}
                               >
@@ -194,7 +206,10 @@ export function FormDesigner() {
                                               ? "border-blue-500 bg-blue-50"
                                               : "border-gray-200 hover:border-gray-300 bg-white"
                                           }`}
-                                          onClick={() => selectField(field.id)}
+                                          onClick={() => {
+                                            selectField(field.id);
+                                            openFieldEditor();
+                                          }}
                                         >
                                           <div className="flex items-center gap-3">
                                             <div {...provided.dragHandleProps}>
@@ -213,6 +228,7 @@ export function FormDesigner() {
                                               onClick={(e) => {
                                                 e.stopPropagation()
                                                 deleteField(field.id)
+                                                closeFieldEditor();
                                               }}
                                             >
                                               <Trash2 className="h-4 w-4" />
@@ -246,24 +262,39 @@ export function FormDesigner() {
 
       {/* Controls Panel */}
       <div className="space-y-6">
-        <FieldTypeSelector
-          onAddField={addFieldToSection}
-          targetSection={
-            selectedSectionId
-              ? formSections.find((s) => s.id === selectedSectionId)?.title
-              : formSections[0]?.title || "No sections available"
-          }
-        />
+        <DialogOrDrawer
+            open={isFieldTypeSelectorOpen}
+            onOpenChange={toggleFieldTypeSelector}
+            title={"Add Field"}>
+          <FieldTypeSelector
+            onAddField={addFieldToSection}
+            targetSection={
+              selectedSectionId
+                ? formSections.find((s) => s.id === selectedSectionId)?.title
+                : formSections[0]?.title || "No sections available"
+            }
+          />
+        </DialogOrDrawer>
 
-        {selectedFieldId && (
-          <FieldEditor field={getSelectedField()!} onUpdate={(updates) => updateField(selectedFieldId, updates)} />
+        {(selectedFieldId && isFieldEditorOpen) && (
+          <DialogOrDrawer
+            open={isFieldEditorOpen}
+            onOpenChange={toggleFieldEditor}
+            title={"Edit Field"}>
+            <FieldEditor field={getSelectedField()!} onUpdate={(updates) => updateField(selectedFieldId, updates)} />
+          </DialogOrDrawer>
         )}
 
-        {selectedSectionId && (
-          <SectionEditor
-            section={getSelectedSection()!}
-            onUpdate={(updates) => updateSection(selectedSectionId, updates)}
-          />
+        {(selectedSectionId && isSectionEditorOpen) && (
+          <DialogOrDrawer
+            open={isSectionEditorOpen}
+            onOpenChange={toggleSectionEditor}
+            title={"Edit Section"}>
+            <SectionEditor
+              section={getSelectedSection()!}
+              onUpdate={(updates) => updateSection(selectedSectionId, updates)}
+            />
+          </DialogOrDrawer>
         )}
       </div>
     </div>

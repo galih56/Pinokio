@@ -38,6 +38,33 @@ class FormResource extends JsonResource
             'expires_at' => $this->expires_at,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
+            
+            'sections' => $this->whenLoaded('sections', fn() =>  
+                $this->sections->map(fn ($section) => [
+                    'id' => $section->id,
+                    'name' => $section->name,
+                    'description' => $section->description,
+                    'order' => $section->order,
+                    'fields' => $section->fields->map(fn ($field) => [
+                        'id' => $field->id,
+                        'label' => $field->label,
+                        'name' => $field->name,
+                        'placeholder' => $field->placeholder,
+                        'isRequired' => $field->is_required,
+                        'order' => $field->order,
+                        'type' => [
+                            'id' => $field->fieldType->id,
+                            'name' => $field->fieldType->name,
+                            'description' => $field->fieldType->description,
+                        ],
+                        'options' => $field->options->map(fn ($opt) => [
+                            'id' => $opt->id,
+                            'label' => $opt->label,
+                            'value' => $opt->value,
+                        ]),
+                    ])
+                ])
+            )
         ];
     }
 }

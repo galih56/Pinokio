@@ -42,22 +42,32 @@ import { useGenerateLinkDialog } from "./generate-link/use-generate-link-dialog"
 import { GenerateLinkDialog } from "./generate-link/generate-link-dialog"
 import { adjustActiveBreadcrumbs } from "@/components/layout/breadcrumbs/breadcrumbs-store"
 import { Link } from "react-router-dom"
+import { Form } from "@/types/api"
 
 type EditingSection = "description" | "config" | "advanced" | "expiry" | "form-builder" | null
 
 interface FormViewProps {
   formId: string
+  initialData: Form
   onGenerateLink?: () => void
 }
 
-export function FormView({ formId, onGenerateLink }: FormViewProps) {
+export function FormView({ formId, initialData, onGenerateLink }: FormViewProps) {
   const [editingSection, setEditingSection] = useState<EditingSection>(null)
   const [copiedUrl, setCopiedUrl] = useState(false)
 
   const { isOpen, selectedForm, generatedLink, isGenerating, handleGenerateLink , handleGenerateLinkWithExpiry, handleDialogClose } =
     useGenerateLinkDialog();
 
-  const formQuery = useFormDetail({ formId })
+  // Use initialData with background refresh for optimistic updates
+  const formQuery = useFormDetail({ 
+    formId,
+    initialData: {
+      data: initialData,
+      status: 'success'
+    }
+  })
+  
   const updateFormMutation = useUpdateForm({
     formId,
     mutationConfig: {
@@ -68,7 +78,10 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
     },
   })
 
-  const form = formQuery.data?.data
+  // Use initialData as fallback, then fresh data when available
+  const form = formQuery.data?.data || initialData
+  
+  // Set breadcrumbs with initial data immediately
   adjustActiveBreadcrumbs(`/forms/:id`, `/forms/${formId}`, form?.title, [form])
 
   const handleSaveDescription = (data: { title: string; description?: string }) => {
@@ -145,8 +158,8 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
     }
   }
 
-
-  if (formQuery.isPending) {
+  // Show loading only if we don't have initialData and query is pending
+  if (!initialData && formQuery.isPending) {
     return (
       <div className="flex h-48 w-full items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -154,10 +167,22 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
     )
   }
 
-  if (formQuery.isError || !form) {
+  // Show error only if we don't have initialData and query failed
+  if (!initialData && (formQuery.isError || !form)) {
     return (
       <div className="flex h-48 w-full items-center justify-center">
         <p className="text-red-500">Failed to load form data</p>
+      </div>
+    )
+  }
+
+  // If we have initialData but no form (shouldn't happen), use initialData
+  const displayForm = form || initialData
+
+  if (!displayForm) {
+    return (
+      <div className="flex h-48 w-full items-center justify-center">
+        <p className="text-red-500">No form data available</p>
       </div>
     )
   }
@@ -172,18 +197,25 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
               <FileText className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold tracking-tight">{form.title}</h1>
+              <h1 className="text-3xl font-bold tracking-tight">{displayForm.title}</h1>
               <div className="flex items-center gap-2 mt-1">
-                <Badge variant={form.isActive ? "default" : "secondary"} className="gap-1">
-                  {form.isActive ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
-                  {form.isActive ? "Active" : "Inactive"}
+                <Badge variant={displayForm.isActive ? "default" : "secondary"} className="gap-1">
+                  {displayForm.isActive ? <CheckCircle className="h-3 w-3" /> : <XCircle className="h-3 w-3" />}
+                  {displayForm.isActive ? "Active" : "Inactive"}
                 </Badge>
+                {/* Show refresh indicator if data is being updated */}
+                {formQuery.isFetching && (
+                  <Badge variant="outline" className="gap-1">
+                    <RefreshCw className="h-3 w-3 animate-spin" />
+                    Syncing
+                  </Badge>
+                )}
               </div>
             </div>
           </div>
         </div>
         <div className="flex gap-2">
-          <Link to="./template">
+          <Link to="./layout">
             <Button variant="outline" size="sm" >
               <Edit className="h-4 w-4 mr-2" />
               Edit Form
@@ -193,7 +225,7 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
             <Eye className="h-4 w-4 mr-2" />
             Preview
           </Button>
-          <Button size={"sm"}  onClick={() => handleGenerateLink(form)}  >
+          <Button size={"sm"}  onClick={() => handleGenerateLink(displayForm)}  >
             <LinkIcon className="h-4 w-4 mr-2" />
             Get the link
           </Button>
@@ -204,15 +236,15 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
       {editingSection === "description" ? (
         <DescriptionSectionEdit
           initialData={{
-            title: form.title,
-            description: form.description,
+            title: displayForm.title,
+            description: displayForm.description,
           }}
           onSave={handleSaveDescription}
           onCancel={() => setEditingSection(null)}
           isPending={updateFormMutation.isPending}
         />
       ) : (
-        form.description && (
+        displayForm.description && (
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -223,7 +255,7 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
             <CardContent>
               <div
                 className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(form.description) }}
+                dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(displayForm.description) }}
               />
             </CardContent>
           </Card>
@@ -235,10 +267,10 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
         {editingSection === "config" ? (
           <ConfigSectionEdit
             initialData={{
-              provider: form.provider,
-              formCode: form.formCode,
-              formUrl: form.formUrl,
-              isActive: form.isActive,
+              provider: displayForm.provider,
+              formCode: displayForm.formCode,
+              formUrl: displayForm.formUrl,
+              isActive: displayForm.isActive,
             }}
             onSave={handleSaveConfig}
             onCancel={() => setEditingSection(null)}
@@ -265,26 +297,26 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
               {/* Provider Section */}
               <div className="space-y-3">
                 <h4 className="font-medium flex items-center gap-2">
-                  <span className="text-lg">{form.provider === "Google Form" ? "🔗" : "📝"}</span>
+                  <span className="text-lg">{displayForm.provider === "Google Form" ? "🔗" : "📝"}</span>
                   Provider Details
                 </h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <p className="text-sm font-medium text-muted-foreground">Provider</p>
-                    <p className="text-sm">{form.provider}</p>
+                    <p className="text-sm">{displayForm.provider}</p>
                   </div>
-                  {form.formUrl && (
+                  {displayForm.formUrl && (
                     <div className="space-y-1">
                       <p className="text-sm font-medium text-muted-foreground">Form URL</p>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm truncate flex-1">{form.formUrl}</p>
+                        <p className="text-sm truncate flex-1">{displayForm.formUrl}</p>
                         <Button variant="ghost" size="sm" onClick={copyFormUrl} className="h-6 w-6 p-0">
                           {copiedUrl ? <CheckCircle className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                         </Button>
                         <Button
                           variant="ghost"
                           size="sm"
-                          onClick={() => window.open(form.formUrl, "_blank")}
+                          onClick={() => window.open(displayForm.formUrl, "_blank")}
                           className="h-6 w-6 p-0"
                         >
                           <ExternalLink className="h-3 w-3" />
@@ -312,9 +344,9 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
         {editingSection === "advanced" ? (
           <AdvancedSectionEdit
             initialData={{
-              proctored: form.proctored,
-              timeLimit: form.timeLimit,
-              allowMultipleAttempts: form.allowMultipleAttempts,
+              proctored: displayForm.proctored,
+              timeLimit: displayForm.timeLimit,
+              allowMultipleAttempts: displayForm.allowMultipleAttempts,
             }}
             onSave={handleSaveAdvanced}
             onCancel={() => setEditingSection(null)}
@@ -344,8 +376,8 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
                   <Eye className="h-4 w-4" />
                   <span className="text-sm font-medium">Proctoring</span>
                 </div>
-                <Badge variant={form.proctored ? "default" : "secondary"}>
-                  {form.proctored ? "Enabled" : "Disabled"}
+                <Badge variant={displayForm.proctored ? "default" : "secondary"}>
+                  {displayForm.proctored ? "Enabled" : "Disabled"}
                 </Badge>
               </div>
 
@@ -355,7 +387,7 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
                   <Timer className="h-4 w-4" />
                   <span className="text-sm font-medium">Time Limit</span>
                 </div>
-                <Badge variant="outline">{form.timeLimit ? `${form.timeLimit} min` : "No limit"}</Badge>
+                <Badge variant="outline">{displayForm.timeLimit ? `${displayForm.timeLimit} min` : "No limit"}</Badge>
               </div>
 
               {/* Multiple Attempts */}
@@ -364,8 +396,8 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
                   <RefreshCw className="h-4 w-4" />
                   <span className="text-sm font-medium">Multiple Attempts</span>
                 </div>
-                <Badge variant={form.allowMultipleAttempts ? "default" : "secondary"}>
-                  {form.allowMultipleAttempts ? "Allowed" : "Not allowed"}
+                <Badge variant={displayForm.allowMultipleAttempts ? "default" : "secondary"}>
+                  {displayForm.allowMultipleAttempts ? "Allowed" : "Not allowed"}
                 </Badge>
               </div>
             </CardContent>
@@ -377,7 +409,7 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
       {editingSection === "expiry" ? (
         <ExpirySectionEdit
           initialData={{
-            expiresAt: form.expiresAt ? new Date(form.expiresAt) : null,
+            expiresAt: displayForm.expiresAt ? new Date(displayForm.expiresAt) : null,
           }}
           onSave={handleSaveExpiry}
           onCancel={() => setEditingSection(null)}
@@ -404,8 +436,8 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
             <div className="p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium">Expiry Date</span>
-                <Badge variant={form.expiresAt ? "outline" : "secondary"}>
-                  {form.expiresAt ? formatDateTime(form.expiresAt) : "No expiry"}
+                <Badge variant={displayForm.expiresAt ? "outline" : "secondary"}>
+                  {displayForm.expiresAt ? formatDateTime(displayForm.expiresAt) : "No expiry"}
                 </Badge>
               </div>
             </div>
@@ -426,21 +458,22 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Created At</p>
-              <p className="text-sm">{formatDateTime(form.createdAt)}</p>
+              <p className="text-sm">{formatDateTime(displayForm.createdAt)}</p>
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Last Updated</p>
-              <p className="text-sm">{formatDateTime(form.updatedAt)}</p>
+              <p className="text-sm">{formatDateTime(displayForm.updatedAt)}</p>
             </div>
             <div className="space-y-1">
               <p className="text-sm font-medium text-muted-foreground">Due Date</p>
-              <p className="text-sm">{form.expiresAt ? formatDate(form.expiresAt) : "No due date"}</p>
+              <p className="text-sm">{displayForm.expiresAt ? formatDate(displayForm.expiresAt) : "No due date"}</p>
             </div>
           </div>
         </CardContent>
       </Card>
+      
       {/* Quick Actions */}
-      {form.provider == "Pinokio" && (
+      {displayForm.provider == "Pinokio" && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -462,8 +495,8 @@ export function FormView({ formId, onGenerateLink }: FormViewProps) {
                 <Settings className="h-4 w-4 mr-2" />
                 Form Settings
               </Button>
-              {form.formUrl && (
-                <Button variant="outline" size="sm" onClick={() => window.open(form.formUrl, "_blank")}>
+              {displayForm.formUrl && (
+                <Button variant="outline" size="sm" onClick={() => window.open(displayForm.formUrl, "_blank")}>
                   <ExternalLink className="h-4 w-4 mr-2" />
                   Open Form
                 </Button>

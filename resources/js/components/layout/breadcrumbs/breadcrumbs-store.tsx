@@ -56,6 +56,7 @@ export const useBreadcrumbs = create<BreadcrumbStore>((set) => {
 export function adjustActiveBreadcrumbs(pattern? : string, url? : string, title? : string, dependencies : any[] = []){
   const location = useLocation();
   const {setBreadcrumbs , replaceBreadcrumb, removeBreadcrumb} = useBreadcrumbs();
+    
   useEffect(()=> {
     if(pattern){
       if(pattern && url && title) replaceBreadcrumb(pattern, url, title, location.pathname)

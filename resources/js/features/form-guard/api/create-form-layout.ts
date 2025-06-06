@@ -4,7 +4,7 @@ import type { MutationConfig } from "@/lib/react-query"
 import type { Form } from "@/types/api"
 import { api } from "@/lib/api-client"
 
-export const createFormTemplateSchema = z.object({
+export const createFormLayoutSchema = z.object({
   title: z.string().min(1, { message: "Title is required." }),
   description: z.string().optional(),
   sections: z.array(
@@ -32,34 +32,34 @@ export const createFormTemplateSchema = z.object({
   ),
 })
 
-export type CreateFormTemplateInput = z.infer<typeof createFormTemplateSchema>
+export type CreateFormLayoutInput = z.infer<typeof createFormLayoutSchema>
 
-export const createFormTemplate = async (formId : string, data: CreateFormTemplateInput): Promise<FormTemplate> => {
-    return api.post(`/forms/${formId}/template`, data, {
+export const createFormLayout = async (formId : string, data: CreateFormLayoutInput): Promise<Form> => {
+    return api.post(`/forms/${formId}/layout`, data, {
         headers: {
             "Content-Type": "multipart/form-data",
         },
     })
 }
 
-type UseCreateFormTemplateOptions = {
+type UseCreateFormLayoutOptions = {
   formId: string
-  mutationConfig?: MutationConfig<typeof createFormTemplate>
+  mutationConfig?: MutationConfig<typeof createFormLayout>
 }
 
-export const useCreateFormTemplate = ({ formId, mutationConfig }: UseCreateFormTemplateOptions) => {
+export const useCreateFormLayout = ({ formId, mutationConfig }: UseCreateFormLayoutOptions) => {
   const queryClient = useQueryClient()
 
   const { onSuccess, ...restConfig } = mutationConfig || {}
 
   return useMutation({
-    onSuccess: (res: FormTemplate, ...args) => {
+    onSuccess: (res: FormLayout, ...args) => {
       queryClient.invalidateQueries({
-        queryKey: ["forms", formId, "template"],
+        queryKey: ["forms", formId, "Layout"],
       })
       onSuccess?.(res, ...args)
     },
     ...restConfig,
-    mutationFn: (data : any) => createFormTemplate(formId, data),
+    mutationFn: (data : any) => createFormLayout(formId, data),
   })
 }

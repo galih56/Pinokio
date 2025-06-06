@@ -5,25 +5,35 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Eye, Settings, Save, Loader2, Undo, Redo } from "lucide-react"
 import { toast } from "sonner"
-import { useFormBuilderStore, useFormTemplate, useFormHistory, useFormStatus } from "../../store/form-builder-store"
-import { useGetFormTemplate } from "../../api/use-get-form-template"
+import { useFormBuilderStore, useFormLayout, useFormHistory, useFormStatus, useFormActions } from "../../store/form-builder-store"
+import { useGetFormLayout } from "../../api/use-get-form-layout"
 import { FormPreview } from "./form-preview"
 import { FormDesigner } from "./form-designer"
-import { useUpdateFormTemplate } from "../../api/update-form-template"
-import { useCreateFormTemplate } from "../../api/create-form-template"
+import { useUpdateFormLayout } from "../../api/update-form-layout";
+import { useCreateFormLayout } from "../../api/create-form-layout";
 import { AxiosError } from "axios"
+import { Form } from "@/types/api"
 
 interface FormBuilderProps {
-  formId: string
+  formId: string;
+  initialData?: Form
 }
 
-export function FormBuilder({ formId }: FormBuilderProps) {
-  const { formTitle, formDescription, formSections } = useFormTemplate()
+export function FormBuilder({ formId, initialData }: FormBuilderProps) {
+  const { formTitle, formDescription, formSections } = useFormLayout();
+  const { setFormTitle, setFormDescription } = useFormActions();
   const { isDirty, isAutoSaving } = useFormStatus()
   const { canUndo, canRedo, undo, redo } = useFormHistory()
   const { setFormData, markClean, saveSnapshot, setAutoSaving } = useFormBuilderStore()
 
-  const { data: formTemplate, isLoading: isLoadingTemplate } = useGetFormTemplate({
+  useEffect(()=>{
+    if(initialData){
+      setFormTitle(initialData.title);
+      setFormDescription(initialData.description || '');
+    }
+  }, [] )
+
+  const { data: FormLayout, isLoading: isLoadingLayout } = useGetFormLayout({
     formId,
     queryConfig: {
       enabled: !!formId,
@@ -38,40 +48,38 @@ export function FormBuilder({ formId }: FormBuilderProps) {
         }
       },
       onError: (error : AxiosError) => {
-        toast.error("Failed to load form template")
-        console.error("Error loading form template:", error)
+        toast.error("Failed to load form layout")
+        console.error("Error loading form layout:", error)
       },
     },
   })
 
-  console.log(formId)
-
-  // Create form template mutation
-  const createTemplateMutation = useCreateFormTemplate({
+  // Create form layout mutation
+  const createLayoutMutation = useCreateFormLayout({
     formId,
     mutationConfig: {
       onSuccess: () => {
         markClean()
-        toast.success("Form template created successfully!")
+        toast.success("Form layout created successfully!")
       },
       onError: (error) => {
-        toast.error("Failed to create form template")
-        console.error("Error creating form template:", error)
+        toast.error("Failed to create form layout")
+        console.error("Error creating form layout:", error)
       },
     },
   })
 
-  // Update form template mutation
-  const updateTemplateMutation = useUpdateFormTemplate({
+  // Update form layout mutation
+  const updateLayoutMutation = useUpdateFormLayout({
     formId,
     mutationConfig: {
       onSuccess: () => {
         markClean()
-        toast.success("Form template updated successfully!")
+        toast.success("Form layout updated successfully!")
       },
       onError: (error) => {
-        toast.error("Failed to update form template")
-        console.error("Error updating form template:", error)
+        toast.error("Failed to update form layout")
+        console.error("Error updating form layout:", error)
       },
     },
   })
@@ -128,29 +136,29 @@ export function FormBuilder({ formId }: FormBuilderProps) {
         sections: formSections,
       }
 
-      if (formTemplate) {
-        // Update existing template
-        updateTemplateMutation.mutate(formData)
+      if (FormLayout) {
+        // Update existing layout
+        updateLayoutMutation.mutate(formData)
       } else {
-        // Create new template
-        createTemplateMutation.mutate(formData)
+        // Create new layout
+        createLayoutMutation.mutate(formData)
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Failed to save form template")
+      toast.error("Failed to save form layout")
     } finally {
       setAutoSaving(false)
     }
   }
 
-  const isSaving = isAutoSaving || createTemplateMutation.isPending || updateTemplateMutation.isPending
+  const isSaving = isAutoSaving || createLayoutMutation.isPending || updateLayoutMutation.isPending
 
-  if (isLoadingTemplate) {
+  if (isLoadingLayout) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
-          <p className="text-muted-foreground">Loading form template...</p>
+          <p className="text-muted-foreground">Loading form layout...</p>
         </div>
       </div>
     )
@@ -160,7 +168,7 @@ export function FormBuilder({ formId }: FormBuilderProps) {
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">{formTemplate ? "Edit Form Template" : "Create Form Template"}</h1>
+          <h1 className="text-2xl font-bold">{FormLayout ? "Edit Form Layout" : "Create Form Layout"}</h1>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span>Build your form with drag-and-drop components</span>
             {isDirty && <span className="text-orange-600">• Unsaved changes</span>}

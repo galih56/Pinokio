@@ -1,10 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { z } from "zod"
 import type { MutationConfig } from "@/lib/react-query"
-import type { FormTemplate } from "@/types/api"
+import type { Form } from "@/types/api"
 import { api } from "@/lib/api-client"
 
-export const updateFormTemplateSchema = z.object({
+export const updateFormLayoutSchema = z.object({
   title: z.string().min(1, { message: "Title is required." }),
   description: z.string().optional(),
   sections: z.array(
@@ -32,34 +32,30 @@ export const updateFormTemplateSchema = z.object({
   ),
 })
 
-export type UpdateFormTemplateInput = z.infer<typeof updateFormTemplateSchema>
+export type UpdateFormLayoutInput = z.infer<typeof updateFormLayoutSchema>
 
-export const updateFormTemplate = async (formId : string, data: UpdateFormTemplateInput): Promise<FormTemplate> => {
-    return api.patch(`/forms/${formId}/template`, data, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-    })
+export const updateFormLayout = async (formId : string, data: UpdateFormLayoutInput): Promise<Form> => {
+    return api.patch(`/forms/${formId}/layout`, data)
 }
 
-type UseUpdateFormTemplateOptions = {
+type UseUpdateFormLayoutOptions = {
   formId: string
-  mutationConfig?: MutationConfig<typeof updateFormTemplate>
+  mutationConfig?: MutationConfig<typeof updateFormLayout>
 }
 
-export const useUpdateFormTemplate = ({ formId, mutationConfig }: UseUpdateFormTemplateOptions) => {
+export const useUpdateFormLayout = ({ formId, mutationConfig }: UseUpdateFormLayoutOptions) => {
   const queryClient = useQueryClient()
 
   const { onSuccess, ...restConfig } = mutationConfig || {}
 
   return useMutation({
-    onSuccess: (res: FormTemplate, ...args) => {
+    onSuccess: (res: Form, ...args) => {
       queryClient.invalidateQueries({
         queryKey: ["forms", formId, "template"],
       })
       onSuccess?.(res, ...args)
     },
     ...restConfig,
-    mutationFn: (data : any) => updateFormTemplate(formId, data),
+    mutationFn: (data : any) => updateFormLayout(formId, data),
   })
 }
