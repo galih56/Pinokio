@@ -1,12 +1,12 @@
 import { paths } from '@/apps/dashboard/paths';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbList } from '@/components/ui/breadcrumb';
 import {  Link } from 'react-router-dom';
-import {  adjustActiveBreadcrumbs, useBreadcrumbs } from './breadcrumbs-store';
+import {  useBreadcrumbSync, useBreadcrumbs } from './breadcrumbs-store';
 import { useEffect } from 'react';
 
 export const Breadcrumbs = () => {
     const {items} = useBreadcrumbs();
-    adjustActiveBreadcrumbs();
+    useBreadcrumbSync();
     return (
         <Breadcrumb>
             <BreadcrumbList>
