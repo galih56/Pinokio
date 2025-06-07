@@ -14,10 +14,8 @@ class FormResource extends JsonResource
      */
     public function toArray($request)
     {
-        $hashid = new HashIdService();
-
         return [
-            'id' => $hashid->encode($this->id), 
+            'id' => app(HashIdService::class)->encode($this->id), 
             'title' => $this->title,
             'description' => $this->description,
             'provider' => $this->provider,
@@ -41,22 +39,18 @@ class FormResource extends JsonResource
             
             'sections' => $this->whenLoaded('sections', fn() =>  
                 $this->sections->map(fn ($section) => [
-                    'id' => $section->id,
+                    'id' => app(HashIdService::class)->encode($section->id),
                     'name' => $section->name,
                     'description' => $section->description,
                     'order' => $section->order,
                     'fields' => $section->fields->map(fn ($field) => [
-                        'id' => $field->id,
+                        'id' => app(HashIdService::class)->encode($field->id),
                         'label' => $field->label,
                         'name' => $field->name,
                         'placeholder' => $field->placeholder,
                         'isRequired' => $field->is_required,
                         'order' => $field->order,
-                        'type' => [
-                            'id' => $field->fieldType->id,
-                            'name' => $field->fieldType->name,
-                            'description' => $field->fieldType->description,
-                        ],
+                        'type' => $field->fieldType->name,
                         'options' => $field->options->map(fn ($opt) => [
                             'id' => $opt->id,
                             'label' => $opt->label,

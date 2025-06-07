@@ -21,7 +21,7 @@ export function FormDesigner() {
   const { isOpen : isFieldEditorOpen, toggle : toggleFieldEditor, open : openFieldEditor, close : closeFieldEditor } = useDisclosure();
   const { formTitle, formDescription, formSections } = useFormLayout()
   const { selectedFieldId, selectedSectionId } = useFormSelection()
-
+  
   const {
     setFormTitle,
     setFormDescription,
@@ -83,7 +83,7 @@ export function FormDesigner() {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div className="">
       {/* Form Settings and Sections */}
       <div className="lg:col-span-2 space-y-6">
         <Card>
@@ -145,7 +145,6 @@ export function FormDesigner() {
                                   : "bg-gray-50 hover:bg-gray-100"
                               }`}
                               onClick={() => {
-                                console.log("CHECK")
                                 selectSection(section.id)
                                 openSectionEditor();
                               }}
@@ -155,7 +154,7 @@ export function FormDesigner() {
                               </div>
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="font-medium">{section.title}</span>
+                                  <span className="font-medium">{section.name}</span>
                                   {section.image && <ImageIcon className="h-4 w-4 text-blue-500" />}
                                 </div>
                                 <div className="text-sm text-gray-500">
@@ -195,7 +194,8 @@ export function FormDesigner() {
                                   ref={provided.innerRef}
                                   className="space-y-2 min-h-[50px]"
                                 >
-                                  {section.fields.map((field, fieldIndex) => (
+                                  {section.fields.map((field, fieldIndex) => {
+                                    return (
                                     <Draggable key={field.id} draggableId={field.id} index={fieldIndex}>
                                       {(provided) => (
                                         <div
@@ -220,7 +220,7 @@ export function FormDesigner() {
                                                 <span className="font-medium">{field.label}</span>
                                                 {field.image && <ImageIcon className="h-4 w-4 text-blue-500" />}
                                               </div>
-                                              <div className="text-sm text-gray-500 capitalize">{field.type}</div>
+                                              {field.type ? <div className="text-sm text-gray-500 capitalize">{field.type}</div> : null}
                                             </div>
                                             <Button
                                               variant="ghost"
@@ -237,7 +237,7 @@ export function FormDesigner() {
                                         </div>
                                       )}
                                     </Draggable>
-                                  ))}
+                                  )})}
                                   {provided.placeholder}
                                   {section.fields.length === 0 && (
                                     <div className="text-center py-4 text-gray-400 text-sm border-2 border-dashed border-gray-200 rounded">
@@ -270,8 +270,8 @@ export function FormDesigner() {
             onAddField={addFieldToSection}
             targetSection={
               selectedSectionId
-                ? formSections.find((s) => s.id === selectedSectionId)?.title
-                : formSections[0]?.title || "No sections available"
+                ? formSections.find((s) => s.id === selectedSectionId)?.name
+                : formSections[0]?.name || "No sections available"
             }
           />
         </DialogOrDrawer>

@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/form"
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import DateTimePickerInput from "@/components/ui/date-picker/datetime-picker-input";
 import { FileInput, FileUploader, FileUploaderContent, FileUploaderItem } from "@/components/ui/file-upload";
 import { DropzoneOptions } from "react-dropzone";
 import { GuestIssuerInputs } from "./guest-issuer-inputs";
@@ -28,6 +27,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { DateTimePickerInput } from "@/components/ui/date-picker/datetime-picker-input";
 
 // Editor extensions
 const extensions = [

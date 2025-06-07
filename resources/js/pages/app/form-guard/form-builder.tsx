@@ -6,7 +6,7 @@ import { NotFoundRoute } from '@/pages/not-found';
 import { RouteErrorFallback } from '@/components/layout/error-fallbacks';
 import { getFormLayoutQueryOptions } from '@/features/form-guard/api/use-get-form-layout';
 import { FormBuilder } from '@/features/form-guard/components/form-builder/form-builder';
-import { adjustActiveBreadcrumbs } from '@/components/layout/breadcrumbs/breadcrumbs-store';
+import { useBreadcrumbSync } from '@/components/layout/breadcrumbs/breadcrumbs-store';
 
 type LoaderData = {
   formId: string;
@@ -29,8 +29,9 @@ export const formLayoutLoader =
 
 export const FormBuilderRoute = () => {
   const { formId, form } = useLoaderData() as LoaderData;
-
-  adjustActiveBreadcrumbs(`/forms/:id/layout`, `/forms/${formId}/layout`, form?.title, [form])
+  
+  useBreadcrumbSync(`/forms/:id`, `/forms/${formId}`, form?.data?.title, [form]);
+  useBreadcrumbSync(`/forms/:id/layout`, `/forms/${formId}/layout`, 'Layout', [])
 
   if(!formId) {
     return <NotFoundRoute/>

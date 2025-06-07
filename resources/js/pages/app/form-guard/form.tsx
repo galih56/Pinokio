@@ -41,7 +41,7 @@ export const FormRoute = () => {
     <div className='mt-6'>
         <ErrorBoundary
           FallbackComponent={RouteErrorFallback}
-          resetKeys={[formId]} // Reset when formId changes
+          resetKeys={[formId]} 
         >
           <FormView formId={formId} initialData={form.data}/>
         </ErrorBoundary>

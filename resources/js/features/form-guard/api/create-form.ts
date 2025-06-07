@@ -4,8 +4,7 @@ import { decamelizeKeys } from "humps"
 
 import { api } from "@/lib/api-client"
 import type { MutationConfig } from "@/lib/react-query"
-import type { Form } from "@/types/api"
-
+import { Form } from "@/types/form"
 
 export const createFormInputSchema = z
   .object({

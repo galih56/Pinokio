@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useRef } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Eye, Settings, Save, Loader2, Undo, Redo } from "lucide-react"
@@ -12,7 +12,9 @@ import { FormDesigner } from "./form-designer"
 import { useUpdateFormLayout } from "../../api/update-form-layout";
 import { useCreateFormLayout } from "../../api/create-form-layout";
 import { AxiosError } from "axios"
-import { Form } from "@/types/api"
+import { ErrorBoundary } from "react-error-boundary"
+import { ComponentErrorFallback } from "@/components/layout/error-fallbacks"
+import { Form } from "@/types/form"
 
 interface FormBuilderProps {
   formId: string;
@@ -33,7 +35,24 @@ export function FormBuilder({ formId, initialData }: FormBuilderProps) {
     }
   }, [] )
 
-  const { data: FormLayout, isLoading: isLoadingLayout } = useGetFormLayout({
+    // Track if data has been initialized
+  const dataInitializedRef = useRef(false)
+
+  // Initialize from props if available (only once)
+  useEffect(() => {
+    if (initialData && !dataInitializedRef.current) {
+      console.log("Initializing from props:", initialData)
+      setFormData({
+        formId,
+        title: initialData.title,
+        description: initialData.description || "",
+        sections: initialData.sections || [],
+      })
+      dataInitializedRef.current = true
+    }
+  }, [initialData, formId, setFormData])
+
+  const { data: formLayout, isLoading: isLoadingLayout } = useGetFormLayout({
     formId,
     queryConfig: {
       enabled: !!formId,
@@ -136,7 +155,7 @@ export function FormBuilder({ formId, initialData }: FormBuilderProps) {
         sections: formSections,
       }
 
-      if (FormLayout) {
+      if (formLayout) {
         // Update existing layout
         updateLayoutMutation.mutate(formData)
       } else {
@@ -168,7 +187,7 @@ export function FormBuilder({ formId, initialData }: FormBuilderProps) {
     <div className="max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold">{FormLayout ? "Edit Form Layout" : "Create Form Layout"}</h1>
+          <h1 className="text-2xl font-bold">{formLayout ? "Edit Form Layout" : "Create Form Layout"}</h1>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <span>Build your form with drag-and-drop components</span>
             {isDirty && <span className="text-orange-600">• Unsaved changes</span>}
@@ -215,11 +234,21 @@ export function FormBuilder({ formId, initialData }: FormBuilderProps) {
         </TabsList>
 
         <TabsContent value="design" className="mt-6">
-          <FormDesigner />
+          <ErrorBoundary
+            FallbackComponent={ComponentErrorFallback}
+            resetKeys={[formId]}
+          >
+            <FormDesigner />
+          </ErrorBoundary>
         </TabsContent>
 
-        <TabsContent value="preview" className="mt-6">
-          <FormPreview />
+        <TabsContent value="preview" className="mt-6">          
+          <ErrorBoundary
+            FallbackComponent={ComponentErrorFallback}
+            resetKeys={[formId]}
+          >
+            <FormPreview />
+          </ErrorBoundary>
         </TabsContent>
       </Tabs>
     </div>

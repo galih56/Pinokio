@@ -17,7 +17,7 @@ export function FormPreview() {
           <DynamicForm
             sections={formSections}
             title={formTitle}
-            description={formDescription}
+            description={formDescription ?? ""}
             onSubmit={(data) => {
               console.log("Form submitted:", data)
             }}

@@ -5,7 +5,7 @@ import { useIssue } from '../api/get-project';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDate, formatDateTime } from '@/lib/datetime';
 import { StatusBadge } from './status-badge';
-import { adjustActiveBreadcrumbs } from '@/components/layout/breadcrumbs/breadcrumbs-store';
+import { useBreadcrumbSync } from '@/components/layout/breadcrumbs/breadcrumbs-store';
 import { CommentList } from '@/features/comment/components/comment-list';
 import CreateComment from '@/features/comment/components/create-comment';
 import { IssueFiles } from './project-files';
@@ -21,7 +21,7 @@ export const IssueView = ({ projectId }: { projectId: string | undefined }) => {
   });
 
   const project = projectQuery?.data?.data;
-  adjustActiveBreadcrumbs(`/projects/:id`,`/projects/${projectId}`, project?.title, [ project ]);
+  useBreadcrumbSync(`/projects/:id`,`/projects/${projectId}`, project?.title, [ project ]);
   
   if (projectQuery.isPending) {
     return (

@@ -40,9 +40,9 @@ import { useFormDetail } from "../api/get-form"
 import { useUpdateForm } from "../api/update-form"
 import { useGenerateLinkDialog } from "./generate-link/use-generate-link-dialog"
 import { GenerateLinkDialog } from "./generate-link/generate-link-dialog"
-import { adjustActiveBreadcrumbs } from "@/components/layout/breadcrumbs/breadcrumbs-store"
+import { useBreadcrumbSync } from "@/components/layout/breadcrumbs/breadcrumbs-store"
 import { Link } from "react-router-dom"
-import { Form } from "@/types/api"
+import { Form } from "@/types/form"
 
 type EditingSection = "description" | "config" | "advanced" | "expiry" | "form-builder" | null
 
@@ -82,7 +82,7 @@ export function FormView({ formId, initialData, onGenerateLink }: FormViewProps)
   const form = formQuery.data?.data || initialData
   
   // Set breadcrumbs with initial data immediately
-  adjustActiveBreadcrumbs(`/forms/:id`, `/forms/${formId}`, form?.title, [form])
+  useBreadcrumbSync(`/forms/:id`, `/forms/${formId}`, form?.title, [form])
 
   const handleSaveDescription = (data: { title: string; description?: string }) => {
     if (!form) return

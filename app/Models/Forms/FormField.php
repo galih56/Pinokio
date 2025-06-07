@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class FormField extends Model
 {
     protected $fillable = [
-        'section_id',
+        'form_section_id',
         'label',
         'name',
         'placeholder',
@@ -24,12 +24,12 @@ class FormField extends Model
 
     public function section(): BelongsTo
     {
-        return $this->belongsTo(FormSection::class, 'section_id');
+        return $this->belongsTo(FormSection::class, 'form_section_id');
     }
 
     public function options(): HasMany
     {
-        return $this->hasMany(FormFieldOption::class, 'field_id');
+        return $this->hasMany(FormFieldOption::class, 'form_field_id');
     }
 
     public function fieldType(): BelongsTo

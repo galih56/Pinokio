@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useDisclosure } from "@/hooks/use-disclosure"
 import { useGenerateFormLink } from "@/features/form-guard/api/create-form-link"
-import type { Form } from "@/types/api"
+import { Form } from "@/types/form"
 
 export function useGenerateLinkDialog() {
   const { isOpen, open, close } = useDisclosure()

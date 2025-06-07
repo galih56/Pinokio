@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { z } from "zod"
 import type { MutationConfig } from "@/lib/react-query"
-import type { Form } from "@/types/api"
 import { api } from "@/lib/api-client"
+import { Form } from "@/types/form"
 
 export const createFormLayoutSchema = z.object({
   title: z.string().min(1, { message: "Title is required." }),

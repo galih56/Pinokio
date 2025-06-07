@@ -75,7 +75,7 @@ const createInitialSection = (): FormSection => ({
 
 const createSnapshot = (state: FormBuilderState): FormBuilderSnapshot => ({
   formTitle: state.formTitle,
-  formDescription: state.formDescription,
+  formDescription: state.formDescription ?? "",
   formSections: JSON.parse(JSON.stringify(state.formSections)),
   timestamp: new Date(),
 })

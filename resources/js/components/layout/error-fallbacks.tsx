@@ -50,6 +50,7 @@ export const ComponentErrorFallback = ({ error, resetErrorBoundary }: FallbackPr
 )
 
 export const RouteErrorFallback = ({ error }: { error: any }) => {
+  console.error("RouteErrorFallback : ",error)
   const navigate = (path: string) => {
     window.location.href = path
   }

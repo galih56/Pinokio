@@ -147,7 +147,7 @@ class FormController extends Controller
     {
         DB::beginTransaction();
         try{
-            $form = $this->formService->update($id, $request->all());
+            $form = $this->formService->updateFormLayout($id, $request->all());
 
             DB::commit();
             return ApiResponse::sendResponse( $form , 'Form Update Successful','success',201);

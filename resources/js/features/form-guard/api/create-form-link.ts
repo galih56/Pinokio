@@ -1,8 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import type { MutationConfig } from "@/lib/react-query"
 import { api } from "@/lib/api-client"
-import type { Form } from "@/types/api"
-import { getFormsQueryOptions } from "./get-forms"
+import { Form } from "@/types/form"
 
 export type GenerateFormLinkInput = {
   formId: string

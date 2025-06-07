@@ -72,8 +72,8 @@ class FormService
         $model->update($data);
         return $model;
     }
-
-    public function updateFormLayout(int $id, array $data){
+    public function updateFormLayout(int $id, array $data)
+    {
         $model = $this->model->find($id);
             
         DB::transaction(function () use ($data, $model) {
@@ -82,31 +82,40 @@ class FormService
                 'description' => $data['description'] ?? null,
             ]);
 
+            $sectionIds = [];
             $sectionOrder = 0;
+            $usedFieldNames = []; // Track field names across all sections
 
             foreach ($data['sections'] as $sectionData) {
                 $section = FormSection::updateOrCreate(
                     ['id' => $sectionData['id'], 'form_id' => $model->id],
                     [
-                        'name' => $sectionData['title'],
+                        'name' => $sectionData['name'],
                         'description' => $sectionData['description'] ?? null,
                         'order' => $sectionOrder++,
                         'image_url' => $sectionData['image'] ?? null,
                     ]
                 );
 
+                $sectionIds[] = $section->id;
+                $fieldIds = [];
                 $fieldOrder = 0;
 
                 foreach ($sectionData['fields'] as $fieldData) {
+                    // Generate unique field name
+                    $baseFieldName = \Str::slug($fieldData['label'], '_');
+                    $uniqueFieldName = $this->generateUniqueFieldName($baseFieldName, $usedFieldNames);
+                    $usedFieldNames[] = $uniqueFieldName;
+
                     $field = FormField::updateOrCreate(
                         ['id' => $fieldData['id'], 'form_section_id' => $section->id],
                         [
                             'label' => $fieldData['label'],
-                            'name' => \Str::slug($fieldData['label'], '_'),
+                            'name' => $uniqueFieldName,
                             'placeholder' => $fieldData['placeholder'] ?? null,
                             'is_required' => $fieldData['required'] ?? false,
                             'order' => $fieldOrder++,
-                            'form_field_type_id' => $this->resolveFieldTypeId($fieldData['type']),
+                            'field_type_id' => $this->resolveFieldTypeId($fieldData['type']),
                             'min' => $fieldData['min'] ?? null,
                             'max' => $fieldData['max'] ?? null,
                             'rows' => $fieldData['rows'] ?? null,
@@ -115,13 +124,11 @@ class FormService
                         ]
                     );
 
-                    // Handle field options (only for selectable types)
+                    $fieldIds[] = $field->id;
+
                     $selectableTypes = ['select', 'radio', 'checkbox'];
                     if (in_array($fieldData['type'], $selectableTypes)) {
-                        // Remove old options
                         $field->options()->delete();
-
-                        // Add new options
                         foreach ($fieldData['options'] ?? [] as $option) {
                             FormFieldOption::create([
                                 'form_field_id' => $field->id,
@@ -131,9 +138,32 @@ class FormService
                         }
                     }
                 }
+
+                FormField::where('form_section_id', $section->id)
+                        ->whereNotIn('id', $fieldIds)
+                        ->delete();
             }
+
+            FormSection::where('form_id', $model->id)
+                    ->whereNotIn('id', $sectionIds)
+                    ->delete();
         });
     }
+
+    private function generateUniqueFieldName(string $baseName, array $usedNames): string
+    {
+        if (!in_array($baseName, $usedNames)) {
+            return $baseName;
+        }
+        
+        $counter = 1;
+        while (in_array($baseName . '_' . $counter, $usedNames)) {
+            $counter++;
+        }
+        
+        return $baseName . '_' . $counter;
+    }
+    
     /**
      * Delete a form.
      */

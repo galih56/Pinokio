@@ -22,6 +22,6 @@ class FormSection extends Model
 
     public function fields(): HasMany
     {
-        return $this->hasMany(FormField::class, 'section_id');
+        return $this->hasMany(FormField::class, 'form_section_id');
     }
 }

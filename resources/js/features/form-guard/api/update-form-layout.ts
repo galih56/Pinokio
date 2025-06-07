@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { z } from "zod"
 import type { MutationConfig } from "@/lib/react-query"
-import type { Form } from "@/types/api"
 import { api } from "@/lib/api-client"
+import { Form } from "@/types/form"
 
 export const updateFormLayoutSchema = z.object({
   title: z.string().min(1, { message: "Title is required." }),
@@ -35,7 +35,11 @@ export const updateFormLayoutSchema = z.object({
 export type UpdateFormLayoutInput = z.infer<typeof updateFormLayoutSchema>
 
 export const updateFormLayout = async (formId : string, data: UpdateFormLayoutInput): Promise<Form> => {
-    return api.patch(`/forms/${formId}/layout`, data)
+    return api.post(`/forms/${formId}/layout`, data, {
+      headers : {
+        "Content-Type" : 'multipart/form-data'
+      }
+    })
 }
 
 type UseUpdateFormLayoutOptions = {

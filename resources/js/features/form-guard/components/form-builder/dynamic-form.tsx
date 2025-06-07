@@ -17,11 +17,12 @@ import { useState } from "react"
 import { toast } from "sonner"
 
 interface DynamicFormProps {
-  formId?: string
+  formHashId?: string // Use hash ID instead of regular ID
   sections: FormSection[]
   title: string
   description: string
   onSubmit?: (data: any) => void
+  isPreview?: boolean
 }
 
 function createFormSchema(sections: FormSection[]) {
@@ -29,6 +30,9 @@ function createFormSchema(sections: FormSection[]) {
 
   sections.forEach((section) => {
     section.fields.forEach((field) => {
+      // Use the backend-generated field name (which is unique)
+      const fieldKey = field.name
+      
       let fieldSchema: z.ZodTypeAny
 
       switch (field.type) {
@@ -59,17 +63,27 @@ function createFormSchema(sections: FormSection[]) {
 
       if (field.required && field.type !== "checkbox") {
         fieldSchema = fieldSchema.min(1, "This field is required")
+      } else if (!field.required) {
+        fieldSchema = fieldSchema.optional()
       }
 
-      schemaFields[field.id] = fieldSchema
+      schemaFields[fieldKey] = fieldSchema
     })
   })
 
   return z.object(schemaFields)
 }
 
-export function DynamicForm({ formId, sections, title, description, onSubmit }: DynamicFormProps) {
+export function DynamicForm({ 
+  formHashId, 
+  sections, 
+  title, 
+  description, 
+  onSubmit,
+  isPreview = false 
+}: DynamicFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
+  
   const allFields = sections.flatMap((section) => section.fields)
   const schema = createFormSchema(sections)
 
@@ -77,7 +91,8 @@ export function DynamicForm({ formId, sections, title, description, onSubmit }: 
     resolver: zodResolver(schema),
     defaultValues: allFields.reduce(
       (acc, field) => {
-        acc[field.id] = field.type === "checkbox" ? [] : field.defaultValue || ""
+        const fieldKey = field.name
+        acc[fieldKey] = field.type === "checkbox" ? [] : field.defaultValue || ""
         return acc
       },
       {} as Record<string, any>,
@@ -88,22 +103,41 @@ export function DynamicForm({ formId, sections, title, description, onSubmit }: 
     setIsSubmitting(true)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      if (formHashId && !isPreview) {
+        // Submit to backend using hash ID
+        const response = await fetch(`/forms/${formHashId}/submit`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+          },
+          body: JSON.stringify({
+            responses: data
+          })
+        })
 
-      if (formId) {
-        console.log("Form response submitted:", { formId, data })
-        toast.success("Form submitted successfully!")
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Submission failed')
+        }
+
+        const result = await response.json()
+        console.log("Form response submitted:", result)
+        toast.success(result.message || "Form submitted successfully!")
+        
+        // Reset form after successful submission
+        form.reset()
       } else {
+        // Preview mode
         console.log("Preview form submitted:", data)
         toast.success("Form submitted successfully! (Preview mode)")
       }
 
       onSubmit?.(data)
-      form.reset()
     } catch (error) {
       console.error("Form submission error:", error)
-      toast.error("Failed to submit form. Please try again.")
+      toast.error(error instanceof Error ? error.message : "Failed to submit form. Please try again.")
     } finally {
       setIsSubmitting(false)
     }
@@ -122,111 +156,135 @@ export function DynamicForm({ formId, sections, title, description, onSubmit }: 
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">{title}</h1>
         {description && <p className="text-gray-600">{description}</p>}
+        
+        {isPreview && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <p className="text-sm text-blue-700">
+              📋 Preview Mode - Form submissions will not be saved
+            </p>
+          </div>
+        )}
       </div>
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
           {sections.map((section, sectionIndex) => (
-            <div key={section.id} className="space-y-6">
+            <div key={section.id || sectionIndex} className="space-y-6">
               {/* Section Header */}
               <div className="space-y-4">
                 {section.image && (
                   <div className="w-full">
                     <img
                       src={section.image || "/placeholder.svg"}
-                      alt={section.title}
+                      alt={section.name}
                       className="w-full max-h-64 object-cover rounded-lg shadow-sm"
+                      onError={(e) => {
+                        e.currentTarget.src = "/placeholder.svg"
+                      }}
                     />
                   </div>
                 )}
                 <div className="space-y-2">
-                  <h2 className="text-xl font-semibold text-gray-900">{section.title}</h2>
+                  <h2 className="text-xl font-semibold text-gray-900">{section.name}</h2>
                   {section.description && <p className="text-gray-600">{section.description}</p>}
                 </div>
               </div>
 
               {/* Section Fields */}
               <div className="space-y-6">
-                {section.fields.map((field) => (
-                  <FormField
-                    key={field.id}
-                    control={form.control}
-                    name={field.id}
-                    render={({ field: formField }) => (
-                      <FormItem className="space-y-3">
-                        {field.image && (
-                          <div className="w-full">
-                            <img
-                              src={field.image || "/placeholder.svg"}
-                              alt={field.label}
-                              className="w-full max-h-48 object-cover rounded-lg shadow-sm"
-                            />
-                          </div>
-                        )}
-                        <FormLabel className="flex items-center gap-1 text-base">
-                          {field.label}
-                          {field.required && <span className="text-red-500">*</span>}
-                        </FormLabel>
-                        <FormControl>
-                          {field.type === "textarea" ? (
-                            <Textarea placeholder={field.placeholder} rows={field.rows || 3} {...formField} />
-                          ) : field.type === "select" ? (
-                            <Select onValueChange={formField.onChange} defaultValue={formField.value}>
-                              <SelectTrigger>
-                                <SelectValue placeholder={field.placeholder || "Select an option"} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {field.options?.map((option, index) => (
-                                  <SelectItem key={index} value={option}>
-                                    {option}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          ) : field.type === "radio" ? (
-                            <RadioGroup onValueChange={formField.onChange} defaultValue={formField.value}>
-                              {field.options?.map((option, index) => (
-                                <div key={index} className="flex items-center space-x-2">
-                                  <RadioGroupItem value={option} id={`${field.id}-${index}`} />
-                                  <Label htmlFor={`${field.id}-${index}`}>{option}</Label>
-                                </div>
-                              ))}
-                            </RadioGroup>
-                          ) : field.type === "checkbox" ? (
-                            <div className="space-y-2">
-                              {field.options?.map((option, index) => (
-                                <div key={index} className="flex items-center space-x-2">
-                                  <Checkbox
-                                    id={`${field.id}-${index}`}
-                                    checked={formField.value?.includes(option)}
-                                    onCheckedChange={(checked) => {
-                                      const currentValue = formField.value || []
-                                      if (checked) {
-                                        formField.onChange([...currentValue, option])
-                                      } else {
-                                        formField.onChange(currentValue.filter((v: string) => v !== option))
-                                      }
-                                    }}
-                                  />
-                                  <Label htmlFor={`${field.id}-${index}`}>{option}</Label>
-                                </div>
-                              ))}
+                {section.fields.map((field) => {
+                  return (
+                    <FormField
+                      key={field.id}
+                      control={form.control}
+                      name={field.name} // Use the backend-generated unique name
+                      render={({ field: formField }) => (
+                        <FormItem className="space-y-3">
+                          {field.image && (
+                            <div className="w-full">
+                              <img
+                                src={field.image || "/placeholder.svg"}
+                                alt={field.label}
+                                className="w-full max-h-48 object-cover rounded-lg shadow-sm"
+                                onError={(e) => {
+                                  e.currentTarget.src = "/placeholder.svg"
+                                }}
+                              />
                             </div>
-                          ) : (
-                            <Input
-                              type={field.type}
-                              placeholder={field.placeholder}
-                              min={field.min}
-                              max={field.max}
-                              {...formField}
-                            />
                           )}
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                ))}
+                          <FormLabel className="flex items-center gap-1 text-base">
+                            {field.label}
+                            {field.required && <span className="text-red-500">*</span>}
+                          </FormLabel>
+                          <FormControl>
+                            {field.type === "textarea" ? (
+                              <Textarea 
+                                placeholder={field.placeholder} 
+                                rows={field.rows || 3} 
+                                {...formField} 
+                              />
+                            ) : field.type === "select" ? (
+                              <Select onValueChange={formField.onChange} value={formField.value || ""}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder={field.placeholder || "Select an option"} />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {field.options?.map((option, index) => (
+                                    <SelectItem key={index} value={option.value || option.label}>
+                                      {option.label}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            ) : field.type === "radio" ? (
+                              <RadioGroup onValueChange={formField.onChange} value={formField.value || ""}>
+                                {field.options?.map((option, index) => (
+                                  <div key={index} className="flex items-center space-x-2">
+                                    <RadioGroupItem 
+                                      value={option.value || option.label} 
+                                      id={`${field.name}-${index}`} 
+                                    />
+                                    <Label htmlFor={`${field.name}-${index}`}>{option.label}</Label>
+                                  </div>
+                                ))}
+                              </RadioGroup>
+                            ) : field.type === "checkbox" ? (
+                              <div className="space-y-2">
+                                {field.options?.map((option, index) => (
+                                  <div key={index} className="flex items-center space-x-2">
+                                    <Checkbox
+                                      id={`${field.name}-${index}`}
+                                      checked={formField.value?.includes(option.value || option.label)}
+                                      onCheckedChange={(checked) => {
+                                        const currentValue = formField.value || []
+                                        const optionValue = option.value || option.label
+                                        if (checked) {
+                                          formField.onChange([...currentValue, optionValue])
+                                        } else {
+                                          formField.onChange(currentValue.filter((v: string) => v !== optionValue))
+                                        }
+                                      }}
+                                    />
+                                    <Label htmlFor={`${field.name}-${index}`}>{option.label}</Label>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <Input
+                                type={field.type}
+                                placeholder={field.placeholder}
+                                min={field.min}
+                                max={field.max}
+                                {...formField}
+                              />
+                            )}
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  )
+                })}
               </div>
 
               {/* Section Separator */}

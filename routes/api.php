@@ -95,7 +95,7 @@ Route::group([
         Route::put('/{id}', [FormController::class, 'update']);
         Route::post('/{id}/generate-link', [FormController::class, 'generateLink']);
         Route::patch('/{id}', [FormController::class, 'update']);
-        Route::patch('/{id}/layout', [FormController::class, 'updateFormLayout']);
+        Route::post('/{id}/layout', [FormController::class, 'updateFormLayout']);
         Route::delete('/{id}', [FormController::class, 'destroy']);
     });
 });

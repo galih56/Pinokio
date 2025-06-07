@@ -4,7 +4,6 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { DataTable } from "@/components/ui/data-table"
 import type { ColumnDef } from "@tanstack/react-table"
-import type { Form } from "@/types/api"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +24,7 @@ import { getFormQueryOptions } from "@/features/form-guard/api/get-form"
 import { useForms } from "@/features/form-guard/api/get-forms"
 import { useGenerateLinkDialog } from "./generate-link/use-generate-link-dialog"
 import { GenerateLinkDialog } from "./generate-link/generate-link-dialog"
+import { Form } from "@/types/form"
 
 export type FormsListProps = {
   onFormPrefetch?: (id: string) => void

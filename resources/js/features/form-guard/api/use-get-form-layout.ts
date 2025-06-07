@@ -1,7 +1,7 @@
 import { useQuery, queryOptions } from "@tanstack/react-query"
 import type { QueryConfig } from "@/lib/react-query"
-import type { Form } from "@/types/api"
 import { api } from "@/lib/api-client"
+import { Form } from "@/types/form"
 
 export const getFormLayout = async (formId: string): Promise<Form> => {
   return api.get(`/forms/${formId}/layout`)

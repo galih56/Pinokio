@@ -14,6 +14,7 @@ class UpdateFormLayoutRequest extends BaseRequest
 
     protected function prepareForValidation()
     {
+
     }
     
     public function rules(): array
@@ -26,7 +27,7 @@ class UpdateFormLayoutRequest extends BaseRequest
             // Sections array
             'sections' => ['required', 'array'],
             'sections.*.id' => ['required', 'string'],
-            'sections.*.title' => ['required', 'string', 'max:255'],
+            'sections.*.name' => ['required', 'string', 'max:255'],
             'sections.*.description' => ['nullable', 'string'],
             'sections.*.image' => ['nullable', 'string', 'url'],
 
@@ -39,7 +40,7 @@ class UpdateFormLayoutRequest extends BaseRequest
             ],
             'sections.*.fields.*.label' => ['required', 'string', 'max:255'],
             'sections.*.fields.*.placeholder' => ['nullable', 'string', 'max:255'],
-            'sections.*.fields.*.required' => ['required', 'boolean'],
+            'sections.*.fields.*.required' => ['sometimes', 'boolean'],
             'sections.*.fields.*.options' => ['nullable', 'array'],
             'sections.*.fields.*.options.*' => ['required_with:sections.*.fields.*.options', 'string', 'max:255'],
             'sections.*.fields.*.min' => ['nullable', 'integer', 'min:0'],
@@ -107,7 +108,7 @@ class UpdateFormLayoutRequest extends BaseRequest
             'title.min' => 'Form title cannot be empty.',
             'sections.required' => 'At least one section is required.',
             'sections.*.id.required' => 'Section ID is required.',
-            'sections.*.title.required' => 'Section title is required.',
+            'sections.*.name.required' => 'Section name is required.',
             'sections.*.fields.required' => 'Each section must have at least one field.',
             'sections.*.fields.*.id.required' => 'Field ID is required.',
             'sections.*.fields.*.type.required' => 'Field type is required.',
