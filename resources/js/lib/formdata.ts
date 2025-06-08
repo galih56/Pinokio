@@ -82,10 +82,16 @@ export const createFormData = (
                     for (let i = 0; i < value.length; i++) {
                         formData.append(`${key}[${i}]`, value[i]);
                     }
-                } else if (value instanceof File || value instanceof Blob) {
+                } else if (value instanceof File) {
                     // Handle File and Blob
                     formData.append(key, value);
-                } else if (value instanceof Date) {
+                } 
+                else if (value instanceof Blob && !(value instanceof File)) {
+                    const fileExtension = value.type.split('/')[1] || 'blob';
+                    const file = blobToFile(value, key.split('[').join('_').replace(/\]+$/g, '') + '.' + fileExtension);
+                    formData.append(key, file);
+                }
+                else if (value instanceof Date) {
                     // Handle Date
                     formData.append(key, format(value, dateFormat));
                 } else if (typeof value === 'object') {
