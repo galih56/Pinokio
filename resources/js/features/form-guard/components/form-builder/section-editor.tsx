@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { ImageUpload } from "./image-upload"
 import type { FormSection } from "@/types/form"
+import { FileUploader } from "@/components/ui/file-upload"
 
 interface SectionEditorProps {
   section: FormSection
@@ -19,8 +20,8 @@ export function SectionEditor({ section, onUpdate }: SectionEditorProps) {
         <Label htmlFor="section-title">Section Title</Label>
         <Input
           id="section-title"
-          value={section.title}
-          onChange={(e) => onUpdate({ title: e.target.value })}
+          value={section.name}
+          onChange={(e) => onUpdate({ name: e.target.value })}
           placeholder="Enter section title"
         />
       </div>
@@ -36,11 +37,12 @@ export function SectionEditor({ section, onUpdate }: SectionEditorProps) {
         />
       </div>
 
-      <ImageUpload
+    <FileUploader onValueChange={(value) => onUpdate({image: (value?value[0] : null)})} />
+      {/* <ImageUpload
         currentImage={section.image}
         onImageChange={(imageUrl) => onUpdate({ image: imageUrl })}
         label="Section Image"
-      />
+      /> */}
 
       <div className="text-sm text-gray-500">
         This section contains {section.fields.length} field{section.fields.length !== 1 ? "s" : ""}
