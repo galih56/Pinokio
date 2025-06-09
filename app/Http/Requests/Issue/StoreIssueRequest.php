@@ -46,7 +46,7 @@ class StoreIssueRequest extends BaseRequest
             'issuer_type' => 'required|string'
         ];
     }
-
+    
     /**
      * Prepare the data for validation.
      */

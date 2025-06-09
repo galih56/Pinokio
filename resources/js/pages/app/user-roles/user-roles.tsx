@@ -35,10 +35,9 @@ export const UserRolesRoute = () => {
             onOpenChange={toggle}
             title={"Create User Role"}
             trigger={ <Button variant="outline">Create User Role</Button>}
-            dialogContentClassName="max-w-xs"
           >
             <div className='p-2'>
-              <CreateUserRole onSuccess={close} onError={close}/>
+              <CreateUserRole onSuccess={close}/>
             </div>
         </DialogOrDrawer>
         <div className='w-full my-2 p4'>

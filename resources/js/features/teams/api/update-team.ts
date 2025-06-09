@@ -35,7 +35,7 @@ export const useUpdateTeam = ({
 }: UseUpdateTeamOptions) => {
   const queryClient = useQueryClient();
 
-  const { onSuccess, onError, ...restConfig } = config || {};
+  const { onSuccess, ...restConfig } = config || {};
 
   return useMutation({
     ...restConfig,
@@ -66,7 +66,6 @@ export const useUpdateTeam = ({
         queryKey: ['teams'],
       });
       onSuccess?.(res, ...args);
-    },
-    onError,
+    }
   });
 };

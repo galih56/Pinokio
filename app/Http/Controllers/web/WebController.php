@@ -11,27 +11,19 @@ use Maatwebsite\Excel\Excel as ExportType;
 class WebController extends Controller
 {
     public function __construct()
-    {
-
-    }
+    { }
 
     public function index(){
         $user = Auth::user();
         return view('dashboard');
-
-        /*
-            if(empty($user)) return redirect()->route('auth');
-
-            $user = $user->load('role');
-
-            if(in_array($user->role->code, ['ADMIN'])) {
-                return view('dashboard');
-            }
-        */
     }
 
     public function issueTrackerApp(){
         return view('issue-tracker');
+    }
+
+    public function formsApp(){
+        return view('form-guard');
     }
 
     public function authApp(){
@@ -39,5 +31,4 @@ class WebController extends Controller
         if($user) return redirect()->route('main-app');
         return view('authentication');
     }
-
 }

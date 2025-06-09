@@ -22,9 +22,8 @@ import {
 } from "@/components/ui/select"
 
 import { Button } from '@/components/ui/button';
-import { useNotifications } from '@/components/ui/notifications';
 import { Authorization, ROLES } from '@/lib/authorization';
-import { DatePicker } from '@/components/ui/date-picker/date-picker';
+import { DatePicker } from '@/components/ui/date-picker/date-time-picker';
 
 import { useTask } from '../api/get-task';
 import {
@@ -36,14 +35,13 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from "zod";
 import { DialogFooter } from '@/components/ui/dialog';
+import { toast } from 'sonner';
 
 type UpdateTaskProps = {
   taskId: string | undefined;
 };
 
 export const UpdateTask = ({ taskId }: UpdateTaskProps) => {
-  const { addNotification } = useNotifications();
-
   if(!taskId){
     return null
   }
@@ -52,11 +50,7 @@ export const UpdateTask = ({ taskId }: UpdateTaskProps) => {
   const updateTaskMutation = useUpdateTask({
     mutationConfig: {
       onSuccess: () => {
-        addNotification({
-          type: 'success',
-          title: 'Task Updated',
-          toast: true
-        });
+        toast.success('Task Updated');
       },
     },
   });
@@ -78,11 +72,7 @@ export const UpdateTask = ({ taskId }: UpdateTaskProps) => {
   async function onSubmit(values: z.infer<typeof updateTaskInputSchema>) {
     const isValid = await form.trigger();
     if (!isValid) {
-      addNotification({
-        type: 'error',
-        title: 'Required fields are empty',
-        toast: true
-      });
+      toast.error('Required fields are empty');
       return;
     }
     updateTaskMutation.mutate({ data : values, taskId : task?.id!})

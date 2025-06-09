@@ -100,9 +100,9 @@ type RichTextEditorProps = {
 
 export default function RichTextEditor({ editor }: RichTextEditorProps) {
   return (
-    <div className='w-full'>
+    <div className='w-full h-full'>
       <MenuBar editor={editor} />
-      {editor && <EditorContent editor={editor} />}
+      {editor && <EditorContent className='min-h-12' editor={editor} />}
     </div>
   )
 }

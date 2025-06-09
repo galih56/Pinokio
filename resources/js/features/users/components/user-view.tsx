@@ -2,16 +2,13 @@
 
 import { Spinner } from '@/components/ui/spinner';
 import { useUser } from '../api/get-user';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { paths } from '@/apps/dashboard/paths';
-import { useEffect } from 'react';
-import { adjustActiveBreadcrumbs, useBreadcrumbs } from '@/components/layout/breadcrumbs/breadcrumbs-store';
+import { useBreadcrumbSync, useBreadcrumbs } from '@/components/layout/breadcrumbs/breadcrumbs-store';
 
 export const UserView = ({ userId }: { userId: string }) => {
   const userQuery = useUser({ userId });
   const user = userQuery?.data?.data;
   
-  adjustActiveBreadcrumbs(`/users/:id`,`/users/${userId}`, user?.name, [ user ]);
+  useBreadcrumbSync(`/users/:id`,`/users/${userId}`, user?.name, [ user ]);
 
   if (userQuery.isPending) {
       return (

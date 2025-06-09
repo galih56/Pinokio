@@ -22,7 +22,6 @@ import {
 } from "@/components/ui/select"
 
 import { Button } from '@/components/ui/button';
-import { useNotifications } from '@/components/ui/notifications';
 import { Authorization, ROLES } from '@/lib/authorization';
 import { useUser } from '../api/get-user';
 import {
@@ -37,14 +36,13 @@ import { DialogFooter } from '@/components/ui/dialog';
 import { useEffect } from 'react';
 import { PasswordInput } from '@/components/ui/password-input';
 import { getUserRoles } from '../api/get-user-roles';
+import { toast } from 'sonner';
 
 type UpdateUserProps = {
   userId: string | undefined;
 };
 
 export const UpdateUser = ({ userId }: UpdateUserProps) => {
-  const { addNotification } = useNotifications();
-
   if(!userId){
     return null
   }
@@ -53,11 +51,7 @@ export const UpdateUser = ({ userId }: UpdateUserProps) => {
   const updateUserMutation = useUpdateUser({
     mutationConfig: {
       onSuccess: () => {
-        addNotification({
-          type: 'success',
-          title: 'User Updated',
-          toast: true
-        });
+        toast.success('User Updated');
       },
     },
   });
@@ -80,11 +74,7 @@ export const UpdateUser = ({ userId }: UpdateUserProps) => {
   async function onSubmit(values: z.infer<typeof updateUserInputSchema>) {
     const isValid = await form.trigger();
     if (!isValid) {
-      addNotification({
-        type: 'error',
-        title: 'Required fields are empty',
-        toast: true
-      });
+      toast.error('Required fields are empty');
       return;
     }
     updateUserMutation.mutate({ data : values, userId : user?.id!})
@@ -111,7 +101,7 @@ export const UpdateUser = ({ userId }: UpdateUserProps) => {
               <FormItem className="my-2">
                 <FormLabel>Role</FormLabel>
                 <FormControl>
-                  {userRolesQuery.isLoading ? (
+                  {userRolesQuery.isPending ? (
                     <Loader2 className="animate-spin" />
                   ) : (
                     <Select {...field} onValueChange={field.onChange}>

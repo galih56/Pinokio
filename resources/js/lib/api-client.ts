@@ -1,20 +1,13 @@
 import Axios, { AxiosError, AxiosHeaders, InternalAxiosRequestConfig } from 'axios';
-import { useNotifications } from '@/components/ui/notifications';
 import { paths } from '@/apps/authentication/paths';
 import { camelizeKeys, decamelizeKeys } from 'humps';
 import useAuth from '@/store/useAuth';
 import { convertDates } from './datetime';
 import { createFormData } from './formdata';
+import { toast } from 'sonner';
 
-// Throttle settings for toast notifications
-let lastErrorTime = 0;
 
-// Extend AxiosRequestConfig to include optional skipNotification property
-interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
-  skipNotification?: boolean;
-}
-
-function authRequestInterceptor(config: ExtendedAxiosRequestConfig) {
+function authRequestInterceptor(config: InternalAxiosRequestConfig) {
   const { accessToken, tokenType } = useAuth.getState(); // Access the token from Zustand
 
   // Set Authorization header if token is available
@@ -27,6 +20,7 @@ function authRequestInterceptor(config: ExtendedAxiosRequestConfig) {
   if (config.data) {
     if(config.headers['Content-Type'] == 'multipart/form-data'){
       config.data = createFormData(config.data);
+      console.log('FormData entries:', [...config.data.entries()]);
     }else{
       config.data = decamelizeKeys(config.data);
     }
@@ -72,9 +66,10 @@ api.interceptors.response.use(
       }
     }
 
-    // Show success/error messages if available and skipNotification is not set
-    if (message && !response.config.skipNotification) {
-      showToastWithThrottle(status, message);
+    if (message) {
+      toast.success( status, {
+        description : message
+      });
     }
 
     // Return the processed response data
@@ -96,9 +91,9 @@ api.interceptors.response.use(
         message = error.response?.data?.message || message;
 
         if (!isPublicPage) {
-          if (!error.config?.skipNotification) {
-            showToastWithThrottle(status, message);
-          }
+          toast.error(status, {
+            description : message
+          });
 
           // Redirect to login for non-public pages
           const redirectTo = new URLSearchParams().get('redirectTo') || window.location.pathname;
@@ -109,29 +104,17 @@ api.interceptors.response.use(
         }
       }
 
-      // Handle forbidden (403)
-      if (status === 403) {
-        if (!error.config?.skipNotification) {
-          showToastWithThrottle('error', 'Access denied. Redirecting to login.');
-        }
-        setTimeout(() => {
-          window.location.href = paths.auth.login.getHref();
-        }, 2000);
-      }
-
       if(status > 403 && status < 500){
-        if (!error.config?.skipNotification && error.response?.data) {
-          showToastWithThrottle(error.response?.data?.status, error.response?.data.message);
-        }
+        toast.error(error.response?.data?.message);
       }
     } else {
       // Handle network errors and other issues
       if (message === 'Network Error') {
         message = 'Network connection issue. Please try again later.';
       }
-      if (!error.config?.skipNotification) {
-        showToastWithThrottle('error', message);
-      }
+      toast.error('Something went wrong!',{
+        description : message
+      });
     }
 
     // Log the error or send it to a monitoring service if needed
@@ -141,16 +124,3 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
-// Utility: Throttled notification handler
-export const showToastWithThrottle = (status: string, message: string) => {
-  const currentTime = Date.now();
-  if (currentTime - lastErrorTime > 3000) { // Throttle notifications every 3 seconds
-    useNotifications.getState().addNotification({
-      type: status === 'success' ? 'success' : 'error',
-      title: status === 'success' ? 'Success' : 'Error',
-      message,
-    });
-    lastErrorTime = currentTime;
-  }
-};

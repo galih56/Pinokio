@@ -7,14 +7,6 @@ export type BreadcrumbItemType = {
   title: string;
   url: string;
 };
-export type BreadcrumbStore = {
-    url: string;
-    items: BreadcrumbItemType[];
-    setBreadcrumbs: (breadcrumbs: BreadcrumbItemType[]) => void;
-    addBreadcrumb: (breadcrumb: BreadcrumbItemType) => void;
-    replaceBreadcrumb: (pattern : string, url: string, newTitle: string , pathname? : string) => void;
-    removeBreadcrumb: (url : string) => void;
-};
 
 function getInitialBreadcrumbs(pathname? : string){
   const pathParts = (pathname ?? window.location.pathname).split('/').filter(Boolean);
@@ -30,6 +22,15 @@ function getInitialBreadcrumbs(pathname? : string){
   return [homeBreadcrumb, ...breadcrumbs]
 }
 
+export type BreadcrumbStore = {
+    url: string;
+    items: BreadcrumbItemType[];
+    setBreadcrumbs: (breadcrumbs: BreadcrumbItemType[]) => void;
+    addBreadcrumb: (breadcrumb: BreadcrumbItemType) => void;
+    replaceBreadcrumb: (pattern : string, url: string, newTitle: string , pathname? : string) => void;
+    removeBreadcrumb: (url : string) => void;
+};
+
 export const useBreadcrumbs = create<BreadcrumbStore>((set) => {
   return ({
     url: location.pathname,
@@ -40,22 +41,48 @@ export const useBreadcrumbs = create<BreadcrumbStore>((set) => {
         const updatedBreadcrumbs = state.items.filter(breadcrumb => breadcrumb.url !== url);
         return { items: updatedBreadcrumbs };
     }),
-    replaceBreadcrumb: (pattern : string, url : string, newTitle : string, pathname? : string) => set((state) => {
-      const updatedBreadcrumbs = (pathname ? getInitialBreadcrumbs(pathname) : state.items).map((breadcrumb) => {
-        // Check if the breadcrumb matches the exact URL or the given pattern
+    replaceBreadcrumb: (pattern: string, url: string, newTitle: string, pathname?: string) => set((state) => {
+      let updatedBreadcrumbs = pathname ? getInitialBreadcrumbs(pathname) : state.items;
+      
+      // Apply all previous replacements from state (if we regenerated from pathname)
+      if (pathname) {
+        // Get all current custom titles from existing state
+        const customTitles = new Map();
+        state.items.forEach(item => {
+          // Check if this item has a custom title (not auto-generated)
+          const pathParts = item.url.split('/').filter(Boolean);
+          const lastPart = pathParts[pathParts.length - 1];
+          const autoTitle = lastPart?.replace(/-/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase());
+          
+          if (item.title !== autoTitle && item.url !== '/') {
+            customTitles.set(item.url, item.title);
+          }
+        });
+        
+        // Apply existing custom titles to new breadcrumbs
+        updatedBreadcrumbs = updatedBreadcrumbs.map(breadcrumb => {
+          const customTitle = customTitles.get(breadcrumb.url);
+          return customTitle ? { ...breadcrumb, title: customTitle } : breadcrumb;
+        });
+      }
+      
+      // Apply the new replacement
+      updatedBreadcrumbs = updatedBreadcrumbs.map((breadcrumb) => {
         if (breadcrumb.url === url || match(pattern)(breadcrumb.url)) {
-          return { ...breadcrumb, title: newTitle }; // Update the title
+          return { ...breadcrumb, title: newTitle };
         }
-        return breadcrumb; // Keep breadcrumb unchanged if no match
+        return breadcrumb;
       });
     
-      return { items: updatedBreadcrumbs }; // Return the updated breadcrumbs
+      return { items: updatedBreadcrumbs };
     }),
 })});
 
-export function adjustActiveBreadcrumbs(pattern? : string, url? : string, title? : string, dependencies : any[] = []){
+
+export function useBreadcrumbSync(pattern? : string, url? : string, title? : string, dependencies : any[] = []){
   const location = useLocation();
   const {setBreadcrumbs , replaceBreadcrumb, removeBreadcrumb} = useBreadcrumbs();
+    
   useEffect(()=> {
     if(pattern){
       if(pattern && url && title) replaceBreadcrumb(pattern, url, title, location.pathname)

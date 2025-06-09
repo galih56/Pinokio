@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/form";
 
 import { Button } from '@/components/ui/button';
-import { useNotifications } from '@/components/ui/notifications';
 import { Authorization, ROLES } from '@/lib/authorization';
 import { useTag } from '../api/get-tag';
 import {
@@ -31,6 +30,7 @@ import { ColorPickerPopover } from '@/components/ui/color-picker-popover';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useEffect } from 'react';
 import { Spinner } from '@/components/ui/spinner';
+import { toast } from 'sonner';
 
 type UpdateTagProps = {
   tagId: string;
@@ -39,8 +39,6 @@ type UpdateTagProps = {
 };
 
 export const UpdateTag = ({ tagId , onSuccess, onError}: UpdateTagProps) => {
-  const { addNotification } = useNotifications();
-
   const tagQuery = useTag({ tagId });
   const updateTagMutation = useUpdateTag({
     tagId : tagId,
@@ -74,11 +72,7 @@ export const UpdateTag = ({ tagId , onSuccess, onError}: UpdateTagProps) => {
   async function onSubmit(values: z.infer<typeof updateTagInputSchema>) {
     const isValid = await form.trigger();
     if (!isValid) {
-      addNotification({
-        type: 'error',
-        title: 'Required fields are empty',
-        toast: true
-      });
+      toast.error('Required fields are empty');
       return;
     }
     updateTagMutation.mutate({ data: values, tagId: tag?.id! });

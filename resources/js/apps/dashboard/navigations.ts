@@ -2,7 +2,8 @@ import {
   BugIcon, HomeIcon, IdCardIcon, 
   Network, 
   SettingsIcon, User2Icon, 
-  UsersIcon , ListTodoIcon
+  UsersIcon , ListTodoIcon,
+  FilePen
 } from 'lucide-react';
 import { paths } from './paths';
 import { NavigationItem } from '@/types/ui';
@@ -17,6 +18,11 @@ export const navigations : NavigationItem[] = [
       title: 'Issues',
       url : paths.issues.getHref(),
       icon: BugIcon,
+    },
+    {
+      title: 'Forms',
+      url : paths.forms.getHref(),
+      icon: FilePen,
     },
     /*
     {

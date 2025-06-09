@@ -41,7 +41,7 @@ export function UserSearch({ onSelect, placeholder = "Search users..." }: UserSe
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between">
+        <Button variant="outline" role="combobox" aria-expanded={open} className="w-full justify-between my-1">
           {selectedUser ? selectedUser.name : placeholder}
           <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>

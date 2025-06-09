@@ -1,5 +1,6 @@
 import { QueryClient, UseMutationOptions, DefaultOptions } from '@tanstack/react-query';
 import { createContext, useContext } from 'react';
+import { apiErrorHandler } from './utils';
 
 export const queryConfig = {
   queries: {
@@ -8,9 +9,12 @@ export const queryConfig = {
     retry: false,
     staleTime: 1000 * 60,
   },
+  mutations : {
+    onError : apiErrorHandler
+  }
 } satisfies DefaultOptions;
 
-export const queryClient = new QueryClient({ defaultOptions: queryConfig ,});
+export const queryClient = new QueryClient({ defaultOptions: queryConfig });
 
 export type ApiFnReturnType<FnType extends (...args: any) => Promise<any>> =
   Awaited<ReturnType<FnType>>;

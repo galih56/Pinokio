@@ -16,6 +16,18 @@ export const paths : Paths = {
     path: 'issues/:id',
     getHref: (id?: string) => `/issues/${id}`,
   },
+  forms: {
+    path: 'forms',
+    getHref: () => '/forms',
+  },
+  form: {
+    path: 'forms/:id',
+    getHref: (id?: string) => `/forms/${id}`,
+  },
+  formBuilder: {
+    path: 'forms/:id/layout',
+    getHref: (id?: string) => `/forms/${id}/layout`,
+  },
   tasks: {
     path: 'tasks',
     getHref: () => '/tasks',

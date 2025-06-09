@@ -31,7 +31,7 @@ export function TeamMembersList({
   }
 
   return (
-    <div className="border rounded-md">
+    <div className="border rounded-md my-1">
       <ScrollArea className="p-1" style={{ maxHeight }}>
         <div className="space-y-1">
           {members.map((member) => (

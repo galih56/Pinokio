@@ -155,7 +155,7 @@ export type ActionDetails =
 
 export interface IssueLog  extends BaseEntity  {
   issueId?: number;
-  userId: number | null;
+  userId: string | null;
   userType?: string;
   action: 'updated' | 'status_change' | 'created' | 'deleted';
   actionDetails: ActionDetails;
@@ -163,11 +163,6 @@ export interface IssueLog  extends BaseEntity  {
 
 export const isIssue = (commentable: Issue | Project | Task): commentable is Issue =>
     (commentable as Issue).issuer !== undefined;
-  
-/*
-export const isProjectOrTask = (commentable: Issue | Project | Task): commentable is Project | Task =>
-    (commentable as Project).creator !== undefined;
-*/
 
 export const getCommentableCreator = (commentable?: Issue | Project | Task) => {
     if (!commentable) return null;
@@ -176,10 +171,5 @@ export const getCommentableCreator = (commentable?: Issue | Project | Task) => {
         return commentable.issuer; 
     } 
 
-    /*
-        if (isProjectOrTask(commentable)) {
-            return commentable.creator; 
-        }
-    */
     return null;
 };

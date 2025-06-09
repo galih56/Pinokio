@@ -1,14 +1,15 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\api\AuthController;
-use App\Http\Controllers\api\UserController;
-use App\Http\Controllers\api\TeamController;
-use App\Http\Controllers\api\UserRoleController;
-use App\Http\Controllers\api\TagController;
-use App\Http\Controllers\api\IssueController;
-use App\Http\Controllers\api\TaskController;
-use App\Http\Controllers\api\CommentController;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\TeamController;
+use App\Http\Controllers\Api\UserRoleController;
+use App\Http\Controllers\Api\TagController;
+use App\Http\Controllers\Api\IssueController;
+use App\Http\Controllers\Api\FormController;
+use App\Http\Controllers\Api\TaskController;
+use App\Http\Controllers\Api\CommentController;
 
 Route::group([ 
     "prefix" => "auth", 
@@ -31,11 +32,10 @@ Route::group([
     "prefix" => "users",
     'middleware' => 'auth:sanctum'
 ], function () {
-    
+    Route::get('/search', [UserController::class, 'search']);
     Route::group([
-        'middleware' => ['role:ADMIN','decode_id']
+        'middleware' => ['decode_id']
     ], function () {
-        Route::get('/search', [UserController::class, 'search']);
         Route::get('/', [UserController::class, 'index']);
         Route::post('/', [UserController::class, 'store']);
         Route::get('/{id}', [UserController::class, 'show']);
@@ -69,7 +69,7 @@ Route::group([
     Route::get('/{id}/logs', [IssueController::class, 'getIssueLogs']);
     
     Route::group([
-        'middleware' => ['role:ADMIN','decode_id', 'auth:sanctum']
+        'middleware' => ['decode_id', 'auth:sanctum']
     ], function () {
         Route::get('/{id}', [IssueController::class, 'show']);
         Route::put('/{id}', [IssueController::class, 'update']);
@@ -80,8 +80,29 @@ Route::group([
 });
 
 Route::group([
+    "prefix" => "forms",
+], function () {
+    Route::get('/', [FormController::class, 'index']);
+    Route::group([
+        'middleware' => [
+            'decode_id',
+            'middleware' => 'auth:sanctum'
+        ]
+    ], function () {
+        Route::post('/', [FormController::class, 'store']);
+        Route::get('/{id}', [FormController::class, 'show']);
+        Route::get('/{id}/layout', [FormController::class, 'getFormWithLayout']);
+        Route::put('/{id}', [FormController::class, 'update']);
+        Route::post('/{id}/generate-link', [FormController::class, 'generateLink']);
+        Route::patch('/{id}', [FormController::class, 'update']);
+        Route::post('/{id}/layout', [FormController::class, 'updateFormLayout']);
+        Route::delete('/{id}', [FormController::class, 'destroy']);
+    });
+});
+
+Route::group([
     "prefix" => "tasks",
-    'middleware' => ['role:ADMIN','decode_id', 'auth:sanctum']
+    'middleware' => ['decode_id', 'auth:sanctum']
 ], function () {
     Route::post('/', [TaskController::class, 'store']);
     Route::get('/', [TaskController::class, 'index']);
@@ -111,11 +132,10 @@ Route::group([
 Route::group([
     "prefix" => "tags",
 ], function () {
-
     Route::get('/', [TagController::class, 'index']);
     Route::group([
         'middleware' => [
-            'role:ADMIN','decode_id',
+            'decode_id',
             'middleware' => 'auth:sanctum'
         ]
     ], function () {
@@ -129,16 +149,16 @@ Route::group([
 
 Route::group([
     "prefix" => "teams",
+    'middleware' => 'auth:sanctum'
 ], function () {
+    Route::get('/', [TeamController::class, 'index']);
+    Route::post('/', [TeamController::class, 'store']);
 
     Route::group([
         'middleware' => [
-            'role:ADMIN','decode_id',
-            'middleware' => 'auth:sanctum'
+            'decode_id',
         ]
     ], function () {
-        Route::get('/', [TeamController::class, 'index']);
-        Route::post('/', [TeamController::class, 'store']);
         Route::get('/{id}', [TeamController::class, 'show']);
         Route::put('/{id}/members', [TeamController::class, 'updateMembers']);
         Route::put('/{id}', [TeamController::class, 'update']);
@@ -151,7 +171,7 @@ Route::group([
 Route::group([
     "prefix" => "user_roles",
     'middleware' => [
-        'role:ADMIN','decode_id',
+        
         'auth:sanctum'
     ]
 ], function () {

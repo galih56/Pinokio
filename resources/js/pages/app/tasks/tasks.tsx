@@ -36,7 +36,7 @@ export const TasksRoute = () => {
           title={"Create Task"}
           trigger={ <Button variant="outline">Create Task</Button>}
           >
-            <CreateTask onSuccess={close} onError={close}/>
+            <CreateTask onSuccess={close}/>
         </DialogOrDrawer>
         <div className='w-full my-2 p4'>
           <TasksList />          

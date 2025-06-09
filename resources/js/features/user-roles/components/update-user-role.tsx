@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/form";
 
 import { Button } from '@/components/ui/button';
-import { useNotifications } from '@/components/ui/notifications';
 import { Authorization, ROLES } from '@/lib/authorization';
 import { useUserRole } from '../api/get-user-role';
 import {
@@ -29,6 +28,7 @@ import { DialogFooter } from '@/components/ui/dialog';
 import { useEffect } from 'react';
 import { Spinner } from '@/components/ui/spinner';
 import { Textarea } from '@/components/ui/textarea';
+import { toast } from 'sonner';
 
 type UpdateUserRoleProps = {
   userRoleId: string;
@@ -37,8 +37,6 @@ type UpdateUserRoleProps = {
 };
 
 export const UpdateUserRole = ({ userRoleId , onSuccess, onError}: UpdateUserRoleProps) => {
-  const { addNotification } = useNotifications();
-
   const userRoleQuery = useUserRole({ userRoleId });
   const updateUserRoleMutation = useUpdateUserRole({
     userRoleId : userRoleId,
@@ -70,11 +68,7 @@ export const UpdateUserRole = ({ userRoleId , onSuccess, onError}: UpdateUserRol
   async function onSubmit(values: z.infer<typeof updateUserRoleInputSchema>) {
     const isValid = await form.trigger();
     if (!isValid) {
-      addNotification({
-        type: 'error',
-        title: 'Required fields are empty',
-        toast: true
-      });
+      toast.error('Required fields are empty');
       return;
     }
     updateUserRoleMutation.mutate({ data: values, userRoleId: userRole?.id! });

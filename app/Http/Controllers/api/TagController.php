@@ -1,5 +1,5 @@
 <?php
-namespace App\Http\Controllers\api;
+namespace App\Http\Controllers\Api;
 
 use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
@@ -102,7 +102,7 @@ class TagController extends Controller
             $tag = $this->tagService->update($id, $request->all());
 
             DB::commit();
-            return ApiResponse::sendResponse( $tag , 'Tag Succesdsful','success',201);
+            return ApiResponse::sendResponse( $tag , 'Tag Update Successful','success',201);
 
         }catch(\Exception $ex){
             return ApiResponse::rollback($ex);
@@ -116,6 +116,6 @@ class TagController extends Controller
     {
         $this->tagService->deleteTag($id);
         
-        return ApiResponse::sendResponse('Tag Deleted Successful','',204);
+        return ApiResponse::sendResponse('Tag Delete Successful','',204);
     }
 }

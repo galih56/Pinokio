@@ -36,7 +36,7 @@ export const IssuesRoute = () => {
           title={"Create Issue"}
           trigger={ <Button variant="outline">Create Issue</Button>}
           >
-            <CreateIssue onSuccess={close} onError={close}/>
+            <CreateIssue onSuccess={close}/>
         </DialogOrDrawer>
         <div className='w-full my-2 p4'>
           <IssuesList />          

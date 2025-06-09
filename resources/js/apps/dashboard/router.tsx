@@ -6,11 +6,7 @@ import { paths } from '@/apps/dashboard/paths';
 import { ProtectedRoute } from '@/lib/auth';
 import { queryClient } from '@/lib/react-query';
 import { Layout } from './layout';
-
-const AppRootErrorBoundary = () => {
-  const error = useRouteError();
-  return <div>Something went wrong!</div>;
-};
+import { AppRootErrorBoundary } from '@/components/ui/app-root-error-boundary';
 
 export const createAppRouter = (queryClient: QueryClient) => {
   return createBrowserRouter([
@@ -47,6 +43,45 @@ export const createAppRouter = (queryClient: QueryClient) => {
             return {
               Component: IssueRoute,
               loader: issueLoader(queryClient),
+            };
+          },
+          ErrorBoundary: AppRootErrorBoundary,
+        },
+        {
+          path: paths.forms.path,
+          lazy: async () => {
+            const { FormsRoute, formsLoader } = await import(
+              '@/pages/app/form-guard/forms'
+            );
+            return {
+              Component: FormsRoute,
+              loader: formsLoader(queryClient),
+            };
+          },
+          ErrorBoundary: AppRootErrorBoundary,
+        },
+        {
+          path: paths.form.path,
+          lazy: async () => {
+            const { FormRoute, formLoader } = await import(
+              '@/pages/app/form-guard/form'
+            );
+            return {
+              Component: FormRoute,
+              loader: formLoader(queryClient),
+            };
+          },
+          ErrorBoundary: AppRootErrorBoundary,
+        },
+        {
+          path: paths.formBuilder.path,
+          lazy: async () => {
+            const { FormBuilderRoute, formLayoutLoader } = await import(
+              '@/pages/app/form-guard/form-builder'
+            );
+            return {
+              Component: FormBuilderRoute,
+              loader: formLayoutLoader(queryClient),
             };
           },
           ErrorBoundary: AppRootErrorBoundary,

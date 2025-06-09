@@ -5,7 +5,7 @@ import { useIssue } from '../api/get-issue';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { formatDate, formatDateTime } from '@/lib/datetime';
 import { StatusBadge } from '../../../components/ui/status-badge';
-import { adjustActiveBreadcrumbs } from '@/components/layout/breadcrumbs/breadcrumbs-store';
+import { useBreadcrumbSync } from '@/components/layout/breadcrumbs/breadcrumbs-store';
 import { CommentList } from '@/features/comment/components/comment-list';
 import CreateComment from '@/features/comment/components/create-comment';
 import { IssueFiles } from './issue-files';
@@ -24,13 +24,13 @@ export const IssueView = ({ issueId }: { issueId: string }) => {
   });
 
   const issue = issueQuery?.data?.data;
-  adjustActiveBreadcrumbs(`/issues/:id`,`/issues/${issueId}`, issue?.title, [ issue ]);
+  useBreadcrumbSync(`/issues/:id`,`/issues/${issueId}`, issue?.title, [ issue ]);
   
   if(!issueId){
     return <h1>Unrecognized Request</h1>
   }
 
-  if (issueQuery.isLoading) {
+  if (issueQuery.isPending) {
     return (
       <div className="flex h-48 w-full items-center justify-center">
         <Spinner size="lg" />

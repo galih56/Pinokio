@@ -5,22 +5,16 @@ import { ErrorBoundary } from 'react-error-boundary';
 import { HelmetProvider } from 'react-helmet-async';
 
 import { Notifications } from '@/components/ui/notifications';
-import { queryConfig } from '@/lib/react-query';
-import { MainErrorFallback } from '@/components/layout/main-fallback';
+import { queryClient, queryConfig } from '@/lib/react-query';
+import { MainErrorFallback } from '@/components/layout/error-fallbacks';
 import { Spinner } from '@/components/ui/spinner';
+import { Toaster } from '@/components/ui/toaster';
 
 type AppProviderProps = {
   children: React.ReactNode;
 };
 
 export const AppProvider = ({ children }: AppProviderProps) => {
-  const [queryClient] = React.useState(
-    () =>
-      new QueryClient({
-        defaultOptions: queryConfig,
-      }),
-  );
-
   return (
     <React.Suspense
       fallback={
@@ -33,8 +27,8 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         <HelmetProvider>
           <QueryClientProvider client={queryClient}>
             {import.meta.env.DEV && <ReactQueryDevtools />}
-            <Notifications />
             {children}
+            <Toaster/>
           </QueryClientProvider>
         </HelmetProvider>
       </ErrorBoundary>
