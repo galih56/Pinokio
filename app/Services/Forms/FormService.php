@@ -13,10 +13,23 @@ use App\Models\Forms\FormFieldOption;
 use App\Models\Forms\FormSection;
 use App\Models\Forms\FormToken;
 use Illuminate\Support\Str;
+use App\Services\FileService;
+use App\Services\HashIdService;
 
 class FormService
 {
     protected Form $model;
+
+    protected $fileService;
+
+    public function __construct(
+        Form $model,
+        FileService $fileService, 
+    )
+    {
+        $this->model = $model;
+        $this->fileService = $fileService;
+    }
 
     public function getRelatedData()
     {
@@ -25,13 +38,6 @@ class FormService
             'attempts',
             'templates'
         ];
-    }
-    
-    public function __construct(
-        Form $model,
-    )
-    {
-        $this->model = $model;
     }
 
     public function get(array $filters = [], int $perPage = 0, array $sorts = []): Collection | LengthAwarePaginator
@@ -72,12 +78,14 @@ class FormService
         $model->update($data);
         return $model;
     }
-    
+
     public function updateFormLayout(int $id, array $data)
     {
         $model = $this->model->find($id);
-            
-        DB::transaction(function () use ($data, $model) {
+        $encrypted_form_id = app(HashIdService::class)->encode($model->id);
+        $prefix_image_path = "forms/$encrypted_form_id";
+
+        DB::transaction(function () use ($data, $model, $prefix_image_path) {
             $model->update([
                 'title' => $data['title'],
                 'description' => $data['description'] ?? null,
@@ -88,14 +96,35 @@ class FormService
             $usedFieldNames = []; // Track field names across all sections
 
             foreach ($data['sections'] as $sectionData) {
+                // Handle section image upload
+                $sectionImageUrl = null;
+                if (isset($sectionData['image']) && $sectionData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                    try {
+                        $uploadedFile = app(FileService::class)->uploadImage(
+                            $sectionData['image'], 
+                            $prefix_image_path."/".$sectionData['id'],
+                            auth()->user(),
+                            false
+                        );
+                        $sectionImageUrl = app(FileService::class)->getUrl($uploadedFile);
+                    } catch (\Exception $e) {
+                        // Log error or handle as needed
+                        \Log::error('Section image upload failed: ' . $e->getMessage());
+                        // You might want to throw the exception or handle it gracefully
+                    }
+                } elseif (isset($sectionData['image']) && is_string($sectionData['image'])) {
+                    // Keep existing URL if it's a string
+                    $sectionImageUrl = $sectionData['image'];
+                }
+
                 $section = FormSection::updateOrCreate(
-                    ['id' => $sectionData['id']], // Remove form_id from unique constraint
+                    ['id' => $sectionData['id']], 
                     [
-                        'form_id' => $model->id, // Set form_id in the data array
+                        'form_id' => $model->id, 
                         'name' => $sectionData['name'],
                         'description' => $sectionData['description'] ?? null,
                         'order' => $sectionOrder++,
-                        'image_url' => $sectionData['image'] ?? null,
+                        'image_path' => $sectionImageUrl,
                     ]
                 );
 
@@ -108,6 +137,27 @@ class FormService
                     $baseFieldName = \Str::slug($fieldData['label'], '_');
                     $uniqueFieldName = $this->generateUniqueFieldName($baseFieldName, $usedFieldNames);
                     $usedFieldNames[] = $uniqueFieldName;
+
+                    // Handle field image upload
+                    $fieldImageUrl = null;
+                    if (isset($fieldData['image']) && $fieldData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                        try {
+                            $uploadedFile = app(FileService::class)->uploadImage(
+                                $fieldData['image'],
+                                $prefix_image_path."/".$sectionData['id'],
+                                auth()->user(),
+                                false
+                            );
+                            $fieldImageUrl = app(FileService::class)->getUrl($uploadedFile);
+                        } catch (\Exception $e) {
+                            // Log error or handle as needed
+                            \Log::error('Field image upload failed: ' . $e->getMessage());
+                            // You might want to throw the exception or handle it gracefully
+                        }
+                    } elseif (isset($fieldData['image']) && is_string($fieldData['image'])) {
+                        // Keep existing URL if it's a string
+                        $fieldImageUrl = $fieldData['image'];
+                    }
 
                     $field = FormField::updateOrCreate(
                         ['id' => $fieldData['id']], // Remove form_section_id from unique constraint
@@ -122,7 +172,7 @@ class FormService
                             'min' => $fieldData['min'] ?? null,
                             'max' => $fieldData['max'] ?? null,
                             'rows' => $fieldData['rows'] ?? null,
-                            'image_url' => $fieldData['image'] ?? null,
+                            'image_path' => $fieldImageUrl,
                             'default_value' => $fieldData['defaultValue'] ?? null,
                         ]
                     );
@@ -166,7 +216,6 @@ class FormService
                     ->delete();
         });
     }
-
 
     private function generateUniqueFieldName(string $baseName, array $usedNames): string
     {

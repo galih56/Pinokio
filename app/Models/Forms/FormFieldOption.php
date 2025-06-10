@@ -13,6 +13,8 @@ class FormFieldOption extends Model
         'value',
     ];
 
+    protected $keyType = 'string';
+    
     public function field(): BelongsTo
     {
         return $this->belongsTo(FormField::class, 'form_field_id');

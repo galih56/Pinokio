@@ -12,9 +12,12 @@ class FormSection extends Model
         'form_id',
         'name',
         'description',
+        'image_path',
         'order',
     ];
 
+    protected $keyType = 'string';
+    
     public function form(): BelongsTo
     {
         return $this->belongsTo(Form::class);

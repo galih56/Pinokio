@@ -14,10 +14,13 @@ class FormField extends Model
         'name',
         'placeholder',
         'is_required',
+        'image_path',
         'order',
         'field_type_id',
     ];
 
+    protected $keyType = 'string';
+    
     protected $casts = [
         'is_required' => 'boolean',
     ];

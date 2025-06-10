@@ -39,7 +39,7 @@ export function SectionEditor({ section, onUpdate }: SectionEditorProps) {
 
       <ImageUpload
         currentImage={section.image}
-        onImageChange={(imageUrl) => onUpdate({ image: imageUrl })}
+        onImageChange={(image) => onUpdate({ image: image })}
         label="Section Image"
       />
 

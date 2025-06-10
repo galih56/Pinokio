@@ -150,7 +150,7 @@ export function FormBuilder({ formId, initialData }: FormBuilderProps) {
 
     const isValid = validateForm()
     if (!isValid) {
-      toast.error("Please fix validation errors before saving")
+      toast.error("Check your form layout")
       return
     }
 

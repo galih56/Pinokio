@@ -29,7 +29,7 @@ class UpdateFormLayoutRequest extends BaseRequest
             'sections.*.id' => ['required', 'string'],
             'sections.*.name' => ['required', 'string', 'max:255'],
             'sections.*.description' => ['nullable', 'string'],
-            'sections.*.image' => ['nullable', 'string', 'url'],
+            'sections.*.image' =>  ['nullable', 'file', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
 
             // Fields within sections
             'sections.*.fields' => ['required', 'array'],
@@ -46,7 +46,7 @@ class UpdateFormLayoutRequest extends BaseRequest
             'sections.*.fields.*.min' => ['nullable', 'integer', 'min:0'],
             'sections.*.fields.*.max' => ['nullable', 'integer', 'min:0'],
             'sections.*.fields.*.rows' => ['nullable', 'integer', 'min:1', 'max:20'],
-            'sections.*.fields.*.image' => ['nullable', 'string', 'url'],
+            'sections.*.fields.*.image' => ['nullable', 'file', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             'sections.*.fields.*.defaultValue' => ['nullable', 'string'],
         ];
     }
@@ -121,7 +121,8 @@ class UpdateFormLayoutRequest extends BaseRequest
             'sections.*.fields.*.rows.min' => 'Textarea must have at least 1 row.',
             'sections.*.fields.*.rows.max' => 'Textarea cannot have more than 20 rows.',
             'sections.*.image.url' => 'Section image must be a valid URL.',
-            'sections.*.fields.*.image.url' => 'Field image must be a valid URL.',
+            'sections.*.fields.*.image.file' => 'Image file type is invalid',
+            'sections.*.fields.*.image.max' => 'Image file size must less than 5MB',
         ];
     }
 }

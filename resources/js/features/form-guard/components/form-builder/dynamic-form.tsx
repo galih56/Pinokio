@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator"
 import type { FormSection } from "@/types/form"
 import { useState } from "react"
 import { toast } from "sonner"
+import { PreviewableImage } from "./previewable-image"
 
 interface DynamicFormProps {
   formHashId?: string // Use hash ID instead of regular ID
@@ -174,13 +175,10 @@ export function DynamicForm({
               <div className="space-y-4">
                 {section.image && (
                   <div className="w-full">
-                    <img
-                      src={section.image || "/placeholder.svg"}
+                    <PreviewableImage
+                      image={section.image}
                       alt={section.name}
-                      className="w-full max-h-64 object-cover rounded-lg shadow-sm"
-                      onError={(e) => {
-                        e.currentTarget.src = "/placeholder.svg"
-                      }}
+                      className="w-full max-h-48 object-cover rounded-lg shadow-sm"
                     />
                   </div>
                 )}
@@ -202,13 +200,10 @@ export function DynamicForm({
                         <FormItem className="space-y-3">
                           {field.image && (
                             <div className="w-full">
-                              <img
-                                src={field.image || "/placeholder.svg"}
+                              <PreviewableImage
+                                image={field.image}
                                 alt={field.label}
                                 className="w-full max-h-48 object-cover rounded-lg shadow-sm"
-                                onError={(e) => {
-                                  e.currentTarget.src = "/placeholder.svg"
-                                }}
                               />
                             </div>
                           )}

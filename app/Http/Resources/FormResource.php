@@ -43,6 +43,7 @@ class FormResource extends JsonResource
                     'name' => $section->name,
                     'description' => $section->description,
                     'order' => $section->order,
+                    'image' => ($section->image_path ? asset($section->image_path) : null),
                     'fields' => $section->fields->map(fn ($field) => [
                         'id' => app(HashIdService::class)->encode($field->id),
                         'label' => $field->label,
@@ -50,6 +51,7 @@ class FormResource extends JsonResource
                         'placeholder' => $field->placeholder,
                         'isRequired' => $field->is_required,
                         'order' => $field->order,
+                        'image' => ($field->image_path ? asset($field->image_path) : null),
                         'type' => $field->fieldType->name,
                         'options' => $field->options->map(fn ($opt) => [
                             'id' => $opt->id,

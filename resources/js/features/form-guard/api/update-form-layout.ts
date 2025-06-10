@@ -12,7 +12,7 @@ export const updateFormLayoutSchema = z.object({
       id: z.string(),
       title: z.string(),
       description: z.string().optional(),
-      image: z.string().optional(),
+      image: z.array(z.instanceof(File)).optional(),
       fields: z.array(
         z.object({
           id: z.string(),
