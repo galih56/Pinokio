@@ -1,9 +1,18 @@
+"use client"
+
 import { create } from "zustand"
 import { devtools, persist, subscribeWithSelector } from "zustand/middleware"
 import { immer } from "zustand/middleware/immer"
 import { useShallow } from "zustand/react/shallow"
-import type { FormSection, FormField, FieldType } from "@/types/form"
-import { generateId } from "@/lib/utils"
+import {
+  generateId,
+  parseApiValidationErrors,
+  type FormBuilderError,
+  type FormSection,
+  type FormField,
+} from "@/lib/utils"
+
+type FieldType = "text" | "email" | "number" | "textarea" | "select" | "radio" | "checkbox"
 
 interface FormBuilderState {
   // Current form being edited
@@ -11,6 +20,10 @@ interface FormBuilderState {
   formTitle: string
   formDescription?: string
   formSections: FormSection[]
+
+  // Error state
+  errors: FormBuilderError[]
+  hasErrors: boolean
 
   // UI state
   selectedFieldId?: string
@@ -28,6 +41,19 @@ interface FormBuilderState {
   setFormData: (data: { title: string; description: string; sections: FormSection[]; formId?: string }) => void
   setFormTitle: (title: string) => void
   setFormDescription: (description: string) => void
+
+  // Error actions
+  addError: (error: Omit<FormBuilderError, "id">) => void
+  removeError: (errorId: string) => void
+  clearErrors: () => void
+  clearErrorsForField: (fieldId: string) => void
+  clearErrorsForSection: (sectionId: string) => void
+  setApiErrors: (apiErrors: Record<string, string[]>) => void
+  validateForm: () => boolean
+  getFieldErrors: (fieldId: string) => FormBuilderError[]
+  getSectionErrors: (sectionId: string) => FormBuilderError[]
+  hasFieldErrors: (fieldId: string) => boolean
+  hasSectionErrors: (sectionId: string) => boolean
 
   // Section actions
   addSection: () => void
@@ -67,10 +93,11 @@ interface FormBuilderSnapshot {
 }
 
 const createInitialSection = (): FormSection => ({
-  id: generateId(),
-  title: "Section 1",
+  id: generateId("section"),
+  name: "Section 1",
   description: "",
   fields: [],
+  order: 0,
 })
 
 const createSnapshot = (state: FormBuilderState): FormBuilderSnapshot => ({
@@ -89,6 +116,8 @@ export const useFormBuilderStore = create<FormBuilderState>()(
           formTitle: "Untitled Form",
           formDescription: "",
           formSections: [createInitialSection()],
+          errors: [],
+          hasErrors: false,
           isDirty: false,
           isAutoSaving: false,
           history: [],
@@ -115,6 +144,9 @@ export const useFormBuilderStore = create<FormBuilderState>()(
                 // Clear history when loading new form
                 state.history = []
                 state.historyIndex = -1
+                // Clear errors when loading new form
+                state.errors = []
+                state.hasErrors = false
                 // Auto-select first section
                 if (data.sections.length > 0) {
                   state.selectedSectionId = data.sections[0].id
@@ -128,6 +160,11 @@ export const useFormBuilderStore = create<FormBuilderState>()(
               if (state.formTitle !== title) {
                 state.formTitle = title
                 state.isDirty = true
+                // Clear form-level title errors
+                state.errors = state.errors.filter(
+                  (error) => !(error.type === "form" && error.message.toLowerCase().includes("title")),
+                )
+                state.hasErrors = state.errors.length > 0
               }
             }),
 
@@ -136,16 +173,154 @@ export const useFormBuilderStore = create<FormBuilderState>()(
               if (state.formDescription !== description) {
                 state.formDescription = description
                 state.isDirty = true
+                // Clear form-level description errors
+                state.errors = state.errors.filter(
+                  (error) => !(error.type === "form" && error.message.toLowerCase().includes("description")),
+                )
+                state.hasErrors = state.errors.length > 0
               }
             }),
+
+          // Error actions
+          addError: (error) =>
+            set((state) => {
+              const newError: FormBuilderError = {
+                ...error,
+                id: generateId("error"),
+              }
+              state.errors.push(newError)
+              state.hasErrors = true
+            }),
+
+          removeError: (errorId) =>
+            set((state) => {
+              state.errors = state.errors.filter((error) => error.id !== errorId)
+              state.hasErrors = state.errors.length > 0
+            }),
+
+          clearErrors: () =>
+            set((state) => {
+              state.errors = []
+              state.hasErrors = false
+            }),
+
+          clearErrorsForField: (fieldId) =>
+            set((state) => {
+              state.errors = state.errors.filter((error) => error.fieldId !== fieldId)
+              state.hasErrors = state.errors.length > 0
+            }),
+
+          clearErrorsForSection: (sectionId) =>
+            set((state) => {
+              state.errors = state.errors.filter((error) => error.sectionId !== sectionId)
+              state.hasErrors = state.errors.length > 0
+            }),
+
+          // Set API validation errors
+          setApiErrors: (apiErrors) =>
+            set((state) => {
+              // Clear existing errors first
+              state.errors = []
+
+              // Parse and add API errors
+              const parsedErrors = parseApiValidationErrors(apiErrors, state.formSections)
+              state.errors = parsedErrors
+              state.hasErrors = parsedErrors.length > 0
+            }),
+
+          validateForm: () => {
+            const state = get()
+            const errors: FormBuilderError[] = []
+
+            // Validate form title
+            if (!state.formTitle.trim()) {
+              errors.push({
+                id: generateId("error"),
+                type: "form",
+                message: "Form title is required",
+              })
+            }
+
+            // Validate sections
+            state.formSections.forEach((section) => {
+              if (!section.name.trim()) {
+                errors.push({
+                  id: generateId("error"),
+                  type: "section",
+                  message: "Section name is required",
+                  sectionId: section.id,
+                })
+              }
+
+              if (section.fields.length === 0) {
+                errors.push({
+                  id: generateId("error"),
+                  type: "section",
+                  message: "Each section must have at least one field",
+                  sectionId: section.id,
+                })
+              }
+
+              // Validate fields
+              section.fields.forEach((field) => {
+                if (!field.label.trim()) {
+                  errors.push({
+                    id: generateId("error"),
+                    type: "field",
+                    message: "Field label is required",
+                    fieldId: field.id,
+                    sectionId: section.id,
+                  })
+                }
+
+                // Validate select/radio/checkbox options
+                if (
+                  ["select", "radio", "checkbox"].includes(field.type) &&
+                  (!field.options || field.options.length === 0 || field.options.every((opt) => !opt.trim()))
+                ) {
+                  errors.push({
+                    id: generateId("error"),
+                    type: "field",
+                    message: "Field must have at least one valid option",
+                    fieldId: field.id,
+                    sectionId: section.id,
+                  })
+                }
+              })
+            })
+
+            set((state) => {
+              state.errors = errors
+              state.hasErrors = errors.length > 0
+            })
+
+            return errors.length === 0
+          },
+
+          getFieldErrors: (fieldId) => {
+            return get().errors.filter((error) => error.fieldId === fieldId)
+          },
+
+          getSectionErrors: (sectionId) => {
+            return get().errors.filter((error) => error.sectionId === sectionId)
+          },
+
+          hasFieldErrors: (fieldId) => {
+            return get().errors.some((error) => error.fieldId === fieldId)
+          },
+
+          hasSectionErrors: (sectionId) => {
+            return get().errors.some((error) => error.sectionId === sectionId)
+          },
 
           // Section actions
           addSection: () =>
             set((state) => {
               const newSection: FormSection = {
-                id: generateId(),
-                title: `Section ${state.formSections.length + 1}`,
+                id: generateId("section"),
+                name: `Section ${state.formSections.length + 1}`,
                 description: "",
+                order: state.formSections.length,
                 fields: [],
               }
               state.formSections.push(newSection)
@@ -160,6 +335,13 @@ export const useFormBuilderStore = create<FormBuilderState>()(
               if (section) {
                 Object.assign(section, updates)
                 state.isDirty = true
+                // Clear errors for this section if name was updated
+                if (updates.name) {
+                  state.errors = state.errors.filter(
+                    (error) => !(error.sectionId === sectionId && error.message.toLowerCase().includes("name")),
+                  )
+                  state.hasErrors = state.errors.length > 0
+                }
               }
             }),
 
@@ -172,6 +354,9 @@ export const useFormBuilderStore = create<FormBuilderState>()(
                 state.selectedSectionId = state.formSections[0]?.id
                 state.selectedFieldId = undefined
               }
+              // Clear errors for deleted section
+              state.errors = state.errors.filter((error) => error.sectionId !== sectionId)
+              state.hasErrors = state.errors.length > 0
               state.isDirty = true
             }),
 
@@ -179,6 +364,12 @@ export const useFormBuilderStore = create<FormBuilderState>()(
             set((state) => {
               const [removed] = state.formSections.splice(startIndex, 1)
               state.formSections.splice(endIndex, 0, removed)
+
+              // CRITICAL: Update order properties to match new positions
+              state.formSections.forEach((section, index) => {
+                section.order = index
+              })
+
               state.isDirty = true
             }),
 
@@ -189,7 +380,7 @@ export const useFormBuilderStore = create<FormBuilderState>()(
               if (!section) return
 
               const newField: FormField = {
-                id: generateId(),
+                id: generateId("field"),
                 type,
                 label: `${type.charAt(0).toUpperCase() + type.slice(1)} Field`,
                 placeholder: "",
@@ -201,6 +392,14 @@ export const useFormBuilderStore = create<FormBuilderState>()(
               state.selectedFieldId = newField.id
               state.selectedSectionId = sectionId
               state.isDirty = true
+
+              // Clear section empty error if this was the first field
+              if (section.fields.length === 1) {
+                state.errors = state.errors.filter(
+                  (error) => !(error.sectionId === sectionId && error.message.includes("at least one field")),
+                )
+                state.hasErrors = state.errors.length > 0
+              }
             }),
 
           updateField: (fieldId, updates) =>
@@ -210,6 +409,19 @@ export const useFormBuilderStore = create<FormBuilderState>()(
                 if (field) {
                   Object.assign(field, updates)
                   state.isDirty = true
+                  // Clear errors for this field if label was updated
+                  if (updates.label) {
+                    state.errors = state.errors.filter(
+                      (error) => !(error.fieldId === fieldId && error.message.toLowerCase().includes("label")),
+                    )
+                  }
+                  // Clear errors for this field if options were updated
+                  if (updates.options) {
+                    state.errors = state.errors.filter(
+                      (error) => !(error.fieldId === fieldId && error.message.toLowerCase().includes("option")),
+                    )
+                  }
+                  state.hasErrors = state.errors.length > 0
                   break
                 }
               }
@@ -224,6 +436,9 @@ export const useFormBuilderStore = create<FormBuilderState>()(
                   if (state.selectedFieldId === fieldId) {
                     state.selectedFieldId = undefined
                   }
+                  // Clear errors for deleted field
+                  state.errors = state.errors.filter((error) => error.fieldId !== fieldId)
+                  state.hasErrors = state.errors.length > 0
                   state.isDirty = true
                   break
                 }
@@ -240,8 +455,26 @@ export const useFormBuilderStore = create<FormBuilderState>()(
               const fieldIndex = fromSection.fields.findIndex((f) => f.id === fieldId)
               if (fieldIndex === -1) return
 
+              // Move the field
               const [field] = fromSection.fields.splice(fieldIndex, 1)
               toSection.fields.splice(toIndex, 0, field)
+
+              // Update FormSectionId if moving between sections
+              if (fromSectionId !== toSectionId) {
+                field.FormSectionId = toSectionId
+              }
+
+              // CRITICAL: Update order properties for both sections
+              fromSection.fields.forEach((f, index) => {
+                f.order = index
+                f.updatedAt = new Date()
+              })
+
+              toSection.fields.forEach((f, index) => {
+                f.order = index
+                f.updatedAt = new Date()
+              })
+
               state.isDirty = true
             }),
 
@@ -323,6 +556,8 @@ export const useFormBuilderStore = create<FormBuilderState>()(
               state.formSections = [createInitialSection()]
               state.selectedSectionId = state.formSections[0].id
               state.selectedFieldId = undefined
+              state.errors = []
+              state.hasErrors = false
               state.isDirty = false
               state.history = []
               state.historyIndex = -1
@@ -364,7 +599,7 @@ export const useFormLayout = () =>
       formTitle: state.formTitle,
       formDescription: state.formDescription,
       formSections: state.formSections,
-    }))
+    })),
   )
 
 export const useFormSelection = () =>
@@ -372,7 +607,7 @@ export const useFormSelection = () =>
     useShallow((state) => ({
       selectedFieldId: state.selectedFieldId,
       selectedSectionId: state.selectedSectionId,
-    }))
+    })),
   )
 
 export const useFormStatus = () =>
@@ -381,7 +616,26 @@ export const useFormStatus = () =>
       isDirty: state.isDirty,
       isAutoSaving: state.isAutoSaving,
       lastSaved: state.lastSaved,
-    }))
+    })),
+  )
+
+export const useFormErrors = () =>
+  useFormBuilderStore(
+    useShallow((state) => ({
+      errors: state.errors,
+      hasErrors: state.hasErrors,
+      addError: state.addError,
+      removeError: state.removeError,
+      clearErrors: state.clearErrors,
+      clearErrorsForField: state.clearErrorsForField,
+      clearErrorsForSection: state.clearErrorsForSection,
+      setApiErrors: state.setApiErrors,
+      validateForm: state.validateForm,
+      getFieldErrors: state.getFieldErrors,
+      getSectionErrors: state.getSectionErrors,
+      hasFieldErrors: state.hasFieldErrors,
+      hasSectionErrors: state.hasSectionErrors,
+    })),
   )
 
 export const useFormHistory = () =>
@@ -391,7 +645,7 @@ export const useFormHistory = () =>
       canRedo: state.canRedo(),
       undo: state.undo,
       redo: state.redo,
-    }))
+    })),
   )
 
 // Additional convenience selectors
@@ -416,7 +670,7 @@ export const useFormActions = () =>
       resetForm: state.resetForm,
       markClean: state.markClean,
       setAutoSaving: state.setAutoSaving,
-    }))
+    })),
   )
 
 export const useFormSectionActions = () =>
@@ -426,7 +680,7 @@ export const useFormSectionActions = () =>
       updateSection: state.updateSection,
       deleteSection: state.deleteSection,
       reorderSections: state.reorderSections,
-    }))
+    })),
   )
 
 export const useFormFieldActions = () =>
@@ -436,7 +690,7 @@ export const useFormFieldActions = () =>
       updateField: state.updateField,
       deleteField: state.deleteField,
       moveField: state.moveField,
-    }))
+    })),
   )
 
 export const useFormSelectionActions = () =>
@@ -445,5 +699,5 @@ export const useFormSelectionActions = () =>
       selectField: state.selectField,
       selectSection: state.selectSection,
       clearSelection: state.clearSelection,
-    }))
+    })),
   )

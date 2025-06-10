@@ -17,12 +17,12 @@ export function SectionEditor({ section, onUpdate }: SectionEditorProps) {
   return (
     <div className="mx-6">
       <div>
-        <Label htmlFor="section-title">Section Title</Label>
+        <Label htmlFor="section-name">Section Name</Label>
         <Input
-          id="section-title"
+          id="section-name"
           value={section.name}
           onChange={(e) => onUpdate({ name: e.target.value })}
-          placeholder="Enter section title"
+          placeholder="Enter section name"
         />
       </div>
 
@@ -37,12 +37,11 @@ export function SectionEditor({ section, onUpdate }: SectionEditorProps) {
         />
       </div>
 
-    <FileUploader onValueChange={(value) => onUpdate({image: (value?value[0] : null)})} />
-      {/* <ImageUpload
+      <ImageUpload
         currentImage={section.image}
         onImageChange={(imageUrl) => onUpdate({ image: imageUrl })}
         label="Section Image"
-      /> */}
+      />
 
       <div className="text-sm text-gray-500">
         This section contains {section.fields.length} field{section.fields.length !== 1 ? "s" : ""}

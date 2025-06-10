@@ -72,6 +72,7 @@ class FormService
         $model->update($data);
         return $model;
     }
+    
     public function updateFormLayout(int $id, array $data)
     {
         $model = $this->model->find($id);
@@ -88,8 +89,9 @@ class FormService
 
             foreach ($data['sections'] as $sectionData) {
                 $section = FormSection::updateOrCreate(
-                    ['id' => $sectionData['id'], 'form_id' => $model->id],
+                    ['id' => $sectionData['id']], // Remove form_id from unique constraint
                     [
+                        'form_id' => $model->id, // Set form_id in the data array
                         'name' => $sectionData['name'],
                         'description' => $sectionData['description'] ?? null,
                         'order' => $sectionOrder++,
@@ -108,8 +110,9 @@ class FormService
                     $usedFieldNames[] = $uniqueFieldName;
 
                     $field = FormField::updateOrCreate(
-                        ['id' => $fieldData['id'], 'form_section_id' => $section->id],
+                        ['id' => $fieldData['id']], // Remove form_section_id from unique constraint
                         [
+                            'form_section_id' => $section->id, // Set form_section_id in the data array
                             'label' => $fieldData['label'],
                             'name' => $uniqueFieldName,
                             'placeholder' => $fieldData['placeholder'] ?? null,
@@ -128,27 +131,42 @@ class FormService
 
                     $selectableTypes = ['select', 'radio', 'checkbox'];
                     if (in_array($fieldData['type'], $selectableTypes)) {
-                        $field->options()->delete();
-                        foreach ($fieldData['options'] ?? [] as $option) {
-                            FormFieldOption::create([
-                                'form_field_id' => $field->id,
-                                'label' => $option,
-                                'value' => \Str::slug($option),
-                            ]);
+                        // Get existing option IDs to determine what to keep/delete
+                        $existingOptionIds = $field->options()->pluck('id')->toArray();
+                        $newOptionIds = [];
+                        
+                        foreach ($fieldData['options'] ?? [] as $optionData) {
+                            $option = FormFieldOption::updateOrCreate(
+                                ['id' => $optionData['id']], // Assuming client sends option IDs
+                                [
+                                    'form_field_id' => $field->id,
+                                    'label' => $optionData['label'],
+                                    'value' => $optionData['value'] ?? \Str::slug($optionData['label']),
+                                ]
+                            );
+                            $newOptionIds[] = $option->id;
                         }
+                        
+                        // Delete options that are no longer present
+                        FormFieldOption::where('form_field_id', $field->id)
+                                    ->whereNotIn('id', $newOptionIds)
+                                    ->delete();
                     }
                 }
 
+                // Clean up orphaned fields
                 FormField::where('form_section_id', $section->id)
                         ->whereNotIn('id', $fieldIds)
                         ->delete();
             }
 
+            // Clean up orphaned sections
             FormSection::where('form_id', $model->id)
                     ->whereNotIn('id', $sectionIds)
                     ->delete();
         });
     }
+
 
     private function generateUniqueFieldName(string $baseName, array $usedNames): string
     {

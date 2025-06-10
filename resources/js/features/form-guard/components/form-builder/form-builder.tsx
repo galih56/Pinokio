@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Eye, Settings, Save, Loader2, Undo, Redo } from "lucide-react"
 import { toast } from "sonner"
-import { useFormBuilderStore, useFormLayout, useFormHistory, useFormStatus, useFormActions } from "../../store/form-builder-store"
+import { useFormBuilderStore, useFormLayout, useFormHistory, useFormStatus, useFormActions, useFormErrors } from "../../store/form-builder-store"
 import { useGetFormLayout } from "../../api/use-get-form-layout"
 import { FormPreview } from "./form-preview"
 import { FormDesigner } from "./form-designer"
@@ -15,6 +15,7 @@ import { AxiosError } from "axios"
 import { ErrorBoundary } from "react-error-boundary"
 import { ComponentErrorFallback } from "@/components/layout/error-fallbacks"
 import { Form } from "@/types/form"
+import { apiErrorHandler } from "@/lib/utils"
 
 interface FormBuilderProps {
   formId: string;
@@ -26,6 +27,7 @@ export function FormBuilder({ formId, initialData }: FormBuilderProps) {
   const { setFormTitle, setFormDescription } = useFormActions();
   const { isDirty, isAutoSaving } = useFormStatus()
   const { canUndo, canRedo, undo, redo } = useFormHistory()
+  const { hasErrors, validateForm, clearErrors, setApiErrors } = useFormErrors();
   const { setFormData, markClean, saveSnapshot, setAutoSaving } = useFormBuilderStore()
 
   useEffect(()=>{
@@ -146,6 +148,12 @@ export function FormBuilder({ formId, initialData }: FormBuilderProps) {
   const handleSave = async () => {
     if (!isDirty) return
 
+    const isValid = validateForm()
+    if (!isValid) {
+      toast.error("Please fix validation errors before saving")
+      return
+    }
+
     try {
       setAutoSaving(true)
 
@@ -164,7 +172,13 @@ export function FormBuilder({ formId, initialData }: FormBuilderProps) {
       }
     } catch (error) {
       console.error("Save error:", error)
-      toast.error("Failed to save form layout")
+
+      if (error?.response?.status === 422 && error?.response?.data?.errors) {
+        setApiErrors(error.response.data.errors)
+        apiErrorHandler(error, "form-builder")
+      } else {
+        apiErrorHandler(error, "form-builder")
+      }
     } finally {
       setAutoSaving(false)
     }
