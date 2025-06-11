@@ -3,6 +3,7 @@ import type { FieldErrors } from "react-hook-form"
 import { twMerge } from "tailwind-merge"
 import { nanoid } from "nanoid"
 import { toast } from "sonner"
+import { FormSection } from "@/types/form"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -327,37 +328,4 @@ export function getErrorBorderClass(hasError: boolean, isSelected = false): stri
 
 export function getErrorTextClass(hasError: boolean): string {
   return hasError ? "text-red-600" : "text-gray-600"
-}
-
-// Form builder error type (to be imported in store)
-export interface FormBuilderError {
-  id: string
-  type: "section" | "field" | "form"
-  message: string
-  fieldId?: string
-  sectionId?: string
-  severity?: "low" | "medium" | "high"
-}
-
-// Form section and field types
-export interface FormSection {
-  id: string
-  name: string
-  description?: string
-  order: number
-  fields: FormField[]
-  image?: boolean
-}
-
-export interface FormField {
-  id: string
-  type: string
-  label: string
-  placeholder?: string
-  required?: boolean
-  options?: string[]
-  image?: boolean
-  FormSectionId?: string
-  order?: number
-  updatedAt?: Date
 }

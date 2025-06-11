@@ -39,4 +39,21 @@ class FormField extends Model
     {
         return $this->belongsTo(FieldType::class);
     }
+    
+    public function toArray()
+    {
+        $array = parent::toArray();
+        
+        if ($this->fieldHasOptions()) {
+            $array['options'] = $this->options->map(function ($option) {
+                return [
+                    'id' => $option->id,
+                    'label' => $option->label,
+                    'value' => $option->value,
+                ];
+            });
+        }
+        
+        return $array;
+    }
 }

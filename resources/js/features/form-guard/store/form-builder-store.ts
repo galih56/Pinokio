@@ -7,10 +7,8 @@ import { useShallow } from "zustand/react/shallow"
 import {
   generateId,
   parseApiValidationErrors,
-  type FormBuilderError,
-  type FormSection,
-  type FormField,
 } from "@/lib/utils"
+import { FormBuilderError, FormField, FormFieldOption, FormSection } from "@/types/form"
 
 type FieldType = "text" | "email" | "number" | "textarea" | "select" | "radio" | "checkbox"
 
@@ -67,6 +65,12 @@ interface FormBuilderState {
   deleteField: (fieldId: string) => void
   moveField: (fieldId: string, fromSectionId: string, toSectionId: string, toIndex: number) => void
 
+  // Option actions
+  addFieldOption: (fieldId: string, label?: string) => void
+  updateFieldOption: (fieldId: string, optionId: string, updates: Partial<Pick<FormFieldOption, 'label' | 'value'>>) => void
+  removeFieldOption: (fieldId: string, optionId: string) => void
+  reorderFieldOptions: (fieldId: string, oldIndex: number, newIndex: number) => void
+
   // Selection actions
   selectField: (fieldId: string) => void
   selectSection: (sectionId: string) => void
@@ -83,6 +87,7 @@ interface FormBuilderState {
   resetForm: () => void
   markClean: () => void
   setAutoSaving: (isAutoSaving: boolean) => void
+  getFormDataForSubmission: () => any
 }
 
 interface FormBuilderSnapshot {
@@ -105,6 +110,12 @@ const createSnapshot = (state: FormBuilderState): FormBuilderSnapshot => ({
   formDescription: state.formDescription ?? "",
   formSections: JSON.parse(JSON.stringify(state.formSections)),
   timestamp: new Date(),
+})
+
+export const createOption = (label: string, value?: string): FormFieldOption => ({
+  id: generateId("option"),
+  label: label.trim(),
+  value: value || label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
 })
 
 export const useFormBuilderStore = create<FormBuilderState>()(
@@ -273,18 +284,73 @@ export const useFormBuilderStore = create<FormBuilderState>()(
                   })
                 }
 
-                // Validate select/radio/checkbox options
-                if (
-                  ["select", "radio", "checkbox"].includes(field.type) &&
-                  (!field.options || field.options.length === 0 || field.options.every((opt) => !opt.trim()))
-                ) {
-                  errors.push({
-                    id: generateId("error"),
-                    type: "field",
-                    message: "Field must have at least one valid option",
-                    fieldId: field.id,
-                    sectionId: section.id,
-                  })
+                // Enhanced validation for select/radio/checkbox options
+                if (["select", "radio", "checkbox"].includes(field.type)) {
+                  if (!field.options || field.options.length === 0) {
+                    errors.push({
+                      id: generateId("error"),
+                      type: "field",
+                      message: "Field must have at least one option",
+                      fieldId: field.id,
+                      sectionId: section.id,
+                    })
+                  } else {
+                    // Validate individual options
+                    const usedValues = new Set<string>()
+                    const usedLabels = new Set<string>()
+                    
+                    field.options.forEach((option) => {
+                      // Check empty labels
+                      if (!option.label.trim()) {
+                        errors.push({
+                          id: generateId("error"),
+                          type: "option",
+                          message: "Option label cannot be empty",
+                          fieldId: field.id,
+                          sectionId: section.id,
+                          optionId: option.id,
+                        })
+                      }
+                      
+                      // Check empty values
+                      if (!option.value.trim()) {
+                        errors.push({
+                          id: generateId("error"),
+                          type: "option",
+                          message: "Option value cannot be empty",
+                          fieldId: field.id,
+                          sectionId: section.id,
+                          optionId: option.id,
+                        })
+                      }
+                      
+                      // Check duplicate values
+                      if (option.value.trim() && usedValues.has(option.value.trim())) {
+                        errors.push({
+                          id: generateId("error"),
+                          type: "option",
+                          message: `Duplicate option value: "${option.value}"`,
+                          fieldId: field.id,
+                          sectionId: section.id,
+                          optionId: option.id,
+                        })
+                      }
+                      usedValues.add(option.value.trim())
+                      
+                      // Check duplicate labels (warning)
+                      if (option.label.trim() && usedLabels.has(option.label.trim())) {
+                        errors.push({
+                          id: generateId("error"),
+                          type: "option",
+                          message: `Duplicate option label: "${option.label}"`,
+                          fieldId: field.id,
+                          sectionId: section.id,
+                          optionId: option.id,
+                        })
+                      }
+                      usedLabels.add(option.label.trim())
+                    })
+                  }
                 }
               })
             })
@@ -384,8 +450,13 @@ export const useFormBuilderStore = create<FormBuilderState>()(
                 type,
                 label: `${type.charAt(0).toUpperCase() + type.slice(1)} Field`,
                 placeholder: "",
-                required: false,
-                options: ["select", "radio", "checkbox"].includes(type) ? ["Option 1"] : undefined,
+                isRequired: false,
+                options: ["select", "radio", "checkbox"].includes(type) 
+                  ? [
+                      createOption("Option 1"),
+                      createOption("Option 2")
+                    ] 
+                  : undefined,
               }
 
               section.fields.push(newField)
@@ -409,19 +480,107 @@ export const useFormBuilderStore = create<FormBuilderState>()(
                 if (field) {
                   Object.assign(field, updates)
                   state.isDirty = true
+                  
                   // Clear errors for this field if label was updated
                   if (updates.label) {
                     state.errors = state.errors.filter(
                       (error) => !(error.fieldId === fieldId && error.message.toLowerCase().includes("label")),
                     )
                   }
+                  
                   // Clear errors for this field if options were updated
                   if (updates.options) {
                     state.errors = state.errors.filter(
                       (error) => !(error.fieldId === fieldId && error.message.toLowerCase().includes("option")),
                     )
                   }
+                  
                   state.hasErrors = state.errors.length > 0
+                  break
+                }
+              }
+            }),
+
+          // Option actions
+          addFieldOption: (fieldId, label = "New Option") =>
+            set((state) => {
+              for (const section of state.formSections) {
+                const field = section.fields.find((f) => f.id === fieldId)
+                if (field && field.options) {
+                  const newOption = createOption(label)
+                  field.options.push(newOption)
+                  state.isDirty = true
+                  
+                  // Clear option-related errors for this field
+                  state.errors = state.errors.filter(
+                    (error) => !(error.fieldId === fieldId && error.message.toLowerCase().includes("option")),
+                  )
+                  state.hasErrors = state.errors.length > 0
+                  break
+                }
+              }
+            }),
+
+          updateFieldOption: (fieldId, optionId, updates: Partial<Pick<FormFieldOption, 'label' | 'value'>>) =>
+            set((state) => {
+              for (const section of state.formSections) {
+                const field = section.fields.find((f) => f.id === fieldId)
+                if (field && field.options) {
+                  const option = field.options.find((opt) => opt.id === optionId)
+                  if (option) {
+                    Object.assign(option, updates)
+                    
+                    // Auto-generate value if label was updated and no explicit value provided
+                    if (updates.label && !updates.value) {
+                      option.value = updates.label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
+                    }
+                    
+                    state.isDirty = true
+                    
+                    // Clear option-related errors
+                    state.errors = state.errors.filter(
+                      (error) => !(
+                        error.optionId === optionId && 
+                        error.fieldId === fieldId && 
+                        error.message.toLowerCase().includes("option")
+                      ),
+                    )
+                    state.hasErrors = state.errors.length > 0
+                    break
+                  }
+                }
+              }
+            }),
+
+          removeFieldOption: (fieldId, optionId) =>
+            set((state) => {
+              for (const section of state.formSections) {
+                const field = section.fields.find((f) => f.id === fieldId)
+                if (field && field.options) {
+                  const optionIndex = field.options.findIndex((opt) => opt.id === optionId)
+                  if (optionIndex > -1) {
+                    field.options.splice(optionIndex, 1)
+                    state.isDirty = true
+                    
+                    // Remove errors related to this specific option
+                    state.errors = state.errors.filter(
+                      (error) => error.optionId !== optionId,
+                    )
+                    state.hasErrors = state.errors.length > 0
+                    break
+                  }
+                }
+              }
+            }),
+
+          reorderFieldOptions: (fieldId, oldIndex, newIndex) =>
+            set((state) => {
+              for (const section of state.formSections) {
+                const field = section.fields.find((f) => f.id === fieldId)
+                if (field && field.options) {
+                  const [movedOption] = field.options.splice(oldIndex, 1)
+                  field.options.splice(newIndex, 0, movedOption)
+                  state.isDirty = true
                   break
                 }
               }
@@ -575,6 +734,35 @@ export const useFormBuilderStore = create<FormBuilderState>()(
                 state.isAutoSaving = isAutoSaving
               }
             }),
+
+          // Helper function to get form data ready for server submission
+          getFormDataForSubmission: () => {
+            const state = get()
+            return {
+              title: state.formTitle,
+              description: state.formDescription || '',
+              sections: state.formSections.map((section, sectionIndex) => ({
+                id: section.id,
+                name: section.name,
+                description: section.description || '',
+                order: sectionIndex,
+                fields: section.fields.map((field, fieldIndex) => ({
+                  id: field.id,
+                  type: field.type,
+                  label: field.label,
+                  placeholder: field.placeholder || '',
+                  isRequired: field.isRequired,
+                  order: fieldIndex,
+                  options: field.options?.map((option, optionIndex) => ({
+                    id: option.id,
+                    label: option.label,
+                    value: option.value,
+                    order: optionIndex
+                  })) || undefined
+                }))
+              }))
+            }
+          },
         })),
       ),
       {
@@ -591,7 +779,22 @@ export const useFormBuilderStore = create<FormBuilderState>()(
   ),
 )
 
-// Stable selectors using useShallow to prevent unnecessary re-renders
+// Updated selectors with option actions
+export const useFormFieldActions = () =>
+  useFormBuilderStore(
+    useShallow((state) => ({
+      addField: state.addField,
+      updateField: state.updateField,
+      deleteField: state.deleteField,
+      moveField: state.moveField,
+      addFieldOption: state.addFieldOption,
+      updateFieldOption: state.updateFieldOption,
+      removeFieldOption: state.removeFieldOption,
+      reorderFieldOptions: state.reorderFieldOptions,
+    })),
+  )
+
+// Existing selectors remain the same...
 export const useFormLayout = () =>
   useFormBuilderStore(
     useShallow((state) => ({
@@ -670,6 +873,7 @@ export const useFormActions = () =>
       resetForm: state.resetForm,
       markClean: state.markClean,
       setAutoSaving: state.setAutoSaving,
+      getFormDataForSubmission: state.getFormDataForSubmission,
     })),
   )
 
@@ -683,21 +887,22 @@ export const useFormSectionActions = () =>
     })),
   )
 
-export const useFormFieldActions = () =>
-  useFormBuilderStore(
-    useShallow((state) => ({
-      addField: state.addField,
-      updateField: state.updateField,
-      deleteField: state.deleteField,
-      moveField: state.moveField,
-    })),
-  )
-
 export const useFormSelectionActions = () =>
   useFormBuilderStore(
     useShallow((state) => ({
       selectField: state.selectField,
       selectSection: state.selectSection,
       clearSelection: state.clearSelection,
+    })),
+  )
+
+// New option-specific selector
+export const useFormOptionActions = () =>
+  useFormBuilderStore(
+    useShallow((state) => ({
+      addFieldOption: state.addFieldOption,
+      updateFieldOption: state.updateFieldOption,
+      removeFieldOption: state.removeFieldOption,
+      reorderFieldOptions: state.reorderFieldOptions,
     })),
   )

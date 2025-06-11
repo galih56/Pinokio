@@ -27,6 +27,7 @@ export interface FormSection {
   id: string;
   name: string;
   description?: string;
+  image?: string | File; 
   order: number;
   fields: Array<FormField>;
 }
@@ -46,13 +47,14 @@ export type FieldType =
 
 export interface FormField {
   id: string;
-  FormSectionId: string;
+  formSectionId: string;
   fieldTypeId: string;
   type: FieldType;
   label: string;
   name: string;
   placeholder?: string;
   isRequired: boolean;
+  image?: string | File; 
   order: number;
   createdAt: Date;
   updatedAt: Date;
@@ -62,11 +64,9 @@ export interface FormField {
 
 export interface FormFieldOption {
   id: string;
-  formFieldId: string;
+  formFieldId?: string;
   label: string;
   value: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 export interface FormToken {
@@ -113,4 +113,13 @@ export interface FormResponse {
   id: string
   submittedAt: string
   data: Record<string, any>
+}
+
+export interface FormBuilderError {
+  id: string
+  type: "section" | "field" | "form"
+  message: string
+  fieldId?: string
+  sectionId?: string
+  severity?: "low" | "medium" | "high"
 }

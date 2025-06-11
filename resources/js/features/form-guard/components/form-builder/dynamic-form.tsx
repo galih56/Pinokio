@@ -16,6 +16,7 @@ import type { FormSection } from "@/types/form"
 import { useState } from "react"
 import { toast } from "sonner"
 import { PreviewableImage } from "./previewable-image"
+import { useSubmitFormResponse } from "../../api/use-submit-form-response"
 
 interface DynamicFormProps {
   formHashId?: string // Use hash ID instead of regular ID
@@ -62,9 +63,9 @@ function createFormSchema(sections: FormSection[]) {
           fieldSchema = z.string()
       }
 
-      if (field.required && field.type !== "checkbox") {
+      if (field.isRequired && field.type !== "checkbox") {
         fieldSchema = fieldSchema.min(1, "This field is required")
-      } else if (!field.required) {
+      } else if (!field.isRequired) {
         fieldSchema = fieldSchema.optional()
       }
 
@@ -83,7 +84,6 @@ export function DynamicForm({
   onSubmit,
   isPreview = false 
 }: DynamicFormProps) {
-  const [isSubmitting, setIsSubmitting] = useState(false)
   
   const allFields = sections.flatMap((section) => section.fields)
   const schema = createFormSchema(sections)
@@ -100,49 +100,26 @@ export function DynamicForm({
     ),
   })
 
+  const submitForm = useSubmitFormResponse({ formId: formHashId! }) // assumes formHashId is defined when not in preview
+
   const handleSubmit = async (data: any) => {
-    setIsSubmitting(true)
+    if (isPreview || !formHashId) {
+      toast.success("Form submitted successfully! (Preview mode)")
+      onSubmit?.(data)
+      return
+    }
 
     try {
-      if (formHashId && !isPreview) {
-        // Submit to backend using hash ID
-        const response = await fetch(`/forms/${formHashId}/submit`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest',
-          },
-          body: JSON.stringify({
-            responses: data
-          })
-        })
-
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || 'Submission failed')
-        }
-
-        const result = await response.json()
-        console.log("Form response submitted:", result)
-        toast.success(result.message || "Form submitted successfully!")
-        
-        // Reset form after successful submission
-        form.reset()
-      } else {
-        // Preview mode
-        console.log("Preview form submitted:", data)
-        toast.success("Form submitted successfully! (Preview mode)")
-      }
-
+      await submitForm.mutateAsync(data)
+      toast.success("Form submitted successfully!")
+      form.reset()
       onSubmit?.(data)
-    } catch (error) {
-      console.error("Form submission error:", error)
-      toast.error(error instanceof Error ? error.message : "Failed to submit form. Please try again.")
-    } finally {
-      setIsSubmitting(false)
+    } catch (error: any) {
+      console.error("Submission failed", error)
+      toast.error(error?.message || "Failed to submit form.")
     }
   }
+
 
   if (sections.length === 0 || allFields.length === 0) {
     return (
@@ -209,7 +186,7 @@ export function DynamicForm({
                           )}
                           <FormLabel className="flex items-center gap-1 text-base">
                             {field.label}
-                            {field.required && <span className="text-red-500">*</span>}
+                            {field.isRequired && <span className="text-red-500">*</span>}
                           </FormLabel>
                           <FormControl>
                             {field.type === "textarea" ? (
@@ -287,8 +264,8 @@ export function DynamicForm({
             </div>
           ))}
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
-            {isSubmitting ? "Submitting..." : "Submit"}
+          <Button type="submit" className="w-full" disabled={submitForm.isPending}>
+            {submitForm.isPending ? "Submitting..." : "Submit"}
           </Button>
         </form>
       </Form>

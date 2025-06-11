@@ -24,20 +24,11 @@ interface FormBuilderProps {
 
 export function FormBuilder({ formId, initialData }: FormBuilderProps) {
   const { formTitle, formDescription, formSections } = useFormLayout();
-  const { setFormTitle, setFormDescription } = useFormActions();
   const { isDirty, isAutoSaving } = useFormStatus()
   const { canUndo, canRedo, undo, redo } = useFormHistory()
   const { hasErrors, validateForm, clearErrors, setApiErrors } = useFormErrors();
   const { setFormData, markClean, saveSnapshot, setAutoSaving } = useFormBuilderStore()
 
-  useEffect(()=>{
-    if(initialData){
-      setFormTitle(initialData.title);
-      setFormDescription(initialData.description || '');
-    }
-  }, [] )
-
-    // Track if data has been initialized
   const dataInitializedRef = useRef(false)
 
   // Initialize from props if available (only once)

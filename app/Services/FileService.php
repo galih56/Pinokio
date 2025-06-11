@@ -44,7 +44,7 @@ class FileService
     /**
      * Upload a single file
      */
-    protected function uploadSingleFile(UploadedFile $file, string $directory, $uploader = null, $storeToFileTable=true): File
+    protected function uploadSingleFile(UploadedFile $file, string $directory, $uploader = null, $storeToFileTable=true): File | string
     {
         if (!$file->isValid()) {
             throw new Exception('Invalid file upload: ' . $file->getErrorMessage());
@@ -142,8 +142,9 @@ class FileService
     /**
      * Get file URL
      */
-    public function getUrl(File $file): string
+    public function getUrl(File | string $file): string
     {
+        if(is_string($file)) return Storage::disk($this->disk)->url($file);
         return Storage::disk($this->disk)->url($file->path);
     }
 
@@ -166,7 +167,7 @@ class FileService
     /**
      * Upload image with validation
      */
-    public function uploadImage($file, string $directory = 'images', $uploader = null, int $maxSize = 2048000, $storeToFileTable=true): File
+    public function uploadImage($file, string $directory = 'images', $uploader = null, ?int $maxSize = 2048000, $storeToFileTable=true): File | string
     {
         $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml', 'image/webp'];
         

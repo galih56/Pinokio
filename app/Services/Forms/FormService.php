@@ -97,16 +97,16 @@ class FormService
 
             foreach ($data['sections'] as $sectionData) {
                 // Handle section image upload
-                $sectionImageUrl = null;
+                $sectionImagePath = null;
                 if (isset($sectionData['image']) && $sectionData['image'] instanceof \Illuminate\Http\UploadedFile) {
                     try {
-                        $uploadedFile = app(FileService::class)->uploadImage(
+                        $sectionImagePath = app(FileService::class)->uploadImage(
                             $sectionData['image'], 
                             $prefix_image_path."/".$sectionData['id'],
                             auth()->user(),
+                            null,
                             false
                         );
-                        $sectionImageUrl = app(FileService::class)->getUrl($uploadedFile);
                     } catch (\Exception $e) {
                         // Log error or handle as needed
                         \Log::error('Section image upload failed: ' . $e->getMessage());
@@ -124,7 +124,7 @@ class FormService
                         'name' => $sectionData['name'],
                         'description' => $sectionData['description'] ?? null,
                         'order' => $sectionOrder++,
-                        'image_path' => $sectionImageUrl,
+                        'image_path' => $sectionImagePath,
                     ]
                 );
 
@@ -139,16 +139,16 @@ class FormService
                     $usedFieldNames[] = $uniqueFieldName;
 
                     // Handle field image upload
-                    $fieldImageUrl = null;
+                    $fieldImagePath = null;
                     if (isset($fieldData['image']) && $fieldData['image'] instanceof \Illuminate\Http\UploadedFile) {
                         try {
-                            $uploadedFile = app(FileService::class)->uploadImage(
+                            $fieldImagePath = app(FileService::class)->uploadImage(
                                 $fieldData['image'],
                                 $prefix_image_path."/".$sectionData['id'],
                                 auth()->user(),
+                                null,
                                 false
                             );
-                            $fieldImageUrl = app(FileService::class)->getUrl($uploadedFile);
                         } catch (\Exception $e) {
                             // Log error or handle as needed
                             \Log::error('Field image upload failed: ' . $e->getMessage());
@@ -156,7 +156,7 @@ class FormService
                         }
                     } elseif (isset($fieldData['image']) && is_string($fieldData['image'])) {
                         // Keep existing URL if it's a string
-                        $fieldImageUrl = $fieldData['image'];
+                        $fieldImagePath = $fieldData['image'];
                     }
 
                     $field = FormField::updateOrCreate(
@@ -166,13 +166,13 @@ class FormService
                             'label' => $fieldData['label'],
                             'name' => $uniqueFieldName,
                             'placeholder' => $fieldData['placeholder'] ?? null,
-                            'is_required' => $fieldData['required'] ?? false,
+                            'is_required' => $fieldData['is_required'] ?? false,
                             'order' => $fieldOrder++,
                             'field_type_id' => $this->resolveFieldTypeId($fieldData['type']),
                             'min' => $fieldData['min'] ?? null,
                             'max' => $fieldData['max'] ?? null,
                             'rows' => $fieldData['rows'] ?? null,
-                            'image_path' => $fieldImageUrl,
+                            'image_path' => $fieldImagePath,
                             'default_value' => $fieldData['defaultValue'] ?? null,
                         ]
                     );

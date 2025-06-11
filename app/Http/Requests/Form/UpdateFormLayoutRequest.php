@@ -40,7 +40,7 @@ class UpdateFormLayoutRequest extends BaseRequest
             ],
             'sections.*.fields.*.label' => ['required', 'string', 'max:255'],
             'sections.*.fields.*.placeholder' => ['nullable', 'string', 'max:255'],
-            'sections.*.fields.*.required' => ['sometimes', 'boolean'],
+            'sections.*.fields.*.is_required' => ['sometimes', 'boolean'],
             'sections.*.fields.*.options' => ['nullable', 'array'],
             'sections.*.fields.*.options.*' => ['required_with:sections.*.fields.*.options', 'string', 'max:255'],
             'sections.*.fields.*.min' => ['nullable', 'integer', 'min:0'],

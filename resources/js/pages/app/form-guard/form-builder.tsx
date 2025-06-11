@@ -8,7 +8,7 @@ import { getFormLayoutQueryOptions } from '@/features/form-guard/api/use-get-for
 import { FormBuilder } from '@/features/form-guard/components/form-builder/form-builder';
 import { useBreadcrumbSync } from '@/components/layout/breadcrumbs/breadcrumbs-store';
 
-type LoaderData = {
+export type LoaderData = {
   formId: string;
   form: any;
 };

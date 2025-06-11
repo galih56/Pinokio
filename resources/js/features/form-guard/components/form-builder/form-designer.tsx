@@ -10,7 +10,7 @@ import { FieldTypeSelector } from "./field-type-selector"
 import { FieldEditor } from "./field-editor"
 import { SectionEditor } from "./section-editor"
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"
-import { GripVertical, Trash2, Plus, FolderPlus, ImageIcon, AlertTriangle } from "lucide-react"
+import { GripVertical, Trash2, Plus, FolderPlus, ImageIcon, AlertTriangle, Settings } from "lucide-react"
 import DialogOrDrawer from "@/components/layout/dialog-or-drawer"
 import { useDisclosure } from "@/hooks/use-disclosure"
 import { useFormBuilderStore, useFormErrors, useFormLayout, useFormSelection } from "../../store/form-builder-store"
@@ -34,6 +34,7 @@ export function FormDesigner() {
     open: openFieldEditor,
     close: closeFieldEditor,
   } = useDisclosure()
+  
   const { formTitle, formDescription, formSections } = useFormLayout()
   const { selectedFieldId, selectedSectionId } = useFormSelection()
   const { errors, hasErrors, validateForm, hasFieldErrors, hasSectionErrors, getFieldErrors, getSectionErrors } =
@@ -52,6 +53,7 @@ export function FormDesigner() {
     moveField,
     selectField,
     selectSection,
+    clearSelection,
   } = useFormBuilderStore()
 
   const addFieldToSection = (type: any) => {
@@ -59,6 +61,8 @@ export function FormDesigner() {
     if (targetSectionId) {
       addField(targetSectionId, type)
       closeFieldTypeSelector()
+      // Auto-open field editor after adding
+      setTimeout(() => openFieldEditor(), 100)
     }
   }
 
@@ -99,6 +103,28 @@ export function FormDesigner() {
     return formSections.find((s) => s.id === selectedSectionId) || null
   }
 
+  // Enhanced error helpers
+  const getFieldOptionErrors = (fieldId: string) => {
+    return errors.filter((error) => error.fieldId === fieldId && error.type === "option")
+  }
+
+  const hasFieldOptionErrors = (fieldId: string) => {
+    return errors.some((error) => error.fieldId === fieldId && error.type === "option")
+  }
+
+  const getFieldTypeDisplayName = (type: string) => {
+    const typeMap: Record<string, string> = {
+      text: "Text",
+      email: "Email", 
+      number: "Number",
+      textarea: "Text Area",
+      select: "Select",
+      radio: "Radio",
+      checkbox: "Checkbox"
+    }
+    return typeMap[type] || type
+  }
+
   // Get form-level errors
   const formErrors = errors.filter((error) => error.type === "form")
 
@@ -134,6 +160,9 @@ export function FormDesigner() {
                 placeholder="Enter form title"
                 className={formErrors.some((e) => e.message.includes("title")) ? "border-red-500" : ""}
               />
+              {formErrors.filter(e => e.message.includes("title")).map(error => (
+                <p key={error.id} className="text-sm text-red-600 mt-1">{error.message}</p>
+              ))}
             </div>
             <div>
               <Label htmlFor="form-description">Form Description</Label>
@@ -227,6 +256,11 @@ export function FormDesigner() {
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2">
                                     <span className="font-medium">{section.name}</span>
+                                    {section.description && (
+                                      <span className="text-xs text-gray-500 truncate max-w-[200px]">
+                                        {section.description}
+                                      </span>
+                                    )}
                                     {section.image && <ImageIcon className="h-4 w-4 text-blue-500" />}
                                     {sectionHasErrors && <AlertTriangle className="h-4 w-4 text-red-500" />}
                                   </div>
@@ -242,6 +276,7 @@ export function FormDesigner() {
                                     selectSection(section.id)
                                     openFieldTypeSelector()
                                   }}
+                                  title="Add field"
                                 >
                                   <Plus className="h-4 w-4" />
                                 </Button>
@@ -250,10 +285,26 @@ export function FormDesigner() {
                                   size="sm"
                                   onClick={(e) => {
                                     e.stopPropagation()
+                                    selectSection(section.id)
+                                    openSectionEditor()
+                                  }}
+                                  title="Edit section"
+                                >
+                                  <Settings className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
                                     deleteSection(section.id)
-                                    closeSectionEditor()
+                                    if (selectedSectionId === section.id) {
+                                      clearSelection()
+                                      closeSectionEditor()
+                                    }
                                   }}
                                   disabled={formSections.length <= 1}
+                                  title="Delete section"
                                 >
                                   <Trash2 className="h-4 w-4" />
                                 </Button>
@@ -270,6 +321,9 @@ export function FormDesigner() {
                                     {section.fields.map((field, fieldIndex) => {
                                       const fieldHasErrors = hasFieldErrors(field.id)
                                       const fieldErrors = getFieldErrors(field.id)
+                                      const optionErrors = getFieldOptionErrors(field.id)
+                                      const hasOptionErrors = hasFieldOptionErrors(field.id)
+                                      const allFieldErrors = [...fieldErrors, ...optionErrors]
 
                                       return (
                                         <Draggable key={field.id} draggableId={field.id} index={fieldIndex}>
@@ -279,10 +333,10 @@ export function FormDesigner() {
                                               {...provided.draggableProps}
                                               className={`p-3 border rounded cursor-pointer transition-colors ${
                                                 selectedFieldId === field.id
-                                                  ? fieldHasErrors
+                                                  ? (fieldHasErrors || hasOptionErrors)
                                                     ? "border-red-500 bg-red-100"
                                                     : "border-blue-500 bg-blue-50"
-                                                  : fieldHasErrors
+                                                  : (fieldHasErrors || hasOptionErrors)
                                                     ? "border-red-300 bg-red-50 hover:border-red-400"
                                                     : "border-gray-200 hover:border-gray-300 bg-white"
                                               }`}
@@ -292,15 +346,15 @@ export function FormDesigner() {
                                               }}
                                             >
                                               {/* Field errors */}
-                                              {fieldErrors.length > 0 && (
-                                                <div className="mb-2">
-                                                  {fieldErrors.map((error) => (
+                                              {allFieldErrors.length > 0 && (
+                                                <div className="mb-2 space-y-1">
+                                                  {allFieldErrors.map((error) => (
                                                     <div
                                                       key={error.id}
                                                       className="text-xs text-red-600 flex items-center gap-1"
                                                     >
-                                                      <AlertTriangle className="h-3 w-3" />
-                                                      {error.message}
+                                                      <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+                                                      <span className="truncate">{error.message}</span>
                                                     </div>
                                                   ))}
                                                 </div>
@@ -310,17 +364,32 @@ export function FormDesigner() {
                                                 <div {...provided.dragHandleProps}>
                                                   <GripVertical className="h-4 w-4 text-gray-400" />
                                                 </div>
-                                                <div className="flex-1">
+                                                <div className="flex-1 min-w-0">
                                                   <div className="flex items-center gap-2">
-                                                    <span className="font-medium">{field.label}</span>
+                                                    <span className="font-medium truncate">{field.label}</span>
+                                                    {field.isRequired && (
+                                                      <span className="text-red-500 text-xs">*</span>
+                                                    )}
                                                     {field.image && <ImageIcon className="h-4 w-4 text-blue-500" />}
-                                                    {fieldHasErrors && (
-                                                      <AlertTriangle className="h-4 w-4 text-red-500" />
+                                                    {(fieldHasErrors || hasOptionErrors) && (
+                                                      <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" />
                                                     )}
                                                   </div>
-                                                  {field.type ? (
-                                                    <div className="text-sm text-gray-500 capitalize">{field.type}</div>
-                                                  ) : null}
+                                                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                                                    <span className="capitalize">
+                                                      {getFieldTypeDisplayName(field.type)}
+                                                    </span>
+                                                    {field.placeholder && (
+                                                      <span className="text-xs truncate max-w-[150px]">
+                                                        • {field.placeholder}
+                                                      </span>
+                                                    )}
+                                                    {field.options && field.options.length > 0 && (
+                                                      <span className="text-xs">
+                                                        • {field.options.length} option{field.options.length !== 1 ? 's' : ''}
+                                                      </span>
+                                                    )}
+                                                  </div>
                                                 </div>
                                                 <Button
                                                   variant="ghost"
@@ -328,8 +397,12 @@ export function FormDesigner() {
                                                   onClick={(e) => {
                                                     e.stopPropagation()
                                                     deleteField(field.id)
-                                                    closeFieldEditor()
+                                                    if (selectedFieldId === field.id) {
+                                                      clearSelection()
+                                                      closeFieldEditor()
+                                                    }
                                                   }}
+                                                  title="Delete field"
                                                 >
                                                   <Trash2 className="h-4 w-4" />
                                                 </Button>
@@ -342,13 +415,21 @@ export function FormDesigner() {
                                     {provided.placeholder}
                                     {section.fields.length === 0 && (
                                       <div
-                                        className={`text-center py-4 text-sm border-2 border-dashed rounded ${
+                                        className={`text-center py-8 text-sm border-2 border-dashed rounded cursor-pointer transition-colors ${
                                           sectionHasErrors
                                             ? "text-red-400 border-red-200 bg-red-50"
-                                            : "text-gray-400 border-gray-200"
+                                            : "text-gray-400 border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                                         }`}
+                                        onClick={() => {
+                                          selectSection(section.id)
+                                          openFieldTypeSelector()
+                                        }}
                                       >
-                                        No fields in this section. Add fields using the panel on the right.
+                                        <div className="flex flex-col items-center gap-2">
+                                          <Plus className="h-8 w-8" />
+                                          <span>No fields in this section</span>
+                                          <span className="text-xs">Click here to add your first field</span>
+                                        </div>
                                       </div>
                                     )}
                                   </div>
@@ -368,34 +449,47 @@ export function FormDesigner() {
         </Card>
       </div>
 
-      {/* Controls Panel */}
-      <div className="space-y-6">
-        <DialogOrDrawer open={isFieldTypeSelectorOpen} onOpenChange={toggleFieldTypeSelector} title={"Add Field"}>
-          <FieldTypeSelector
-            onAddField={addFieldToSection}
-            targetSection={
-              selectedSectionId
-                ? formSections.find((s) => s.id === selectedSectionId)?.name
-                : formSections[0]?.name || "No sections available"
-            }
+      {/* Dialogs */}
+      <DialogOrDrawer 
+        open={isFieldTypeSelectorOpen} 
+        onOpenChange={toggleFieldTypeSelector} 
+        title="Add Field"
+      >
+        <FieldTypeSelector
+          onAddField={addFieldToSection}
+          targetSection={
+            selectedSectionId
+              ? formSections.find((s) => s.id === selectedSectionId)?.name
+              : formSections[0]?.name || "No sections available"
+          }
+        />
+      </DialogOrDrawer>
+
+      {selectedFieldId && (
+        <DialogOrDrawer 
+          open={isFieldEditorOpen} 
+          onOpenChange={toggleFieldEditor} 
+          title="Edit Field"
+        >
+          <FieldEditor 
+            field={getSelectedField()!} 
+            onUpdate={(updates) => updateField(selectedFieldId, updates)} 
           />
         </DialogOrDrawer>
+      )}
 
-        {selectedFieldId && isFieldEditorOpen && (
-          <DialogOrDrawer open={isFieldEditorOpen} onOpenChange={toggleFieldEditor} title={"Edit Field"}>
-            <FieldEditor field={getSelectedField()!} onUpdate={(updates) => updateField(selectedFieldId, updates)} />
-          </DialogOrDrawer>
-        )}
-
-        {selectedSectionId && isSectionEditorOpen && (
-          <DialogOrDrawer open={isSectionEditorOpen} onOpenChange={toggleSectionEditor} title={"Edit Section"}>
-            <SectionEditor
-              section={getSelectedSection()!}
-              onUpdate={(updates) => updateSection(selectedSectionId, updates)}
-            />
-          </DialogOrDrawer>
-        )}
-      </div>
+      {selectedSectionId && (
+        <DialogOrDrawer 
+          open={isSectionEditorOpen} 
+          onOpenChange={toggleSectionEditor} 
+          title="Edit Section"
+        >
+          <SectionEditor
+            section={getSelectedSection()!}
+            onUpdate={(updates) => updateSection(selectedSectionId, updates)}
+          />
+        </DialogOrDrawer>
+      )}
     </div>
   )
 }
