@@ -3,6 +3,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DynamicForm } from "./dynamic-form"
 import { useFormLayout } from "../../store/form-builder-store"
+import { ErrorBoundary } from "react-error-boundary"
+import { FormErrorFallback } from "./form-error-boundary"
 
 export function FormPreview() {
   const { formTitle, formDescription, formSections } = useFormLayout()
@@ -14,14 +16,23 @@ export function FormPreview() {
           <CardTitle>Form Preview</CardTitle>
         </CardHeader>
         <CardContent>
-          <DynamicForm
-            sections={formSections}
-            title={formTitle}
-            description={formDescription ?? ""}
-            onSubmit={(data) => {
-              console.log("Form submitted:", data)
+          
+          <ErrorBoundary
+            FallbackComponent={FormErrorFallback}
+            onError={(error, errorInfo) => {
+              console.error("Form error boundary caught an error:", error, errorInfo)
             }}
-          />
+            resetKeys={[formSections, formTitle]}
+          >
+            <DynamicForm
+              sections={formSections}
+              title={formTitle}
+              description={formDescription ?? ""}
+              onSubmit={(data) => {
+                console.log("Form submitted:", data)
+              }}
+            />
+          </ErrorBoundary>
         </CardContent>
       </Card>
     </div>

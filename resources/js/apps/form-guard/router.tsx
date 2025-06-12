@@ -14,10 +14,26 @@ export const createAppRouter = (queryClient: QueryClient) => {
       element: (
           <Layout>
             <Outlet />
-          </Layout>
+        </Layout>
       ),
       ErrorBoundary: AppRootErrorBoundary,
       children: [
+        {
+          path: paths.form.path,
+          lazy: async () => {
+            const { formLayoutLoader } = await import(
+              '@/pages/app/form-guard/form-builder'
+            );
+            const { FormResponse } = await import(
+              '@/pages/app/form-guard/form-response'
+            );
+            return {
+              Component: FormResponse,
+              loader: formLayoutLoader(queryClient),
+            };
+          },
+          ErrorBoundary: AppRootErrorBoundary,
+        },
         {
           path: paths.formResponse.path,
           lazy: async () => {
@@ -41,7 +57,7 @@ export const createAppRouter = (queryClient: QueryClient) => {
       element: <Navigate to={paths.home.path} replace />,
     },
   ], {
-    basename : '/'
+    basename: '/form-guard',
   })
 
   

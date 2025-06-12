@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Separator } from "@/components/ui/separator"
 import type { FormSection } from "@/types/form"
-import { useState } from "react"
+import { useMemo, useState } from "react"
 import { toast } from "sonner"
 import { PreviewableImage } from "./previewable-image"
 import { useSubmitFormResponse } from "../../api/use-submit-form-response"
@@ -85,7 +85,17 @@ export function DynamicForm({
   isPreview = false 
 }: DynamicFormProps) {
   
-  const allFields = sections.flatMap((section) => section.fields)
+  const hasValidationErrors =
+    !sections || sections.length === 0 || sections.flatMap((section) => section?.fields || []).length === 0
+
+  const allFields = useMemo(() => {
+    try {
+      return sections?.flatMap((section) => section?.fields || []) || []
+    } catch (error) {
+      console.error("Error processing form data:", error)
+      return [];
+    }
+  }, [sections])
   const schema = createFormSchema(sections)
 
   const form = useForm({
@@ -272,3 +282,5 @@ export function DynamicForm({
     </div>
   )
 }
+
+
