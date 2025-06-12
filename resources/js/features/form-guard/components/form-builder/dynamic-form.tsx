@@ -84,7 +84,6 @@ export function DynamicForm({
   onSubmit,
   isPreview = false 
 }: DynamicFormProps) {
-  
   const hasValidationErrors =
     !sections || sections.length === 0 || sections.flatMap((section) => section?.fields || []).length === 0
 
@@ -110,8 +109,8 @@ export function DynamicForm({
     ),
   })
 
-  const submitForm = useSubmitFormResponse({ formId: formHashId! }) // assumes formHashId is defined when not in preview
-
+  const submitForm = useSubmitFormResponse({ formId: formHashId! })
+console.log(formHashId);
   const handleSubmit = async (data: any) => {
     if (isPreview || !formHashId) {
       toast.success("Form submitted successfully! (Preview mode)")

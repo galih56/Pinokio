@@ -94,6 +94,8 @@ Route::group([
         Route::get('/{id}/layout', [FormController::class, 'getFormWithLayout']);
         Route::put('/{id}', [FormController::class, 'update']);
         Route::post('/{id}/generate-link', [FormController::class, 'generateLink']);
+        Route::get('/{id}/responses', [FormController::class, 'getFormResponses']);
+        Route::post('/{id}/responses', [FormController::class, 'storeFormResponse']);
         Route::patch('/{id}', [FormController::class, 'update']);
         Route::post('/{id}/layout', [FormController::class, 'updateFormLayout']);
         Route::delete('/{id}', [FormController::class, 'destroy']);

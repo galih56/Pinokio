@@ -121,6 +121,12 @@ class FormController extends Controller
         return ApiResponse::sendResponse(new FormResource($form),'', 'success', 200);
     }
 
+    public function getFormResponses()
+    {
+        $data = $this->formService->getFormResponses();
+
+        return ApiResponse::sendResponse(FormResource::collection($data),'', 'success', 200);
+    }
 
     /**
      * Update the specified resource in storage.
@@ -140,9 +146,6 @@ class FormController extends Controller
     }
 
 
-    /**
-     * Update data related to form builder (layout)
-     */
     public function updateFormLayout($id, UpdateFormLayoutRequest $request)
     {
         DB::beginTransaction();
@@ -156,6 +159,22 @@ class FormController extends Controller
             return ApiResponse::rollback($ex);
         }
     }
+
+
+    public function storeFormResponse($id, Request $request)
+    {
+        DB::beginTransaction();
+        try{
+            $form = $this->formService->storeFormResponse($id, $request->all());
+
+            DB::commit();
+            return ApiResponse::sendResponse( $form , 'Form entry is stored','success',201);
+
+        }catch(\Exception $ex){
+            return ApiResponse::rollback($ex);
+        }
+    }
+
     /**
      * Remove the specified resource from storage.
      */

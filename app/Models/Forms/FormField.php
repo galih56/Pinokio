@@ -37,14 +37,20 @@ class FormField extends Model
 
     public function fieldType(): BelongsTo
     {
-        return $this->belongsTo(FieldType::class);
+        return $this->belongsTo(FieldType::class, 'field_type_id');
+    }
+        
+    public function entries(): HasMany
+    {
+        return $this->hasMany(FormEntry::class);
     }
     
     public function toArray()
     {
         $array = parent::toArray();
         
-        if ($this->fieldHasOptions()) {
+        // Check if fieldType relationship is loaded before calling fieldHasOptions
+        if ($this->relationLoaded('fieldType') && $this->fieldHasOptions()) {
             $array['options'] = $this->options->map(function ($option) {
                 return [
                     'id' => $option->id,
@@ -55,5 +61,16 @@ class FormField extends Model
         }
         
         return $array;
+    }
+
+    public function fieldHasOptions()
+    {
+        // Add a safety check
+        if (!$this->relationLoaded('fieldType') || !$this->fieldType) {
+            return false;
+        }
+        
+        $fieldTypesWithOptions = ['select', 'radio', 'checkbox', 'dropdown'];
+        return in_array($this->fieldType->name, $fieldTypesWithOptions);
     }
 }

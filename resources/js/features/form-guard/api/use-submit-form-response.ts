@@ -39,6 +39,6 @@ export const useSubmitFormResponse = ({ formId, mutationConfig }: UseSubmitFormR
       onSuccess?.(res, ...args)
     },
     ...restConfig,
-    mutationFn: submitFormResponse,
+    mutationFn: (data) => submitFormResponse({formId,data}),
   })
 }

@@ -49,4 +49,14 @@ class Form extends Model
         return $this->hasMany(FormSection::class);
     }
 
+    public function submissions(): HasMany
+    {
+        return $this->hasMany(FormSubmission::class);
+    }
+
+    public function entries(): HasMany
+    {
+        return $this->hasMany(FormEntry::class);
+    }
+
 }
