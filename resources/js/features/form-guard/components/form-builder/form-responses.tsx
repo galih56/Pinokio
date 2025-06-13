@@ -4,41 +4,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import type { FormSection } from "@/types/form"
-import { AlertTriangle, Calendar, Clock, Eye, Link2, Send, Users } from "lucide-react"
-import { formatDateTime } from "@/lib/datetime"
+import { AlertTriangle, CheckCircle, Clock, Eye, Link2, Send, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { useState } from "react"
+import { useGetFormResponses } from "../../api/use-get-form-responses"
 
 interface FormResponsesProps {
+  formId : string;
   formSections: FormSection[]
 }
 
-// Mock responses data
-const mockResponses = [
-  {
-    id: "1",
-    submittedAt: "2024-01-15T10:30:00Z",
-    data: {
-      "field-1": "John Doe",
-      "field-2": "john@example.com",
-      "field-3": "25",
-      "field-4": "Option 1",
-    },
-  },
-  {
-    id: "2",
-    submittedAt: "2024-01-15T14:20:00Z",
-    data: {
-      "field-1": "Jane Smith",
-      "field-2": "jane@example.com",
-      "field-3": "30",
-      "field-4": "Option 2",
-    },
-  },
-]
-
-export function FormResponses({ formSections }: FormResponsesProps) {
+export function FormResponses({ formId, formSections }: FormResponsesProps) {
   // Mock token stats - replace with real data
   const [tokenStats] = useState({
     generated: 45,
@@ -50,14 +27,9 @@ export function FormResponses({ formSections }: FormResponsesProps) {
 
   const allFields = formSections.flatMap((section) => section.fields)
 
-  const { data: responses, isLoading } = useQuery({
-    queryKey: ["form-responses"],
-    queryFn: async () => {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      return mockResponses
-    },
-  })
+  const { data: responses, isLoading } = useGetFormResponses({
+    formId
+  });
 
   if (allFields.length === 0) {
     return (
@@ -78,7 +50,6 @@ export function FormResponses({ formSections }: FormResponsesProps) {
 
   return (
     <div className="space-y-6">
-      
       {/* Record Progress Card */}
       <Card>
         <CardHeader>

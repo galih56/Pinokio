@@ -74,6 +74,19 @@ export const createAppRouter = (queryClient: QueryClient) => {
           ErrorBoundary: AppRootErrorBoundary,
         },
         {
+          path: paths.formResponses.path,
+          lazy: async () => {
+            const { FormResponsesRoute , formResponsesLoader } = await import(
+              '@/pages/app/form-guard/form-responses'
+            );
+            return {
+              Component: FormResponsesRoute ,
+              loader: formResponsesLoader(queryClient),
+            };
+          },
+          ErrorBoundary: AppRootErrorBoundary,
+        },
+        {
           path: paths.formBuilder.path,
           lazy: async () => {
             const { FormBuilderRoute, formLayoutLoader } = await import(
@@ -218,16 +231,16 @@ export const createAppRouter = (queryClient: QueryClient) => {
           },
           ErrorBoundary: AppRootErrorBoundary,
         },
-        {
-          path: paths.profile.path,
-          lazy: async () => {
-            const { ProfileRoute } = await import('@/pages/app/users/profile');
-            return {
-              Component: ProfileRoute,
-            };
-          },
-          ErrorBoundary: AppRootErrorBoundary,
-        },
+        // {
+        //   path: paths.profile.path,
+        //   lazy: async () => {
+        //     const { ProfileRoute } = await import('@/pages/app/users/profile');
+        //     return {
+        //       Component: ProfileRoute,
+        //     };
+        //   },
+        //   ErrorBoundary: AppRootErrorBoundary,
+        // },
         {
           path: paths.dashboard.path,
           lazy: async () => {

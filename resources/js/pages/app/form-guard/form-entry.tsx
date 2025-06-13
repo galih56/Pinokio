@@ -9,8 +9,10 @@ import { FormErrorFallback } from "@/features/form-guard/components/form-builder
 import { useGetFormLayout } from "@/features/form-guard/api/use-get-form-layout"
 import { toast } from "sonner"
 import { AxiosError } from "axios"
-import { Spinner } from "@/components/ui/spinner"
-export const FormResponse = () => {
+import { Spinner } from "@/components/ui/spinner";
+
+
+export const FormEntry = () => {
   const { formId } = useLoaderData() as { formId: string }; // Only get formId
 
   const { data, isPending, error} = useGetFormLayout({

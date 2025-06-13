@@ -59,7 +59,6 @@ export function FormView({ formId, initialData, onGenerateLink }: FormViewProps)
   const { isOpen, selectedForm, generatedLink, isGenerating, handleGenerateLink , handleGenerateLinkWithExpiry, handleDialogClose } =
     useGenerateLinkDialog();
 
-  // Use initialData with background refresh for optimistic updates
   const formQuery = useFormDetail({ 
     formId,
     initialData: {
@@ -214,22 +213,6 @@ export function FormView({ formId, initialData, onGenerateLink }: FormViewProps)
             </div>
           </div>
         </div>
-        <div className="flex gap-2">
-          <Link to="./layout">
-            <Button variant="outline" size="sm" >
-              <Edit className="h-4 w-4 mr-2" />
-              Edit Form
-            </Button>
-          </Link>
-          <Button size="sm">
-            <Eye className="h-4 w-4 mr-2" />
-            Preview
-          </Button>
-          <Button size={"sm"}  onClick={() => handleGenerateLink(displayForm)}  >
-            <LinkIcon className="h-4 w-4 mr-2" />
-            Get the link
-          </Button>
-        </div>
       </div>
 
       {/* Description Card */}
@@ -329,12 +312,27 @@ export function FormView({ formId, initialData, onGenerateLink }: FormViewProps)
 
               <Separator />
 
-              {/* Access Configuration */}
               <div className="space-y-3">
                 <h4 className="font-medium flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Access Configuration
+                  Quick Actions
                 </h4>
+                <div className="flex flex-wrap gap-3">
+                  <Link to="./layout">
+                    <Button variant="outline" size="sm" >
+                      <Edit className="h-4 w-4 mr-2" />
+                      Edit Form
+                    </Button>
+                  </Link>
+                  <Button variant="outline" size="sm">
+                    <Eye className="h-4 w-4 mr-2" />
+                    View Responses
+                  </Button>
+                  <Button size={"sm"}  onClick={() => handleGenerateLink(displayForm)}  >
+                    <LinkIcon className="h-4 w-4 mr-2" />
+                    Get the link
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -471,40 +469,6 @@ export function FormView({ formId, initialData, onGenerateLink }: FormViewProps)
           </div>
         </CardContent>
       </Card>
-      
-      {/* Quick Actions */}
-      {displayForm.provider == "Pinokio" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Link2 className="h-5 w-5" />
-              Quick Actions
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-3">
-              <Button variant="outline" size="sm">
-                <Eye className="h-4 w-4 mr-2" />
-                View Responses
-              </Button>
-              <Button variant="outline" size="sm">
-                <Users className="h-4 w-4 mr-2" />
-                Manage Access
-              </Button>
-              <Button variant="outline" size="sm">
-                <Settings className="h-4 w-4 mr-2" />
-                Form Settings
-              </Button>
-              {displayForm.formUrl && (
-                <Button variant="outline" size="sm" onClick={() => window.open(displayForm.formUrl, "_blank")}>
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Open Form
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       <GenerateLinkDialog
         isOpen={isOpen}

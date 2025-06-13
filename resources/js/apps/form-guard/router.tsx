@@ -24,11 +24,11 @@ export const createAppRouter = (queryClient: QueryClient) => {
             const { formLayoutLoader } = await import(
               '@/pages/app/form-guard/form-builder'
             );
-            const { FormResponse } = await import(
-              '@/pages/app/form-guard/form-response'
+            const { FormEntry } = await import(
+              '@/pages/app/form-guard/form-entry'
             );
             return {
-              Component: FormResponse,
+              Component: FormEntry,
               loader: formLayoutLoader(queryClient),
             };
           },
@@ -40,11 +40,11 @@ export const createAppRouter = (queryClient: QueryClient) => {
             const { formLayoutLoader } = await import(
               '@/pages/app/form-guard/form-builder'
             );
-            const { FormResponse } = await import(
-              '@/pages/app/form-guard/form-response'
+            const { FormEntry } = await import(
+              '@/pages/app/form-guard/form-entry'
             );
             return {
-              Component: FormResponse,
+              Component: FormEntry,
               loader: formLayoutLoader(queryClient),
             };
           },
