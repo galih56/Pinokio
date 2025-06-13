@@ -59,7 +59,7 @@ export function FormView({ formId, initialData, onGenerateLink }: FormViewProps)
   const { isOpen, selectedForm, generatedLink, isGenerating, handleGenerateLink , handleGenerateLinkWithExpiry, handleDialogClose } =
     useGenerateLinkDialog();
 
-  const formQuery = useFormDetail({ 
+    const formQuery = useFormDetail({ 
     formId,
     initialData: {
       data: initialData,
@@ -324,10 +324,12 @@ export function FormView({ formId, initialData, onGenerateLink }: FormViewProps)
                       Edit Form
                     </Button>
                   </Link>
-                  <Button variant="outline" size="sm">
-                    <Eye className="h-4 w-4 mr-2" />
-                    View Responses
-                  </Button>
+                  <Link to="./responses">
+                    <Button variant="outline" size="sm">
+                      <Eye className="h-4 w-4 mr-2" />
+                      View Responses
+                    </Button>
+                  </Link>
                   <Button size={"sm"}  onClick={() => handleGenerateLink(displayForm)}  >
                     <LinkIcon className="h-4 w-4 mr-2" />
                     Get the link

@@ -90,15 +90,21 @@ Route::group([
         ]
     ], function () {
         Route::post('/', [FormController::class, 'store']);
-        Route::get('/{id}', [FormController::class, 'show']);
-        Route::get('/{id}/layout', [FormController::class, 'getFormWithLayout']);
-        Route::put('/{id}', [FormController::class, 'update']);
         Route::post('/{id}/generate-link', [FormController::class, 'generateLink']);
         Route::get('/{id}/responses', [FormController::class, 'getFormResponses']);
-        Route::post('/{id}/responses', [FormController::class, 'storeFormResponse']);
+        Route::get('/{id}', [FormController::class, 'show']);
+        Route::put('/{id}', [FormController::class, 'update']);
         Route::patch('/{id}', [FormController::class, 'update']);
         Route::post('/{id}/layout', [FormController::class, 'updateFormLayout']);
         Route::delete('/{id}', [FormController::class, 'destroy']);
+    });
+    Route::group([
+        'middleware' => [
+            'decode_id',
+        ]
+    ], function () {
+        Route::get('/{id}/layout', [FormController::class, 'getFormWithLayout']);
+        Route::post('/{id}/responses', [FormController::class, 'storeFormResponse']);
     });
 });
 

@@ -17,7 +17,7 @@ class FormEntry extends Model
 
     public function formSubmission(): BelongsTo
     {
-        return $this->belongsTo(FormSubmission::class);
+        return $this->belongsTo(FormSubmission::class, 'form_submission_id');
     }
 
     public function formField(): BelongsTo

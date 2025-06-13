@@ -3,43 +3,146 @@ import { useQuery } from "@tanstack/react-query"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import type { FormSection } from "@/types/form"
-import { AlertTriangle, CheckCircle, Clock, Eye, Link2, Send, Users } from "lucide-react"
+import type { FormResponse, FormSection, FormSubmission, FormEntry, FormField } from "@/types/form"
+import { AlertTriangle, CheckCircle, Clock, Eye, Link2, MoveLeft, Send, Users } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
-import { useState } from "react"
+import { useState, useMemo } from "react"
 import { useGetFormResponses } from "../../api/use-get-form-responses"
+import { useNavigate } from "react-router-dom"
 
 interface FormResponsesProps {
   formId : string;
-  formSections: FormSection[]
+  formSections: FormSection[];
+  initialData : FormResponse[];
 }
 
-export function FormResponses({ formId, formSections }: FormResponsesProps) {
-  // Mock token stats - replace with real data
+// Extended types to match what your API returns (camelized)
+interface ExtendedFormSubmission extends FormSubmission {
+  form: {
+    id: string;
+    title: string;
+    description: string | null;
+  };
+  submittedByUser: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  entries: Array<FormEntry & {
+    formField: FormField & {
+      fieldType: {
+        id: string;
+        name: string;
+      };
+      options: Array<{
+        id: string;
+        formFieldId: string;
+        label: string;
+        value: string;
+      }>;
+    };
+  }>;
+  totalEntries: number;
+  hasAttempts: boolean;
+}
+
+export function FormResponses({ formId, formSections, initialData }: FormResponsesProps) {
   const [tokenStats] = useState({
     generated: 45,
     used: 32,
     unused: 8,
     expired: 5,
   })
-  const completionRate = tokenStats.generated > 0 ? (tokenStats.used / tokenStats.generated) * 100 : 0
 
-  const allFields = formSections.flatMap((section) => section.fields)
+  const navigate = useNavigate();
+  const goBack = () => navigate(-1);
 
-  const { data: responses, isLoading } = useGetFormResponses({
+  const formResponsesQuery = useGetFormResponses({
     formId
   });
+  
+  // Get the API responses using your existing types
+  const entries = formResponsesQuery.data?.data as ExtendedFormSubmission[] || [];
+// Convert to your FormResponse format
+const responses: FormResponse[] = useMemo(() => {
+  return entries.map(response => ({
+    id: response.id,
+    submittedAt: response.submittedAt.toString(),
+    data: response.entries.reduce((acc, entry) => {
+      const fieldId = entry.formField?.id;
+      if (fieldId) {
+        acc[fieldId] = entry.value;
+      }
+      return acc;
+    }, {} as Record<string, any>)
+  }));
+}, [entries]);
 
-  if (allFields.length === 0) {
+// Get all unique fields from API responses
+const getAllFieldsFromResponses = useMemo(() => {
+  const fieldsMap = new Map();
+  
+  entries.forEach(response => {
+    response.entries.forEach(entry => {
+      const field = entry.formField;
+      if (field && !fieldsMap.has(field.id)) {
+        fieldsMap.set(field.id, {
+          id: field.id,
+          label: field.label,
+          name: field.name,
+          type: field.fieldType.name,
+          // Add other properties you might need
+          formSectionId: '', // You might not have this
+          fieldTypeId: field.fieldTypeId.toString(),
+          isRequired: false, // Default values
+          order: 0,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        });
+      }
+    });
+  });
+  
+  return Array.from(fieldsMap.values());
+}, [entries]);
+
+
+  const EmptyFieldFallback = () => {
     return (
       <div className="text-center py-8 text-gray-500">
-        No form fields available. Create some fields first to see responses.
+        <p>
+          No form fields available. Create some fields first to see responses.
+        </p>
+        <div className="flex space-x-2 mt-4 justify-center" >
+          <Button 
+            variant="outline"
+            onClick={goBack}>
+            <MoveLeft className="mr-2 h-4 w-4" />
+            Go Back
+          </Button>
+        </div>
       </div>
     )
   }
 
-  if (isLoading) {
+  if (!formSections) {
+    return (
+      <EmptyFieldFallback />
+    )
+  }
+
+  const completionRate = tokenStats.generated > 0 ? (tokenStats.used / tokenStats.generated) * 100 : 0
+  const allFields = formSections.flatMap((section) => section.fields)
+
+  if (allFields.length === 0) {
+    return (
+      <EmptyFieldFallback />
+    )
+  }
+
+  const fieldsToDisplay = getAllFieldsFromResponses;
+  if (formResponsesQuery.isPending) {
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
@@ -50,7 +153,7 @@ export function FormResponses({ formId, formSections }: FormResponsesProps) {
 
   return (
     <div className="space-y-6">
-      {/* Record Progress Card */}
+      {/* Record Progress Card - keeping your existing code */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -167,6 +270,7 @@ export function FormResponses({ formId, formSections }: FormResponsesProps) {
         </CardContent>
       </Card>
 
+      {/* Form Responses Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -185,24 +289,34 @@ export function FormResponses({ formId, formSections }: FormResponsesProps) {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Submitted At</TableHead>
-                    {allFields.map((field) => (
+                    <TableHead>Submitted By</TableHead>
+                    {fieldsToDisplay.map((field) => (
                       <TableHead key={field.id}>{field.label}</TableHead>
                     ))}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {responses.map((response) => (
-                    <TableRow key={response.id}>
-                      <TableCell>{new Date(response.submittedAt).toLocaleDateString()}</TableCell>
-                      {allFields.map((field) => (
-                        <TableCell key={field.id}>
-                          {Array.isArray(response.data[field.id])
-                            ? response.data[field.id].join(", ")
-                            : response.data[field.id] || "-"}
+                  {responses.map((response, index) => {
+                    const apiResponse = entries[index];
+                    
+                    return (
+                      <TableRow key={response.id}>
+                        <TableCell>
+                          {new Date(response.submittedAt).toLocaleDateString()}
                         </TableCell>
-                      ))}
-                    </TableRow>
-                  ))}
+                        <TableCell>
+                          {apiResponse?.submittedByUser?.name || 'Unknown'}
+                        </TableCell>
+                        {fieldsToDisplay.map((field) => (
+                          <TableCell key={field.id}>
+                            {Array.isArray(response?.data[field.id])
+                              ? response.data[field.id].join(", ")
+                              : response.data[field.id] || "-"}
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

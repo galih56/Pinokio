@@ -308,8 +308,7 @@ class FormService
             'entries.formField.fieldType:id,name',
             'entries.formField.options:id,form_field_id,label,value'
         ])->where('form_id', $formId);
-
-        // Apply filters
+            
         if (isset($filters['user_id'])) {
             $query->where('submitted_by', $filters['user_id']);
         }

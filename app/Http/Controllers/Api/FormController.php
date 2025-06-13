@@ -9,6 +9,7 @@ use App\Http\Requests\Form\UpdateFormRequest;
 use App\Http\Requests\Form\GenerateLinkRequest;
 use App\Http\Requests\Form\UpdateFormLayoutRequest;
 use App\Http\Resources\FormResource;
+use App\Http\Resources\FormResponseResource;
 use Illuminate\Support\Facades\DB;
 use App\Services\Forms\FormService;
 use App\Services\HashidService;
@@ -121,11 +122,11 @@ class FormController extends Controller
         return ApiResponse::sendResponse(new FormResource($form),'', 'success', 200);
     }
 
-    public function getFormResponses()
+    public function getFormResponses($id)
     {
-        $data = $this->formService->getFormResponses();
+        $data = $this->formService->getFormResponses($id);
 
-        return ApiResponse::sendResponse(FormResource::collection($data),'', 'success', 200);
+        return ApiResponse::sendResponse(FormResponseResource::collection($data),'', 'success', 200);
     }
 
     /**
