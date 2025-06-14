@@ -98,7 +98,6 @@ class FormService
 
             $sectionIds = [];
             $sectionOrder = 0;
-            $usedFieldNames = []; // Track field names across all sections
 
             foreach ($data['sections'] as $sectionData) {
                 // Handle section image upload
@@ -119,14 +118,13 @@ class FormService
                     }
                 } elseif (isset($sectionData['image']) && is_string($sectionData['image'])) {
                     // Keep existing URL if it's a string
-                    $sectionImageUrl = $sectionData['image'];
+                    $sectionImagePath = $sectionData['image'];
                 }
 
                 $section = FormSection::updateOrCreate(
                     ['id' => $sectionData['id']], 
                     [
                         'form_id' => $model->id, 
-                        'name' => $sectionData['name'],
                         'description' => $sectionData['description'] ?? null,
                         'order' => $sectionOrder++,
                         'image_path' => $sectionImagePath,
@@ -138,11 +136,6 @@ class FormService
                 $fieldOrder = 0;
 
                 foreach ($sectionData['fields'] as $fieldData) {
-                    // Generate unique field name
-                    $baseFieldName = \Str::slug($fieldData['label'], '_');
-                    $uniqueFieldName = $this->generateUniqueFieldName($baseFieldName, $usedFieldNames);
-                    $usedFieldNames[] = $uniqueFieldName;
-
                     // Handle field image upload
                     $fieldImagePath = null;
                     if (isset($fieldData['image']) && $fieldData['image'] instanceof \Illuminate\Http\UploadedFile) {
@@ -165,11 +158,10 @@ class FormService
                     }
 
                     $field = FormField::updateOrCreate(
-                        ['id' => $fieldData['id']], // Remove form_section_id from unique constraint
+                        ['id' => $fieldData['id']], 
                         [
-                            'form_section_id' => $section->id, // Set form_section_id in the data array
+                            'form_section_id' => $section->id, 
                             'label' => $fieldData['label'],
-                            'name' => $uniqueFieldName,
                             'placeholder' => $fieldData['placeholder'] ?? null,
                             'is_required' => $fieldData['is_required'] ?? false,
                             'order' => $fieldOrder++,
@@ -304,7 +296,7 @@ class FormService
         $query = FormSubmission::with([
             'form:id,title,description',
             'submittedByUser:id,name,email',
-            'entries.formField:id,name,label,field_type_id',
+            'entries.formField:id,label,field_type_id',
             'entries.formField.fieldType:id,name',
             'entries.formField.options:id,form_field_id,label,value'
         ])->where('form_id', $formId);
@@ -389,7 +381,7 @@ class FormService
                 }
 
                 // Find the corresponding field
-                $field = $allFields->firstWhere('name', $fieldName);
+                $field = $allFields->firstWhere('id', $fieldName);
 
                 if (!$field) {
                     continue; // Skip unknown fields
@@ -415,10 +407,10 @@ class FormService
 
             // Validate all required fields are present
             $requiredFields = $allFields->where('is_required', true);
-            $submittedFieldNames = array_keys($responseData);
+            $submittedFieldIDs = array_keys($responseData);
             
             foreach ($requiredFields as $requiredField) {
-                if (!in_array($requiredField->name, $submittedFieldNames)) {
+                if (!in_array($requiredField->id, $submittedFieldIDs)) {
                     throw new \Exception("Required field '{$requiredField->label}' is missing");
                 }
             }
@@ -433,7 +425,7 @@ class FormService
 
             // Load and return the submission with all relations
             return $formSubmission->load([
-                'entries.formField:id,name,label,field_type_id',
+                'entries.formField:id,label,field_type_id',
                 'entries.formField.fieldType:id,name', 
                 'entries.formField.options:id,form_field_id,label,value', 
                 'form:id,title',

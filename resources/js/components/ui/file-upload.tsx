@@ -54,10 +54,6 @@ type FileUploaderProps = {
   orientation?: "horizontal" | "vertical";
 };
 
-/**
- * File upload Docs: {@link: https://localhost:3000/docs/file-upload}
- */
-
 export const FileUploader = forwardRef<
   HTMLDivElement,
   FileUploaderProps & React.HTMLAttributes<HTMLDivElement>

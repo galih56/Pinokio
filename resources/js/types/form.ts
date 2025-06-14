@@ -17,8 +17,8 @@ export interface Form {
   proctored: boolean;
   isActive: boolean;
   expiresAt?: Date | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 
   sections : Array<FormSection>
 }
@@ -47,8 +47,8 @@ export type FieldType =
 
 export interface FormField {
   id: string;
-  formSectionId: string;
-  fieldTypeId: string;
+  formSectionId?: string;
+  fieldTypeId?: string;
   type: FieldType;
   label: string;
   name: string;
@@ -56,8 +56,8 @@ export interface FormField {
   isRequired: boolean;
   image?: string | File; 
   order: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 
   options?: FormFieldOption[];
 }
@@ -78,8 +78,8 @@ export interface FormToken {
   submittedTime?: string;
   isUsed: boolean;
   expiresAt?: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface FormAttempt {
@@ -91,8 +91,8 @@ export interface FormAttempt {
   submittedAt?: string;
   isValid: boolean;
   durationSeconds?: number;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export interface FormSubmission {

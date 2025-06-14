@@ -112,11 +112,14 @@ const createSnapshot = (state: FormBuilderState): FormBuilderSnapshot => ({
   timestamp: new Date(),
 })
 
-export const createOption = (label: string, value?: string): FormFieldOption => ({
-  id: generateId("option"),
-  label: label.trim(),
-  value: value || label.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')
-})
+export const createOption = (label: string, value?: string): FormFieldOption => {
+  const id = generateId("option")
+  return ({
+    id: id,
+    label: label.trim(),
+    value: value || id
+  })
+}
 
 export const useFormBuilderStore = create<FormBuilderState>()(
   devtools(

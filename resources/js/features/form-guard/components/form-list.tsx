@@ -22,9 +22,10 @@ import { useEffect, useState } from "react"
 import { formatDate, formatSecondsToDuration, formatTime } from "@/lib/datetime"
 import { getFormQueryOptions } from "@/features/form-guard/api/get-form"
 import { useForms } from "@/features/form-guard/api/get-forms"
-import { useGenerateLinkDialog } from "./generate-link/use-generate-link-dialog"
-import { GenerateLinkDialog } from "./generate-link/generate-link-dialog"
+import { useGetURLDialog } from "./get-form-url/use-generate-url-dialog"
+import { GetURLDialog } from "./get-form-url/get-form-url-dialog"
 import { Form } from "@/types/form"
+import { toast } from "sonner"
 
 export type FormsListProps = {
   onFormPrefetch?: (id: string) => void
@@ -32,26 +33,26 @@ export type FormsListProps = {
 
 export const FormsList = ({ onFormPrefetch }: FormsListProps) => {
   const navigate = useNavigate()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const currentPage = +(searchParams.get("page") || 1)
-  const search = searchParams.get("search") || ""
+  const [searchParams, setSearchParams] = useSearchParams();
+  const currentPage = +(searchParams.get("page") || 1);
+  const search = searchParams.get("search") || "";
 
   const formsQuery = useForms({
     page: currentPage,
     search,
   })
 
-  const [searchTerm, setSearchTerm] = useState(search)
+  const [searchTerm, setSearchTerm] = useState(search);
 
   const {
     isOpen,
     selectedForm,
-    generatedLink,
+    url,
     isGenerating,
-    handleGenerateLink,
-    handleGenerateLinkWithExpiry,
+    handleGetURL,
+    handleGetURLWithExpiry,
     handleDialogClose,
-  } = useGenerateLinkDialog()
+  } = useGetURLDialog()
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -72,6 +73,17 @@ export const FormsList = ({ onFormPrefetch }: FormsListProps) => {
   const queryClient = useQueryClient()
   const forms = formsQuery.data?.data || []
   const meta = formsQuery.data?.meta
+
+
+  const copyFormUrl = async (url? : string) => {
+    if (url) {
+      await navigator.clipboard.writeText(url)
+      toast.info("URL Copied", {
+        description: "Form URL has been copied to clipboard",
+      })
+    }
+  }
+  
 
   const columns: ColumnDef<Form>[] = [
     {
@@ -97,7 +109,13 @@ export const FormsList = ({ onFormPrefetch }: FormsListProps) => {
               >
                 <DropdownMenuItem>View</DropdownMenuItem>
               </Link>
-              <DropdownMenuItem onClick={() => handleGenerateLink(form)}>
+              <DropdownMenuItem onClick={() => {
+                  if(form.requiresToken){
+                    handleGetURL(form)
+                  } else {
+                    copyFormUrl(form.formUrl)
+                  }
+                }}>
                 <LinkIcon className="h-4 w-4 mr-2" />
                 Get the link
               </DropdownMenuItem>
@@ -210,12 +228,12 @@ export const FormsList = ({ onFormPrefetch }: FormsListProps) => {
         </div>
       )}
 
-      <GenerateLinkDialog
+      <GetURLDialog
         isOpen={isOpen}
         onOpenChange={handleDialogClose}
         item={selectedForm}
-        onGenerateLink={handleGenerateLinkWithExpiry}
-        generatedLink={generatedLink}
+        onGenerateLink={handleGetURLWithExpiry}
+        url={url}
         isGenerating={isGenerating}
         title="Generate Form Link"
         description="Generate a shareable link for this form with custom expiry settings"

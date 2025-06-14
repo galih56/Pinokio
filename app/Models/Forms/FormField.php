@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class FormField extends Model
 {
     protected $fillable = [
+        'id',
         'form_section_id',
         'label',
         'name',
@@ -20,7 +21,8 @@ class FormField extends Model
     ];
 
     protected $keyType = 'string';
-    
+    public $incrementing = false;
+
     protected $casts = [
         'is_required' => 'boolean',
     ];

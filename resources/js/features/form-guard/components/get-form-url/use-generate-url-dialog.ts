@@ -2,30 +2,30 @@
 
 import { useState } from "react"
 import { useDisclosure } from "@/hooks/use-disclosure"
-import { useGenerateFormLink } from "@/features/form-guard/api/create-form-link"
+import { useGetFormLink } from "@/features/form-guard/api/create-form-link"
 import { Form } from "@/types/form"
 
-export function useGenerateLinkDialog() {
+export function useGetURLDialog() {
   const { isOpen, open, close } = useDisclosure()
   const [selectedForm, setSelectedForm] = useState<Form | null>(null)
-  const [generatedLink, setGeneratedLink] = useState<string | null>(null)
+  const [url, setURL] = useState<string | null>(null)
 
-  const generateFormLinkMutation = useGenerateFormLink({
+  const getFormLinkMutation = useGetFormLink({
     mutationConfig: {
       onSuccess: (form) => {
-        setGeneratedLink(form.formUrl || null)
+        setURL(form.formUrl || null)
       },
     },
   })
 
-  const handleGenerateLink = (form: Form) => {
+  const handleGetURL = (form: Form) => {
     setSelectedForm(form)
-    setGeneratedLink(null)
+    setURL(null)
     open()
   }
 
-  const handleGenerateLinkWithExpiry = (formId: string, expiresAt: Date | null, timeLimit?: number) => {
-    generateFormLinkMutation.mutate({
+  const handleGetURLWithExpiry = (formId: string, expiresAt: Date | null, timeLimit?: number) => {
+    getFormLinkMutation.mutate({
       formId,
       expiresAt,
       timeLimit,
@@ -38,7 +38,7 @@ export function useGenerateLinkDialog() {
       // Reset state when closing
       setTimeout(() => {
         setSelectedForm(null)
-        setGeneratedLink(null)
+        setURL(null)
       }, 150)
     }
   }
@@ -47,18 +47,18 @@ export function useGenerateLinkDialog() {
     // State
     isOpen,
     selectedForm,
-    generatedLink,
-    isGenerating: generateFormLinkMutation.isPending,
+    url,
+    isGenerating: getFormLinkMutation.isPending,
 
     // Actions
-    handleGenerateLink,
-    handleGenerateLinkWithExpiry,
+    handleGetURL,
+    handleGetURLWithExpiry,
     handleDialogClose,
 
     // For manual control if needed
     open,
     close,
     setSelectedForm,
-    setGeneratedLink,
+    setURL,
   }
 }

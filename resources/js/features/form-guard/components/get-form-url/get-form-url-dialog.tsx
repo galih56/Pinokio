@@ -14,19 +14,19 @@ import { TimeLimitField } from "../time-limit-field"
 import { ExpiryDateTimeField } from "../expiry-date-time-field"
 import DialogOrDrawer from "@/components/layout/dialog-or-drawer"
 
-export interface GenerateLinkItem {
+export interface GetURLProps {
   id: string
   title: string
   timeLimit?: number // in seconds
   [key: string]: any
 }
 
-export interface GenerateLinkDialogProps<T extends GenerateLinkItem> {
+export interface GetURLDialogProps<T extends GetURLProps> {
   isOpen: boolean
   onOpenChange: (open: boolean) => void
   item: T | null
   onGenerateLink: (itemId: string, expiresAt: Date | null, timeLimit?: number) => void
-  generatedLink: string | null
+  url: string | null
   isGenerating: boolean
   title?: string
   description?: string
@@ -35,19 +35,19 @@ export interface GenerateLinkDialogProps<T extends GenerateLinkItem> {
   previousLinks?: Array<{ id: string; url: string; createdAt: Date; expiresAt?: Date; used: boolean }>
 }
 
-export function GenerateLinkDialog<T extends GenerateLinkItem>({
+export function GetURLDialog<T extends GetURLProps>({
   isOpen,
   onOpenChange,
   item,
   onGenerateLink,
-  generatedLink,
+  url,
   isGenerating,
   title = "Get the link",
   description = "Generate a shareable link with custom expiry settings",
   itemTypeLabel = "item",
   defaultExpiryDays = 7,
   previousLinks = [],
-}: GenerateLinkDialogProps<T>) {
+}: GetURLDialogProps<T>) {
   const [expiryDateTime, setExpiryDateTime] = useState<Date | null>(null)
   const [timeLimit, setTimeLimit] = useState<number>(900) // Default 15 minutes in seconds
   const [linkCopied, setLinkCopied] = useState(false)
@@ -72,14 +72,14 @@ export function GenerateLinkDialog<T extends GenerateLinkItem>({
     onGenerateLink(item.id, expiryDateTime, timeLimit)
 
     // Switch to share tab after generating
-    if (!generatedLink) {
+    if (!url) {
       setTimeout(() => setActiveTab("share"), 500)
     }
   }
 
   const copyToClipboard = async () => {
-    if (generatedLink) {
-      await navigator.clipboard.writeText(generatedLink)
+    if (url) {
+      await navigator.clipboard.writeText(url)
       setLinkCopied(true)
       toast.info("Link Copied", { description: `${itemTypeLabel} link has been copied to clipboard` })
       setTimeout(() => setLinkCopied(false), 1000)
@@ -112,7 +112,7 @@ export function GenerateLinkDialog<T extends GenerateLinkItem>({
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid grid-cols-3 mb-4">
             <TabsTrigger value="generate">Generate</TabsTrigger>
-            <TabsTrigger value="share" disabled={!generatedLink}>
+            <TabsTrigger value="share" disabled={!url}>
               Share
             </TabsTrigger>
             <TabsTrigger value="history" disabled={previousLinks.length === 0}>
@@ -203,7 +203,7 @@ export function GenerateLinkDialog<T extends GenerateLinkItem>({
 
           <TabsContent value="share" className="space-y-6">
             {/* Generated Link Display */}
-            {generatedLink && (
+            {url && (
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base text-green-600 flex items-center gap-2">
@@ -216,7 +216,7 @@ export function GenerateLinkDialog<T extends GenerateLinkItem>({
                     <div className="flex items-center justify-between gap-2">
                       <div className="flex-1 min-w-0">
                         <p className="text-sm text-muted-foreground mb-1">Generated Link:</p>
-                        <p className="text-sm font-mono break-all">{generatedLink}</p>
+                        <p className="text-sm font-mono break-all">{url}</p>
                       </div>
                     </div>
                   </div>

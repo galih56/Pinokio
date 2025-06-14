@@ -91,7 +91,6 @@ Route::group([
     ], function () {
         Route::post('/', [FormController::class, 'store']);
         Route::post('/{id}/generate-link', [FormController::class, 'generateLink']);
-        Route::get('/{id}/responses', [FormController::class, 'getFormResponses']);
         Route::get('/{id}', [FormController::class, 'show']);
         Route::put('/{id}', [FormController::class, 'update']);
         Route::patch('/{id}', [FormController::class, 'update']);
@@ -103,6 +102,7 @@ Route::group([
             'decode_id',
         ]
     ], function () {
+        Route::get('/{id}/responses', [FormController::class, 'getFormResponses']);
         Route::get('/{id}/layout', [FormController::class, 'getFormWithLayout']);
         Route::post('/{id}/responses', [FormController::class, 'storeFormResponse']);
     });

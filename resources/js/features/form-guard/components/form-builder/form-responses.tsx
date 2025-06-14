@@ -92,10 +92,9 @@ const getAllFieldsFromResponses = useMemo(() => {
           label: field.label,
           name: field.name,
           type: field.fieldType.name,
-          // Add other properties you might need
-          formSectionId: '', // You might not have this
+          formSectionId: '', 
           fieldTypeId: field.fieldTypeId.toString(),
-          isRequired: false, // Default values
+          isRequired: false, 
           order: 0,
           createdAt: new Date(),
           updatedAt: new Date()

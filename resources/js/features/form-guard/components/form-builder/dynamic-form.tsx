@@ -37,7 +37,7 @@ function createFormSchema(sections: FormSection[]) {
   sections.forEach((section) => {
     section.fields.forEach((field) => {
       // Use the backend-generated field name (which is unique)
-      const fieldKey = field.name
+      const fieldKey = field.id
 
       let fieldSchema: z.ZodTypeAny
 
@@ -109,7 +109,7 @@ export function DynamicForm({
     resolver: zodResolver(schema),
     defaultValues: allFields.reduce(
       (acc, field) => {
-        const fieldKey = field.name
+        const fieldKey = field.id
         acc[fieldKey] = field.type === "checkbox" ? [] : field.defaultValue || ""
         return acc
       },
@@ -129,7 +129,7 @@ export function DynamicForm({
     const completedFields = allFields
       .filter((field) => field.isRequired)
       .filter((field) => {
-        const value = values[field.name]
+        const value = values[field.id]
         return value !== undefined && value !== "" && value !== null && (Array.isArray(value) ? value.length > 0 : true)
       }).length
 
@@ -254,7 +254,7 @@ export function DynamicForm({
                       <span className="flex items-center justify-center bg-primary text-white rounded-full h-7 w-7 text-sm">
                         {currentSectionIndex + 1}
                       </span>
-                      {currentSection.name}
+                      {currentSection.label}
                     </h2>
                     {currentSection.description && <p className="text-gray-600 pl-9">{currentSection.description}</p>}
                   </div>
@@ -267,7 +267,7 @@ export function DynamicForm({
                       <FormField
                         key={field.id}
                         control={form.control}
-                        name={field.name}
+                        name={field.id}
                         render={({ field: formField }) => (
                           <FormItem className="space-y-3 bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
                             <div className="space-y-1">
@@ -324,9 +324,9 @@ export function DynamicForm({
                                     >
                                       <RadioGroupItem
                                         value={option.value || option.label}
-                                        id={`${field.name}-${index}`}
+                                        id={`${field.id}-${index}`}
                                       />
-                                      <Label htmlFor={`${field.name}-${index}`} className="flex-1 cursor-pointer">
+                                      <Label htmlFor={`${field.id}-${index}`} className="flex-1 cursor-pointer">
                                         {option.label}
                                       </Label>
                                     </div>
@@ -340,7 +340,7 @@ export function DynamicForm({
                                       className="flex items-center space-x-2 bg-gray-50 p-3 rounded-md border border-gray-100"
                                     >
                                       <Checkbox
-                                        id={`${field.name}-${index}`}
+                                        id={`${field.id}-${index}`}
                                         checked={formField.value?.includes(option.value || option.label)}
                                         onCheckedChange={(checked) => {
                                           const currentValue = formField.value || []
@@ -352,7 +352,7 @@ export function DynamicForm({
                                           }
                                         }}
                                       />
-                                      <Label htmlFor={`${field.name}-${index}`} className="flex-1 cursor-pointer">
+                                      <Label htmlFor={`${field.id}-${index}`} className="flex-1 cursor-pointer">
                                         {option.label}
                                       </Label>
                                     </div>

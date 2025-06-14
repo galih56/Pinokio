@@ -20,7 +20,6 @@ function authRequestInterceptor(config: InternalAxiosRequestConfig) {
   if (config.data) {
     if(config.headers['Content-Type'] == 'multipart/form-data'){
       config.data = createFormData(config.data);
-      console.log('FormData entries:', [...config.data.entries()]);
     }else{
       config.data = decamelizeKeys(config.data);
     }

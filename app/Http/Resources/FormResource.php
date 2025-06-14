@@ -8,6 +8,14 @@ use App\Services\FileService;
 
 class FormResource extends JsonResource
 {
+    protected HashIdService $hashid;
+
+    public function __construct($resource)
+    {
+        parent::__construct($resource);
+        $this->hashid = new HashIdService(); 
+    }
+
     /**
      * Transform the resource into an array.
      *
@@ -15,13 +23,14 @@ class FormResource extends JsonResource
      */
     public function toArray($request)
     {
+        $form_id = $this->hashid->encode($this->id);
         return [
-            'id' => app(HashIdService::class)->encode($this->id), 
+            'id' => $form_id, 
             'title' => $this->title,
             'description' => $this->description,
             'provider' => $this->provider,
             'form_code' => $this->form_code,
-            'form_url' => $this->form_url,
+            'form_url' => ($this->form_url ? $this->form_url : env('VITE_BASE_URL').'/form-guard/'.$form_id),
             
             // Access control
             'access_type' => $this->access_type,
@@ -40,13 +49,13 @@ class FormResource extends JsonResource
             
             'sections' => $this->whenLoaded('sections', fn() =>  
                 $this->sections->map(fn ($section) => [
-                    'id' => app(HashIdService::class)->encode($section->id),
+                    'id' => $section->id,
                     'name' => $section->name,
                     'description' => $section->description,
                     'order' => $section->order,
                     'image' => ($section->image_path ? app(FileService::class)->getUrl($section->image_path) : null),
                     'fields' => $section->fields->map(fn ($field) => [
-                        'id' => app(HashIdService::class)->encode($field->id),
+                        'id' => $field->id,
                         'label' => $field->label,
                         'name' => $field->name,
                         'placeholder' => $field->placeholder,

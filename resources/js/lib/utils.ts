@@ -3,7 +3,7 @@ import type { FieldErrors } from "react-hook-form"
 import { twMerge } from "tailwind-merge"
 import { nanoid } from "nanoid"
 import { toast } from "sonner"
-import { FormSection } from "@/types/form"
+import { FormBuilderError, FormSection } from "@/types/form"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -268,7 +268,7 @@ export const apiErrorHandler = (error: any, context?: "form-builder" | "general"
 }
 
 export function generateId(prefix = "", length = 10): string {
-  return `${prefix ? prefix : nanoid(4)}-${nanoid(length)}`
+  return `${prefix ? prefix : nanoid(4)}_${nanoid(length)}`
 }
 
 // Form builder specific ID generators

@@ -40,9 +40,26 @@ class UpdateFormLayoutRequest extends BaseRequest
             ],
             'sections.*.fields.*.label' => ['required', 'string', 'max:255'],
             'sections.*.fields.*.placeholder' => ['nullable', 'string', 'max:255'],
-            'sections.*.fields.*.is_required' => ['sometimes', 'boolean'],
-            'sections.*.fields.*.options' => ['nullable', 'array'],
-            'sections.*.fields.*.options.*' => ['required_with:sections.*.fields.*.options', 'string', 'max:255'],
+            'sections.*.fields.*.is_required' => ['sometimes', 'boolean'],            // Field options validation
+            'sections.*.fields.*.options' => 'sometimes|array',
+            'sections.*.fields.*.options.*.id' => [
+                'required_with:sections.*.fields.*.options',
+                'string',
+                'max:191',
+                'regex:/^option_[a-zA-Z0-9_]+$/'
+            ],
+            'sections.*.fields.*.options.*.label' => [
+                'required_with:sections.*.fields.*.options',
+                'string',
+                'max:255',
+                'regex:/^[\s\S]*\S[\s\S]*$/'
+            ],
+            'sections.*.fields.*.options.*.value' => [
+                'required_with:sections.*.fields.*.options',
+                'string',
+                'max:255'
+            ],
+
             'sections.*.fields.*.min' => ['nullable', 'integer', 'min:0'],
             'sections.*.fields.*.max' => ['nullable', 'integer', 'min:0'],
             'sections.*.fields.*.rows' => ['nullable', 'integer', 'min:1', 'max:20'],
@@ -115,7 +132,6 @@ class UpdateFormLayoutRequest extends BaseRequest
             'sections.*.fields.*.type.in' => 'Invalid field type selected.',
             'sections.*.fields.*.label.required' => 'Field label is required.',
             'sections.*.fields.*.required.required' => 'Field required status must be specified.',
-            'sections.*.fields.*.options.*.required_with' => 'Option value cannot be empty.',
             'sections.*.fields.*.min.min' => 'Minimum value cannot be negative.',
             'sections.*.fields.*.max.min' => 'Maximum value cannot be negative.',
             'sections.*.fields.*.rows.min' => 'Textarea must have at least 1 row.',
@@ -123,6 +139,11 @@ class UpdateFormLayoutRequest extends BaseRequest
             'sections.*.image.url' => 'Section image must be a valid URL.',
             'sections.*.fields.*.image.file' => 'Image file type is invalid',
             'sections.*.fields.*.image.max' => 'Image file size must less than 5MB',
+            'sections.*.fields.*.options.*.id.regex' => 'Option ID must start with "option_" followed by alphanumeric characters and underscores.',
+            'sections.*.fields.*.options.*.label.regex' => 'Option label cannot be empty or contain only whitespace.',
+            'sections.*.fields.*.options.*.id.required_with' => 'Option ID is required when options are provided.',
+            'sections.*.fields.*.options.*.label.required_with' => 'Option label is required when options are provided.',
+            'sections.*.fields.*.options.*.value.required_with' => 'Option value is required when options are provided.',
         ];
     }
 }

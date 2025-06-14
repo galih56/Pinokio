@@ -25,18 +25,28 @@ return new class extends Migration
             $table->dropForeign(['form_field_id']);
         });
 
-        // Change all column types (start with parent tables first)
-        // Change form_sections first (no dependencies)
-        DB::statement('ALTER TABLE form_sections ALTER COLUMN id TYPE VARCHAR(191)');
+        // Get database driver
+        $driver = DB::connection()->getDriverName();
 
-        // Change form_fields (depends on form_sections)
-        DB::statement('ALTER TABLE form_fields ALTER COLUMN id TYPE VARCHAR(191)');
-        DB::statement('ALTER TABLE form_fields ALTER COLUMN form_section_id TYPE VARCHAR(191)');
-
-        // Change child tables
-        DB::statement('ALTER TABLE form_field_options ALTER COLUMN id TYPE VARCHAR(191)');
-        DB::statement('ALTER TABLE form_field_options ALTER COLUMN form_field_id TYPE VARCHAR(191)');
-        DB::statement('ALTER TABLE form_entries ALTER COLUMN form_field_id TYPE VARCHAR(191)');
+        if ($driver === 'mysql') {
+            // MySQL syntax
+            DB::statement('ALTER TABLE form_sections MODIFY COLUMN id VARCHAR(191)');
+            DB::statement('ALTER TABLE form_fields MODIFY COLUMN id VARCHAR(191)');
+            DB::statement('ALTER TABLE form_fields MODIFY COLUMN form_section_id VARCHAR(191)');
+            DB::statement('ALTER TABLE form_field_options MODIFY COLUMN id VARCHAR(191)');
+            DB::statement('ALTER TABLE form_field_options MODIFY COLUMN form_field_id VARCHAR(191)');
+            DB::statement('ALTER TABLE form_entries MODIFY COLUMN form_field_id VARCHAR(191)');
+        } elseif ($driver === 'pgsql') {
+            // PostgreSQL syntax
+            DB::statement('ALTER TABLE form_sections ALTER COLUMN id TYPE VARCHAR(191)');
+            DB::statement('ALTER TABLE form_fields ALTER COLUMN id TYPE VARCHAR(191)');
+            DB::statement('ALTER TABLE form_fields ALTER COLUMN form_section_id TYPE VARCHAR(191)');
+            DB::statement('ALTER TABLE form_field_options ALTER COLUMN id TYPE VARCHAR(191)');
+            DB::statement('ALTER TABLE form_field_options ALTER COLUMN form_field_id TYPE VARCHAR(191)');
+            DB::statement('ALTER TABLE form_entries ALTER COLUMN form_field_id TYPE VARCHAR(191)');
+        } else {
+            throw new Exception("Unsupported database driver: {$driver}");
+        }
 
         // Re-add ALL foreign key constraints
         Schema::table('form_fields', function (Blueprint $table) {
@@ -70,15 +80,28 @@ return new class extends Migration
             $table->dropForeign(['form_field_id']);
         });
 
-        // Revert column types (start with child tables first)
-        DB::statement('ALTER TABLE form_entries ALTER COLUMN form_field_id TYPE BIGINT USING form_field_id::BIGINT');
-        DB::statement('ALTER TABLE form_field_options ALTER COLUMN form_field_id TYPE BIGINT USING form_field_id::BIGINT');
-        DB::statement('ALTER TABLE form_field_options ALTER COLUMN id TYPE BIGINT USING id::BIGINT');
-        
-        DB::statement('ALTER TABLE form_fields ALTER COLUMN form_section_id TYPE BIGINT USING form_section_id::BIGINT');
-        DB::statement('ALTER TABLE form_fields ALTER COLUMN id TYPE BIGINT USING id::BIGINT');
-        
-        DB::statement('ALTER TABLE form_sections ALTER COLUMN id TYPE BIGINT USING id::BIGINT');
+        // Get database driver
+        $driver = DB::connection()->getDriverName();
+
+        if ($driver === 'mysql') {
+            // MySQL syntax - revert to BIGINT
+            DB::statement('ALTER TABLE form_entries MODIFY COLUMN form_field_id BIGINT UNSIGNED');
+            DB::statement('ALTER TABLE form_field_options MODIFY COLUMN form_field_id BIGINT UNSIGNED');
+            DB::statement('ALTER TABLE form_field_options MODIFY COLUMN id BIGINT UNSIGNED AUTO_INCREMENT');
+            DB::statement('ALTER TABLE form_fields MODIFY COLUMN form_section_id BIGINT UNSIGNED');
+            DB::statement('ALTER TABLE form_fields MODIFY COLUMN id BIGINT UNSIGNED AUTO_INCREMENT');
+            DB::statement('ALTER TABLE form_sections MODIFY COLUMN id BIGINT UNSIGNED AUTO_INCREMENT');
+        } elseif ($driver === 'pgsql') {
+            // PostgreSQL syntax - revert to BIGINT
+            DB::statement('ALTER TABLE form_entries ALTER COLUMN form_field_id TYPE BIGINT USING form_field_id::BIGINT');
+            DB::statement('ALTER TABLE form_field_options ALTER COLUMN form_field_id TYPE BIGINT USING form_field_id::BIGINT');
+            DB::statement('ALTER TABLE form_field_options ALTER COLUMN id TYPE BIGINT USING id::BIGINT');
+            DB::statement('ALTER TABLE form_fields ALTER COLUMN form_section_id TYPE BIGINT USING form_section_id::BIGINT');
+            DB::statement('ALTER TABLE form_fields ALTER COLUMN id TYPE BIGINT USING id::BIGINT');
+            DB::statement('ALTER TABLE form_sections ALTER COLUMN id TYPE BIGINT USING id::BIGINT');
+        } else {
+            throw new Exception("Unsupported database driver: {$driver}");
+        }
 
         // Re-add ALL foreign key constraints
         Schema::table('form_fields', function (Blueprint $table) {

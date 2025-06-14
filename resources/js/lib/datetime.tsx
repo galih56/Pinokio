@@ -148,7 +148,7 @@ return data;
 };
 
 export function formatSecondsToDuration(secs : number) {
-  if (!secs || secs <= 0) return "—";
+  if (!secs || secs <= 0) return "-";
   const hours = Math.floor(secs / 3600);
   const minutes = Math.floor((secs % 3600) / 60);
   const seconds = secs % 60;

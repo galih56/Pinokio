@@ -13,6 +13,7 @@ import { useState, useEffect } from "react"
 import { Editor } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Link from '@tiptap/extension-link'
+import { createOption } from "../../store/form-builder-store"
 
 interface FieldEditorProps {
   field: FormField
@@ -67,7 +68,7 @@ export function FieldEditor({ field, onUpdate }: FieldEditorProps) {
   const addOption = () => {
     const currentOptions = field.options || []
     onUpdate({
-      options: [...currentOptions, `Option ${currentOptions.length + 1}`],
+      options: [...currentOptions, createOption(`Option ${currentOptions.length + 1}`)],
     })
   }
 
@@ -155,7 +156,7 @@ export function FieldEditor({ field, onUpdate }: FieldEditorProps) {
             {field.options?.map((option, index) => (
               <div key={index} className="flex items-center gap-2">
                 <Input
-                  value={option}
+                  value={option.label}
                   onChange={(e) => updateOption(index, e.target.value)}
                   placeholder={`Option ${index + 1}`}
                 />

@@ -15,6 +15,11 @@ class FormEntry extends Model
     ];
     public $timestamps = false; 
 
+
+    protected $casts = [
+        'value' => 'json'
+    ];
+
     public function formSubmission(): BelongsTo
     {
         return $this->belongsTo(FormSubmission::class, 'form_submission_id');

@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class FormSection extends Model
 {
     protected $fillable = [
+        'id',
         'form_id',
         'name',
         'description',
@@ -17,6 +18,7 @@ class FormSection extends Model
     ];
 
     protected $keyType = 'string';
+    public $incrementing = false;
     
     public function form(): BelongsTo
     {

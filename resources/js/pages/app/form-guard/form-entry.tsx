@@ -29,7 +29,6 @@ export const FormEntry = () => {
     },
   });
 
-  console.log(formId)
   const form = data?.data || data;
 
   if (isPending) {

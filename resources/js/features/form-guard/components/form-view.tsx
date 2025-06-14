@@ -38,8 +38,8 @@ import { AdvancedSectionEdit } from "./form-sections/advanced-section-edit"
 import { ExpirySectionEdit } from "./form-sections/expiry-section-edit"
 import { useFormDetail } from "../api/get-form"
 import { useUpdateForm } from "../api/update-form"
-import { useGenerateLinkDialog } from "./generate-link/use-generate-link-dialog"
-import { GenerateLinkDialog } from "./generate-link/generate-link-dialog"
+import { useGetURLDialog } from "./get-form-url/use-generate-url-dialog"
+import { GetURLDialog } from "./get-form-url/get-form-url-dialog"
 import { useBreadcrumbSync } from "@/components/layout/breadcrumbs/breadcrumbs-store"
 import { Link } from "react-router-dom"
 import { Form } from "@/types/form"
@@ -54,10 +54,10 @@ interface FormViewProps {
 
 export function FormView({ formId, initialData, onGenerateLink }: FormViewProps) {
   const [editingSection, setEditingSection] = useState<EditingSection>(null)
-  const [copiedUrl, setCopiedUrl] = useState(false)
+  const [copiedUrl, setCopiedUrl] = useState(false);
 
-  const { isOpen, selectedForm, generatedLink, isGenerating, handleGenerateLink , handleGenerateLinkWithExpiry, handleDialogClose } =
-    useGenerateLinkDialog();
+  const { isOpen, selectedForm, formLink, isGenerating, handleGetLink , handleGetLinkWithExpiry, handleDialogClose } =
+    useGetURLDialog();
 
     const formQuery = useFormDetail({ 
     formId,
@@ -330,7 +330,13 @@ export function FormView({ formId, initialData, onGenerateLink }: FormViewProps)
                       View Responses
                     </Button>
                   </Link>
-                  <Button size={"sm"}  onClick={() => handleGenerateLink(displayForm)}  >
+                  <Button size={"sm"}  onClick={() => {
+                      if(displayForm.requiresToken){
+                        handleGetLink(displayForm)
+                      }else{
+                        copyFormUrl();
+                      }
+                    }}  >
                     <LinkIcon className="h-4 w-4 mr-2" />
                     Get the link
                   </Button>
@@ -472,12 +478,12 @@ export function FormView({ formId, initialData, onGenerateLink }: FormViewProps)
         </CardContent>
       </Card>
 
-      <GenerateLinkDialog
+      <GetURLDialog
         isOpen={isOpen}
         onOpenChange={handleDialogClose}
         item={selectedForm}
-        onGenerateLink={handleGenerateLinkWithExpiry}
-        generatedLink={generatedLink}
+        onGenerateLink={handleGetLinkWithExpiry}
+        formLink={formLink}
         isGenerating={isGenerating}
         title="Generate Form Link"
         description="Generate a shareable link for this form with custom expiry settings"
