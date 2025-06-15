@@ -31,7 +31,7 @@ import {
 import { useState } from "react"
 import { toast } from "sonner"
 import DOMPurify from "dompurify"
-import { formatDate, formatDateTime } from "@/lib/datetime"
+import { formatDate, formatDateTime, formatSecondsToDuration } from "@/lib/datetime"
 import { DescriptionSectionEdit } from "./form-sections/description-section-edit"
 import { ConfigSectionEdit } from "./form-sections/config-section-edit"
 import { AdvancedSectionEdit } from "./form-sections/advanced-section-edit"
@@ -315,7 +315,7 @@ export function FormView({ formId, initialData, onGenerateLink }: FormViewProps)
               <div className="space-y-3">
                 <h4 className="font-medium flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Quick Actions
+                  Actions
                 </h4>
                 <div className="flex flex-wrap gap-3">
                   <Link to="./layout">
@@ -325,21 +325,11 @@ export function FormView({ formId, initialData, onGenerateLink }: FormViewProps)
                     </Button>
                   </Link>
                   <Link to="./responses">
-                    <Button variant="outline" size="sm">
+                    <Button size="sm">
                       <Eye className="h-4 w-4 mr-2" />
                       View Responses
                     </Button>
                   </Link>
-                  <Button size={"sm"}  onClick={() => {
-                      if(displayForm.requiresToken){
-                        handleGetLink(displayForm)
-                      }else{
-                        copyFormUrl();
-                      }
-                    }}  >
-                    <LinkIcon className="h-4 w-4 mr-2" />
-                    Get the link
-                  </Button>
                 </div>
               </div>
             </CardContent>
@@ -393,7 +383,7 @@ export function FormView({ formId, initialData, onGenerateLink }: FormViewProps)
                   <Timer className="h-4 w-4" />
                   <span className="text-sm font-medium">Time Limit</span>
                 </div>
-                <Badge variant="outline">{displayForm.timeLimit ? `${displayForm.timeLimit} min` : "No limit"}</Badge>
+                <Badge variant="outline">{displayForm.timeLimit ? `${formatSecondsToDuration(displayForm.timeLimit)}` : "No limit"}</Badge>
               </div>
 
               {/* Multiple Attempts */}

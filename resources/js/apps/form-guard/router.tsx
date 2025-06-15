@@ -49,6 +49,18 @@ export const createAppRouter = (queryClient: QueryClient) => {
             };
           },
           ErrorBoundary: AppRootErrorBoundary,
+        }, 
+        {
+          path: paths.thankYouPage.path,
+          lazy: async () => {
+            const { FormSubmittedRoute } = await import(
+              '@/pages/app/form-guard/form-submitted'
+            );
+            return {
+              Component: FormSubmittedRoute,
+            };
+          },
+          ErrorBoundary: AppRootErrorBoundary,
         },
       ],
     },

@@ -16,7 +16,7 @@ return new class extends Migration
         });
         
         Schema::table('form_sections', function (Blueprint $table) {
-            $table->string('label')->after('form_id');
+            $table->string('label')->default("")->after('form_id');
             $table->dropColumn('name');
         });
     }
@@ -27,12 +27,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('form_fields', function (Blueprint $table) {
-            $table->string('name');
+            $table->string('name')->default("");
         });
         
         Schema::table('form_sections', function (Blueprint $table) {
             $table->dropColumn('label');
-            $table->string('name');
+            $table->string('name')->default("");
         });
     }
 };

@@ -16,4 +16,8 @@ export const paths : Paths = {
     path: '/:id/response',
     getHref: (id?: string) => `/${id}/response`,
   },
+  thankYouPage: {
+    path: '/:id/thank-you',
+    getHref: (id?: string) => `/${id}/thank-you`,
+  }
 } as const;

@@ -230,6 +230,52 @@ class FormService
         ])->findOrFail($id);
     }
 
+    public function getFormEntryLayout(int $id)
+    {
+        $form = Form::with('tokens') // if needed
+            ->findOrFail($id);
+
+        // We'll always return basic form info, but track if it's expired
+        $isExpired = false;
+
+        // Check form expiry
+        if ($form->expires_at && $form->expires_at->isPast()) {
+            $isExpired = true;
+        }
+
+        // Token check
+        if ($form->requires_token) {
+            $tokenValue = request('token'); // from query or header
+            $token = FormToken::where('form_id', $form->id)
+                ->where('token', $tokenValue)
+                ->firstOrFail();
+
+            if ($token->expires_at && $token->expires_at->isPast()) {
+                $isExpired = true;
+            }
+
+            if ($form->time_limit && $token->open_time) {
+                $expiryTime = $token->open_time->copy()->addSeconds($form->time_limit);
+                if (now()->greaterThan($expiryTime)) {
+                    $isExpired = true;
+                }
+            }
+        }
+
+        // Fetch layout *after* checks (if you want to use it regardless)
+        $form->load([
+            'sections.fields.options',
+            'sections.fields.fieldType',
+        ]);
+
+        // Throw after load, so the frontend gets partial form data
+        if ($isExpired) {
+            throw new FormExpiredException('Form has expired');
+        }
+
+        return $form;
+    }
+
     public function generateToken(Form $form, array $data): string
     {
         $token = Str::random(32);
