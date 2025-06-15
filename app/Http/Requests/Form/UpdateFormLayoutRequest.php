@@ -27,7 +27,7 @@ class UpdateFormLayoutRequest extends BaseRequest
             // Sections array
             'sections' => ['required', 'array'],
             'sections.*.id' => ['required', 'string'],
-            'sections.*.name' => ['required', 'string', 'max:255'],
+            'sections.*.label' => ['required', 'string', 'max:255'],
             'sections.*.description' => ['nullable', 'string'],
             'sections.*.image' =>  ['nullable', 'file', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
 
@@ -46,7 +46,7 @@ class UpdateFormLayoutRequest extends BaseRequest
                 'required_with:sections.*.fields.*.options',
                 'string',
                 'max:191',
-                'regex:/^option_[a-zA-Z0-9_]+$/'
+                'regex:/^option_/'
             ],
             'sections.*.fields.*.options.*.label' => [
                 'required_with:sections.*.fields.*.options',
@@ -125,7 +125,7 @@ class UpdateFormLayoutRequest extends BaseRequest
             'title.min' => 'Form title cannot be empty.',
             'sections.required' => 'At least one section is required.',
             'sections.*.id.required' => 'Section ID is required.',
-            'sections.*.name.required' => 'Section name is required.',
+            'sections.*.label.required' => 'Section label is required.',
             'sections.*.fields.required' => 'Each section must have at least one field.',
             'sections.*.fields.*.id.required' => 'Field ID is required.',
             'sections.*.fields.*.type.required' => 'Field type is required.',

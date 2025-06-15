@@ -99,7 +99,7 @@ interface FormBuilderSnapshot {
 
 const createInitialSection = (): FormSection => ({
   id: generateId("section"),
-  name: "Section 1",
+  label: "Section 1",
   description: "",
   fields: [],
   order: 0,
@@ -257,11 +257,11 @@ export const useFormBuilderStore = create<FormBuilderState>()(
 
             // Validate sections
             state.formSections.forEach((section) => {
-              if (!section.name.trim()) {
+              if (!section.label.trim()) {
                 errors.push({
                   id: generateId("error"),
                   type: "section",
-                  message: "Section name is required",
+                  message: "Section label is required",
                   sectionId: section.id,
                 })
               }
@@ -387,7 +387,7 @@ export const useFormBuilderStore = create<FormBuilderState>()(
             set((state) => {
               const newSection: FormSection = {
                 id: generateId("section"),
-                name: `Section ${state.formSections.length + 1}`,
+                label: `Section ${state.formSections.length + 1}`,
                 description: "",
                 order: state.formSections.length,
                 fields: [],
@@ -405,9 +405,9 @@ export const useFormBuilderStore = create<FormBuilderState>()(
                 Object.assign(section, updates)
                 state.isDirty = true
                 // Clear errors for this section if name was updated
-                if (updates.name) {
+                if (updates.label) {
                   state.errors = state.errors.filter(
-                    (error) => !(error.sectionId === sectionId && error.message.toLowerCase().includes("name")),
+                    (error) => !(error.sectionId === sectionId && error.message.toLowerCase().includes("label")),
                   )
                   state.hasErrors = state.errors.length > 0
                 }
@@ -543,7 +543,6 @@ export const useFormBuilderStore = create<FormBuilderState>()(
                     // Clear option-related errors
                     state.errors = state.errors.filter(
                       (error) => !(
-                        error.optionId === optionId && 
                         error.fieldId === fieldId && 
                         error.message.toLowerCase().includes("option")
                       ),
@@ -746,7 +745,7 @@ export const useFormBuilderStore = create<FormBuilderState>()(
               description: state.formDescription || '',
               sections: state.formSections.map((section, sectionIndex) => ({
                 id: section.id,
-                name: section.name,
+                label: section.label,
                 description: section.description || '',
                 order: sectionIndex,
                 fields: section.fields.map((field, fieldIndex) => ({

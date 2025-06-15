@@ -23,7 +23,6 @@ export default function DashboardLayout({
           <div className="flex items-center gap-2">
             <SidebarTrigger className="-ml-1" />
             <Separator orientation="vertical" className="mr-2 h-4" />
-            <Breadcrumbs />
           </div>
           <div>
             <UserProfileDropdown />
@@ -32,6 +31,7 @@ export default function DashboardLayout({
         </header>
 
         <main className="p-4 md:pt-0 w-full max-w-full overflow-hidden">
+          <Breadcrumbs />
           <div className="w-full max-w-full">{children}</div>
         </main>
       </SidebarInset>

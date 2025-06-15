@@ -47,8 +47,12 @@ export const createFormData = (
             if (!Object.prototype.hasOwnProperty.call(data, property)) {
                 continue;
             }
+            
+            const shouldDecamelize = (key: string) =>
+            !key.startsWith('field_') && !key.startsWith('section_') && !key.startsWith('workflow_');
 
-            const key = decamelize(parentKey ? `${parentKey}[${property}]` : property);
+            const rawKey = parentKey ? `${parentKey}[${property}]` : property;
+            const key = shouldDecamelize(property) ? decamelize(rawKey) : rawKey;
             const value = data[property];
 
             if (value === null || value === undefined) {

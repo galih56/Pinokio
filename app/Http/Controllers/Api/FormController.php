@@ -11,16 +11,19 @@ use App\Http\Requests\Form\UpdateFormLayoutRequest;
 use App\Http\Resources\FormResource;
 use App\Http\Resources\FormResponseResource;
 use Illuminate\Support\Facades\DB;
+use App\Services\Forms\FormResponseService;
 use App\Services\Forms\FormService;
 use App\Services\HashidService;
 
 class FormController extends Controller
 {
     private FormService $formService;
+    private FormResponseService $formResponseService;
     
-    public function __construct(FormService $formService)
+    public function __construct(FormService $formService, FormResponseService $formResponseService)
     {
         $this->formService = $formService;
+        $this->formResponseService = $formResponseService;
     }
 
     public function getFormWithLayout($id){
@@ -122,13 +125,6 @@ class FormController extends Controller
         return ApiResponse::sendResponse(new FormResource($form),'', 'success', 200);
     }
 
-    public function getFormResponses($id)
-    {
-        $data = $this->formService->getFormResponses($id);
-
-        return ApiResponse::sendResponse(FormResponseResource::collection($data),'', 'success', 200);
-    }
-
     /**
      * Update the specified resource in storage.
      */
@@ -160,13 +156,62 @@ class FormController extends Controller
             return ApiResponse::rollback($ex);
         }
     }
+    
+    public function getFormResponses(Request $request, $id)
+    {
+        $perPage = $request->query('per_page', 0);
+        $search = $request->query('search');
+        $dateFrom = $request->query('date_from');
+        $dateTo = $request->query('date_to');
+        $identifier = $request->query('identifier');
+
+        $filters = [];
+
+        if ($search) {
+            $searchFilters = [
+                'with:entries.formField:label:like' => $search,
+                'with:entries:value:like' => $search,
+                // 'with:form:title,description:like' => $search,
+                'with:submittedByUser:name,email:like' => $search,
+            ];
+            $filters[] = $searchFilters;
+        }
+
+        // Additional filters (AND conditions - same group)
+        $additionalFilters = [];
+        
+        if ($dateFrom) {
+            $additionalFilters['form_submissions:submitted_at:>='] = $dateFrom;
+        }
+
+        if ($dateTo) {
+            $additionalFilters['form_submissions:submitted_at:<='] = $dateTo;
+        }
+
+        if ($identifier) {
+            $additionalFilters['with:attempts:identifier:equal'] = $identifier;
+        }
+
+        if (!empty($additionalFilters)) {
+            $filters[] = $additionalFilters;
+        }
+
+        $data = $this->formResponseService->get($id, $filters, $perPage);
+
+        return ApiResponse::sendResponse(
+            FormResponseResource::collection($data),
+            null,
+            'success',
+            200
+        );
+    }
 
 
     public function storeFormResponse($id, Request $request)
     {
         DB::beginTransaction();
         try{
-            $form = $this->formService->storeFormResponse($id, $request->all());
+            $form = $this->formResponseService->store($id, $request->all());
 
             DB::commit();
             return ApiResponse::sendResponse( $form , 'Form entry is stored','success',201);
@@ -186,3 +231,4 @@ class FormController extends Controller
         return ApiResponse::sendResponse('Form Delete Successful','',204);
     }
 }
+

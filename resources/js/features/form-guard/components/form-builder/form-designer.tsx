@@ -255,7 +255,7 @@ export function FormDesigner() {
                                 </div>
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2">
-                                    <span className="font-medium">{section.name}</span>
+                                    <span className="font-medium">{section.label}</span>
                                     {section.description && (
                                       <span className="text-xs text-gray-500 truncate max-w-[200px]">
                                         {section.description}
@@ -457,10 +457,10 @@ export function FormDesigner() {
       >
         <FieldTypeSelector
           onAddField={addFieldToSection}
-          targetSection={
+          targetSectionLabel={
             selectedSectionId
-              ? formSections.find((s) => s.id === selectedSectionId)?.name
-              : formSections[0]?.name || "No sections available"
+              ? formSections.find((s) => s.id === selectedSectionId)?.label
+              : formSections[0]?.label || "No sections available"
           }
         />
       </DialogOrDrawer>

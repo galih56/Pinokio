@@ -68,17 +68,30 @@ return new class extends Migration
     public function down(): void
     {
         // Drop ALL foreign key constraints first
-        Schema::table('form_entries', function (Blueprint $table) {
-            $table->dropForeign(['form_field_id']);
-        });
+        try {
+            Schema::table('form_entries', function (Blueprint $table) {
+                $table->dropForeign(['form_field_id']);
+            });
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
 
-        Schema::table('form_fields', function (Blueprint $table) {
-            $table->dropForeign(['form_section_id']);
-        });
+        try {
+            Schema::table('form_fields', function (Blueprint $table) {
+                $table->dropForeign(['form_section_id']);
+            });
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
 
-        Schema::table('form_field_options', function (Blueprint $table) {
-            $table->dropForeign(['form_field_id']);
-        });
+
+        try {
+            Schema::table('form_field_options', function (Blueprint $table) {
+                $table->dropForeign(['form_field_id']);
+            });
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
 
         // Get database driver
         $driver = DB::connection()->getDriverName();

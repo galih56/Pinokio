@@ -12,7 +12,6 @@ class FormField extends Model
         'id',
         'form_section_id',
         'label',
-        'name',
         'placeholder',
         'is_required',
         'image_path',

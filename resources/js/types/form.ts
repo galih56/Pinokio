@@ -25,7 +25,7 @@ export interface Form {
 
 export interface FormSection {
   id: string;
-  name: string;
+  label: string;
   description?: string;
   image?: string | File; 
   order: number;
@@ -106,7 +106,7 @@ export interface FormEntry {
   id: string;
   formSubmissionId: string;
   formFieldId: string;
-  value: string;
+  value: any;
 }
 
 export interface FormResponse {

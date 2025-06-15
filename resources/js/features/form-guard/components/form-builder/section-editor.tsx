@@ -17,11 +17,11 @@ export function SectionEditor({ section, onUpdate }: SectionEditorProps) {
   return (
     <div className="mx-6">
       <div>
-        <Label htmlFor="section-name">Section Name</Label>
+        <Label htmlFor="section-name">Section Label</Label>
         <Input
           id="section-name"
-          value={section.name}
-          onChange={(e) => onUpdate({ name: e.target.value })}
+          value={section.label}
+          onChange={(e) => onUpdate({ label: e.target.value })}
           placeholder="Enter section name"
         />
       </div>

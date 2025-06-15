@@ -226,7 +226,7 @@ export function DynamicForm({
                     }`}
                     onClick={() => setCurrentSectionIndex(index)}
                   >
-                    {index + 1}. {section.name}
+                    {index + 1}. {section.label}
                   </Badge>
                 ))}
               </div>
@@ -244,7 +244,7 @@ export function DynamicForm({
                     <div className="w-full">
                       <PreviewableImage
                         image={currentSection.image}
-                        alt={currentSection.name}
+                        alt={currentSection.label}
                         className="w-full max-h-64 object-cover rounded-lg shadow-sm"
                       />
                     </div>

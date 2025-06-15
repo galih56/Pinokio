@@ -11,7 +11,7 @@ class FormSection extends Model
     protected $fillable = [
         'id',
         'form_id',
-        'name',
+        'label',
         'description',
         'image_path',
         'order',

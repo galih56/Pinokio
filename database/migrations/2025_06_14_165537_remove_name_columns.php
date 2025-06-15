@@ -16,7 +16,7 @@ return new class extends Migration
         });
         
         Schema::table('form_sections', function (Blueprint $table) {
-            $table->string('label');
+            $table->string('label')->after('form_id');
             $table->dropColumn('name');
         });
     }

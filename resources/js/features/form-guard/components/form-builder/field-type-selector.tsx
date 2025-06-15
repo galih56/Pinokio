@@ -9,7 +9,7 @@ import { Type, Mail, Phone, Calendar, ToggleLeft, List, CheckSquare, FileText, H
 
 interface FieldTypeSelectorProps {
   onAddField: (type: FieldType) => void
-  targetSection?: string
+  targetSectionLabel?: string
 }
 
 const fieldTypes: { type: FieldType; label: string; icon: React.ReactNode }[] = [
@@ -25,13 +25,13 @@ const fieldTypes: { type: FieldType; label: string; icon: React.ReactNode }[] = 
   { type: "checkbox", label: "Checkboxes", icon: <CheckSquare className="h-4 w-4" /> },
 ]
 
-export function FieldTypeSelector({ onAddField, targetSection }: FieldTypeSelectorProps) {
+export function FieldTypeSelector({ onAddField, targetSectionLabel }: FieldTypeSelectorProps) {
   return (
     <div className="mx-6">
       <div className="text-base text-gray-600 mb-2">
-        {targetSection ? (
+        {targetSectionLabel ? (
           <>
-            Adding to: <span className="font-medium text-blue-600">{targetSection}</span>
+            Adding to: <span className="font-medium text-blue-600">{targetSectionLabel}</span>
           </>
         ) : (
           <span className="text-amber-600">Select a section first</span>
@@ -44,7 +44,7 @@ export function FieldTypeSelector({ onAddField, targetSection }: FieldTypeSelect
             variant="outline"
             className="justify-start h-auto p-3"
             onClick={() => onAddField(fieldType.type)}
-            disabled={!targetSection || targetSection === "No sections available"}
+            disabled={!targetSectionLabel || targetSectionLabel === "No sections available"}
           >
             <div className="flex items-center gap-3">
               {fieldType.icon}

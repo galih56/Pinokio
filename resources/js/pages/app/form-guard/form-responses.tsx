@@ -46,7 +46,6 @@ export const FormResponsesRoute = () => {
   if(!formId) {
     return <NotFoundRoute/>
   }
-
   return (
     <div className='mt-6'>
         <ErrorBoundary
