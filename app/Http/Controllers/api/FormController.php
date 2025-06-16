@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\DB;
 use App\Services\Forms\FormResponseService;
 use App\Services\Forms\FormService;
 use App\Services\HashidService;
+use Maatwebsite\Excel\Facades\Excel;
 
 class FormController extends Controller
 {
@@ -216,6 +217,20 @@ class FormController extends Controller
             DB::commit();
             return ApiResponse::sendResponse( $form , 'Form entry is stored','success',201);
 
+        }catch(\Exception $ex){
+            return ApiResponse::rollback($ex);
+        }
+    }
+
+    public function export($id){
+        
+        DB::beginTransaction();
+        try{
+            $form = $this->formService->getById($id);
+            $responses = $this->formResponseService->export($id);
+
+            DB::commit();
+            return Excel::download($responses, $form->title.'_form_responses.xlsx');
         }catch(\Exception $ex){
             return ApiResponse::rollback($ex);
         }

@@ -50,14 +50,13 @@ class FormResource extends JsonResource
             'sections' => $this->whenLoaded('sections', fn() =>  
                 $this->sections->map(fn ($section) => [
                     'id' => $section->id,
-                    'name' => $section->name,
+                    'label' => $section->label,
                     'description' => $section->description,
                     'order' => $section->order,
                     'image' => ($section->image_path ? app(FileService::class)->getUrl($section->image_path) : null),
                     'fields' => $section->fields->map(fn ($field) => [
                         'id' => $field->id,
                         'label' => $field->label,
-                        'name' => $field->name,
                         'placeholder' => $field->placeholder,
                         'isRequired' => $field->is_required,
                         'order' => $field->order,

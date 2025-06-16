@@ -607,7 +607,6 @@ export const createFieldColumns = (fieldsToDisplay: any[], options?: {
     if (value === null || value === undefined || value === '') {
       return emptyValueDisplay;
     }
-
     // Field-specific formatting
     if (fieldType) {
       switch (fieldType.toLowerCase()) {
@@ -697,6 +696,7 @@ export const createFieldColumns = (fieldsToDisplay: any[], options?: {
           break;
         
         case 'phone':
+        case 'tel':
           // Could add phone number formatting here
           return String(value);
         

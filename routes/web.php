@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\Web\WebController;
+use App\Http\Controllers\web\WebController;
 
 Route::get('/auth/{any?}', [WebController::class, 'authApp'])->where('any', '.*')->name('auth');
 Route::get('/form-guard/{any?}', [WebController::class, 'formsApp'])->where('any', '.*')->name('form-guard');

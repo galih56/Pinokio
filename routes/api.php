@@ -105,6 +105,7 @@ Route::group([
         Route::get('/{id}/responses', [FormController::class, 'getFormResponses']);
         Route::get('/{id}/layout', [FormController::class, 'getFormWithLayout']);
         Route::post('/{id}/responses', [FormController::class, 'storeFormResponse']);
+        Route::get('/{id}/responses/export', [FormController::class, 'export']);
     });
 });
 

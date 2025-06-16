@@ -10,6 +10,7 @@ use App\Models\Forms\FormSubmission;
 use App\Models\Forms\FormToken;
 use App\Services\FileService;
 use App\Services\HashIdService;
+use App\Exports\FormResponseExport;
 use DB;
 
 class FormResponseService
@@ -35,7 +36,7 @@ class FormResponseService
     {
         $query = FormSubmission::with([
             'form:id,title,description',
-            'submittedByUser:id,name,email',
+            // 'submittedByUser:id,name,email',
             'entries.formField:id,label,field_type_id',
             'entries.formField.fieldType:id,name',
             'entries.formField.options:id,form_field_id,label,value'
@@ -50,6 +51,13 @@ class FormResponseService
         }
 
         return $query->get();
+    }
+
+    public function export(int $formId) : FormResponseExport
+    {
+        $this->model = Form::findOrFail($formId);
+        $submissions = $this->get($formId);
+        return new FormResponseExport($submissions);
     }
 
     public function store(int $formId, array $responseData, ?string $token = null, ?string $identifier = null)
