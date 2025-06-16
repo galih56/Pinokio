@@ -2,7 +2,7 @@ import * as React from 'react';
 import { useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 
-import { Head } from '@/components/seo';
+import { Head } from '@/components/seo/head';
 import { Link } from '@/components/ui/link';
 import { paths } from '@/apps/dashboard/paths';
 import useAuth from '@/store/useAuth';
