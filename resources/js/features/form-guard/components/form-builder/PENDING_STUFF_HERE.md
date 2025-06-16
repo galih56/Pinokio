@@ -132,3 +132,45 @@ import { Progress } from "@/components/ui/progress"
         </CardContent>
       </Card>
 ```
+
+### Submitted By
+
+```
+// form-responses.tsx
+  // Create columns for DataTable
+  const columns: ColumnDef<FormResponse>[] = useMemo(() => {
+    const baseColumns: ColumnDef<FormResponse>[] = [
+      {
+        accessorKey: "submittedAt",
+        header: "Submitted At",
+        cell: ({ row }) => {
+          const response = row.original
+          const apiResponse = entries.find((entry) => entry.id === response.id)
+          return new Date(response.submittedAt).toLocaleDateString()
+        },
+      },
+      {
+        id: "submittedBy",
+        header: "Submitted By",
+        cell: ({ row }) => {
+          const response = row.original
+          const apiResponse = entries.find((entry) => entry.id === response.id)
+          return apiResponse?.submittedByUser?.name || "Unknown"
+        },
+      },
+    ]
+
+
+// FormResponseResource.php
+
+// User who submitted the form (loaded via 'submittedByUser:id,name,email')
+/*
+'submitted_by_user' => $this->whenLoaded('submittedByUser', function () {
+    return [
+        'id' => $this->submittedByUser->id,
+        'name' => $this->submittedByUser->name,
+        'email' => $this->submittedByUser->email,
+    ];
+}),
+*/
+```

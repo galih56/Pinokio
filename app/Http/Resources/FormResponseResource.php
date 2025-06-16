@@ -33,15 +33,6 @@ class FormResponseResource extends JsonResource
                 ];
             }),
             
-            // User who submitted the form (loaded via 'submittedByUser:id,name,email')
-            'submitted_by_user' => $this->whenLoaded('submittedByUser', function () {
-                return [
-                    'id' => $this->submittedByUser->id,
-                    'name' => $this->submittedByUser->name,
-                    'email' => $this->submittedByUser->email,
-                ];
-            }),
-            
             // Form entries with field information
             'entries' => $this->whenLoaded('entries', function () {
                 return $this->entries->map(function ($entry) {
