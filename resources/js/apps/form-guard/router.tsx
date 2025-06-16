@@ -1,6 +1,6 @@
 import { QueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { Navigate, Outlet, RouterProvider, createBrowserRouter, useLocation, useRouteError } from 'react-router-dom';
+import { Navigate, Outlet, RouterProvider, createBrowserRouter, useLocation, useParams, useRouteError } from 'react-router-dom';
 
 import { paths } from '@/apps/form-guard/paths';
 import { queryClient } from '@/lib/react-query';
@@ -62,6 +62,10 @@ export const createAppRouter = (queryClient: QueryClient) => {
           },
           ErrorBoundary: AppRootErrorBoundary,
         },
+        {
+          path: '/:id/*',
+          element: <CatchAllRedirect />,
+        },
       ],
     },
     {
@@ -74,6 +78,12 @@ export const createAppRouter = (queryClient: QueryClient) => {
 
   
   return routes;
+};
+
+const CatchAllRedirect = () => {
+  const { id } = useParams();
+
+  return <Navigate to={`/form-guard/${id}/response`} replace />;
 };
 
 export const AppRouter = () => {

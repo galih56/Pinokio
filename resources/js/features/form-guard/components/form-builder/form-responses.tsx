@@ -12,6 +12,8 @@ import { useNavigate, useSearchParams } from "react-router-dom"
 import { useQueryClient } from "@tanstack/react-query"
 import type { ColumnDef } from "@tanstack/react-table"
 import { MoveLeft } from "lucide-react"
+import { formatDateTime } from "@/lib/datetime"
+import { createFieldColumns } from "@/lib/utils"
 
 interface FormResponsesProps {
   formId: string
@@ -89,7 +91,7 @@ export function FormResponses({ formId, formSections, initialData }: FormRespons
     return () => clearTimeout(timeout)
   }, [searchTerm, setSearchParams, search])
 
-  const goBack = () => navigate(-1)
+  const goBack = () => navigate(-1);
 
   // Get the API responses using your existing types
   const entries = (formResponsesQuery.data?.data as ExtendedFormSubmission[]) || []
@@ -107,7 +109,14 @@ export function FormResponses({ formId, formSections, initialData }: FormRespons
 
           if (fieldId) {
             if (options && options.length > 0) {
-              acc[fieldId] = options.map((option) => option.label)
+              // For select/radio/checkbox fields with options
+              const selectedOptions = options.filter(option => 
+                entry.value === option.value || 
+                (Array.isArray(entry.value) && entry.value.includes(option.value))
+              );
+              acc[fieldId] = selectedOptions.length > 0 ? 
+                selectedOptions.map(option => option.label) : 
+                entry.value;
             } else {
               acc[fieldId] = entry.value
             }
@@ -130,11 +139,11 @@ export function FormResponses({ formId, formSections, initialData }: FormRespons
           fieldsMap.set(field.id, {
             id: field.id,
             label: field.label,
-            type: field.fieldType.name,
+            type: field.fieldType.name.toLowerCase(), // Normalize field type
             formSectionId: "",
             fieldTypeId: field.fieldTypeId,
-            isRequired: false,
-            order: 0,
+            isRequired: field.isRequired || false,
+            order: field.order || 0,
             createdAt: new Date(),
             updatedAt: new Date(),
           })
@@ -142,12 +151,13 @@ export function FormResponses({ formId, formSections, initialData }: FormRespons
       })
     })
 
-    return Array.from(fieldsMap.values())
+    // Sort fields by order if available
+    return Array.from(fieldsMap.values()).sort((a, b) => a.order - b.order)
   }, [entries])
 
   const fieldsToDisplay = getAllFieldsFromResponses
 
-  // Create columns for DataTable
+  // Create columns for DataTable with enhanced options
   const columns: ColumnDef<FormResponse>[] = useMemo(() => {
     const baseColumns: ColumnDef<FormResponse>[] = [
       {
@@ -155,33 +165,23 @@ export function FormResponses({ formId, formSections, initialData }: FormRespons
         header: "Submitted At",
         cell: ({ row }) => {
           const response = row.original
-          const apiResponse = entries.find((entry) => entry.id === response.id)
-          return new Date(response.submittedAt).toLocaleDateString()
+          return formatDateTime(new Date(response.submittedAt))
         },
-      },
-      {
-        id: "submittedBy",
-        header: "Submitted By",
-        cell: ({ row }) => {
-          const response = row.original
-          const apiResponse = entries.find((entry) => entry.id === response.id)
-          return apiResponse?.submittedByUser?.name || "Unknown"
-        },
-      },
+      }
     ]
 
-    const fieldColumns: ColumnDef<FormResponse>[] = fieldsToDisplay.map((field) => ({
-      id: field.id,
-      header: field.label,
-      cell: ({ row }) => {
-        const response = row.original
-        const value = response.data[field.id]
-        return Array.isArray(value) ? value.join(", ") : value || "-"
-      },
-    }))
+    const fieldColumns = createFieldColumns(fieldsToDisplay, {
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      dateFormat: 'MMM d, yyyy',
+      datetimeFormat: 'MMM d, yyyy HH:mm',
+      currencyCode: 'USD', 
+      maxStringLength: 80,
+      emptyValueDisplay: 'N/A',
+      showValidationErrors: false,
+    });
 
     return [...baseColumns, ...fieldColumns]
-  }, [fieldsToDisplay, entries])
+  }, [fieldsToDisplay])
 
   const onPageChange = (newPage: number) => {
     queryClient.setQueryData(["forms", formId, "responses", { page: newPage }], formResponsesQuery.data)
@@ -219,7 +219,6 @@ export function FormResponses({ formId, formSections, initialData }: FormRespons
 
   return (
     <div className="space-y-6">
-      {/* Form Responses Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">

@@ -2,7 +2,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DynamicForm } from "@/features/form-guard/components/form-builder/dynamic-form"
-import { useLoaderData } from "react-router-dom"
+import { useLoaderData, useNavigate } from "react-router-dom"
 import { LoaderData } from "./form-builder"
 import { ErrorBoundary } from "react-error-boundary"
 import { FormErrorFallback } from "@/features/form-guard/components/form-builder/form-error-boundary"
@@ -13,7 +13,8 @@ import { Spinner } from "@/components/ui/spinner";
 
 
 export const FormEntry = () => {
-  const { formId } = useLoaderData() as { formId: string }; // Only get formId
+  const { formId } = useLoaderData() as { formId: string }; 
+  const navigate = useNavigate();
 
   const { data, isPending, error} = useGetFormLayout({
     formId,
@@ -63,7 +64,8 @@ export const FormEntry = () => {
           title={form.title}
           description={form.description ?? ""}
           onSubmit={(data) => {
-            console.log("Form submitted:", data);
+            console.info("Form submitted:", data);
+            navigate(`/${formId}/thank-you`);
           }}
         />
       </ErrorBoundary>

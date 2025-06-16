@@ -37,10 +37,8 @@ export default function PublicFormLayout({
 }>) {
 
     return (
-        <main className="md:pt-0">
-            <div className="mt-6">
-                {children}
-            </div>
+        <main className="mt-6">
+            {children}
         </main>
     );
 }
