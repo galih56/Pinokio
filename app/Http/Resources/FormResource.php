@@ -2,11 +2,20 @@
 
 namespace App\Http\Resources;
 
-use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Services\HashIdService;
+use App\Services\FileService;
 
 class FormResource extends JsonResource
 {
+    protected HashIdService $hashid;
+
+    public function __construct($resource)
+    {
+        parent::__construct($resource);
+        $this->hashid = new HashIdService(); 
+    }
+
     /**
      * Transform the resource into an array.
      *
@@ -14,13 +23,14 @@ class FormResource extends JsonResource
      */
     public function toArray($request)
     {
+        $form_id = $this->hashid->encode($this->id);
         return [
-            'id' => $this->id,
+            'id' => $form_id, 
             'title' => $this->title,
             'description' => $this->description,
             'provider' => $this->provider,
             'form_code' => $this->form_code,
-            'form_url' => $this->form_url,
+            'form_url' => ($this->form_url ? $this->form_url : env('VITE_BASE_URL').'/form-guard/'.$form_id),
             
             // Access control
             'access_type' => $this->access_type,
@@ -33,8 +43,33 @@ class FormResource extends JsonResource
             'is_active' => (bool) $this->is_active,
             'proctored' => (bool) $this->proctored,
 
-            'created_at' => $this->created_at?->toISOString(),
-            'updated_at' => $this->updated_at?->toISOString(),
+            'expires_at' => $this->expires_at,
+            'created_at' => $this->created_at,
+            'updated_at' => $this->updated_at,
+            
+            'sections' => $this->whenLoaded('sections', fn() =>  
+                $this->sections->map(fn ($section) => [
+                    'id' => $section->id,
+                    'label' => $section->label,
+                    'description' => $section->description,
+                    'order' => $section->order,
+                    'image' => ($section->image_path ? app(FileService::class)->getUrl($section->image_path) : null),
+                    'fields' => $section->fields->map(fn ($field) => [
+                        'id' => $field->id,
+                        'label' => $field->label,
+                        'placeholder' => $field->placeholder,
+                        'isRequired' => $field->is_required,
+                        'order' => $field->order,
+                        'image' => ($field->image_path ? app(FileService::class)->getUrl($field->image_path) : null),
+                        'type' => $field->fieldType->name,
+                        'options' => $field->options->map(fn ($opt) => [
+                            'id' => $opt->id,
+                            'label' => $opt->label,
+                            'value' => $opt->value,
+                        ]),
+                    ])
+                ])
+            )
         ];
     }
 }

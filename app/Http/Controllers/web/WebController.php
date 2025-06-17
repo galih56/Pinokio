@@ -22,7 +22,7 @@ class WebController extends Controller
         return view('issue-tracker');
     }
 
-    public function formsApp(){
+    public function formsApp(Request $request, $any = null){
         return view('form-guard');
     }
 

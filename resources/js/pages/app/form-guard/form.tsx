@@ -1,28 +1,29 @@
 import { QueryClient } from '@tanstack/react-query';
 import { ErrorBoundary } from 'react-error-boundary';
-import { useParams, LoaderFunctionArgs } from 'react-router-dom';
+import { useParams, LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
 
 import {
   getFormQueryOptions,
 } from '@/features/form-guard/api/get-form';
-import { FormView } from '@/features/form-guard/components/form-view';
 import { NotFoundRoute } from '@/pages/not-found';
+import { FormView } from '@/features/form-guard/components/form-view';
+import { RouteErrorFallback } from '@/components/layout/error-fallbacks';
+
+type LoaderData = {
+  formId: string;
+  form: any;
+};
 
 export const formLoader =
   (queryClient: QueryClient) =>
   async ({ params }: LoaderFunctionArgs) => {
     const formId = params.id as string;
-
     const formQuery = getFormQueryOptions(formId);
-    
-    const promises = [
-      queryClient.getQueryData(formQuery.queryKey) ??
-        (await queryClient.fetchQuery(formQuery)),
-    ] as const;
 
-    const [form] = await Promise.all(promises);
+    const form = await queryClient.ensureQueryData(formQuery)
 
     return {
+      formId,
       form,
     };
 };
@@ -30,6 +31,7 @@ export const formLoader =
 export const FormRoute = () => {
   const params = useParams();
   const formId = params.id;
+  const { form } = useLoaderData() as LoaderData;
 
   if(!formId) {
     return <NotFoundRoute/>
@@ -37,15 +39,12 @@ export const FormRoute = () => {
 
   return (
     <div className='mt-6'>
-        <FormView formId={formId} />
-        <div className="mt-8">
-          <ErrorBoundary
-            fallback={
-              <div>Failed to load the data. Try to refresh the page.</div>
-            }
-          >
-          </ErrorBoundary>
-        </div>
+        <ErrorBoundary
+          FallbackComponent={RouteErrorFallback}
+          resetKeys={[formId]} 
+        >
+          <FormView formId={formId} initialData={form.data}/>
+        </ErrorBoundary>
     </div>
   );
 };

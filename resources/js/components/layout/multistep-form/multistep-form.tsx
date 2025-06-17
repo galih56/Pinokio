@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button"
 import { Progress } from "@/components/ui/progress"
 import { AlertCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import { Card, CardContent } from "@/components/ui/card"
-import { ScrollArea } from "@/components/ui/scroll-area"
 import { type ReactNode, useState, useMemo } from "react"
 import type { LucideIcon } from "lucide-react"
 
@@ -124,7 +123,7 @@ export function MultiStepForm<T = any>({
   }
 
   return (
-    <div className={`px-4 mx-auto ${className}`}>
+    <div className={`mx-auto ${className}`}>
       {/* Step Indicators */}
       {showStepIndicators && (
         <div className="flex items-center justify-center mb-6">
@@ -177,7 +176,7 @@ export function MultiStepForm<T = any>({
                   </div>
                   {/* Step title and optional indicator */}
                   <div className="mt-2 text-center">
-                    <div className="text-xs font-medium text-muted-foreground max-w-20 truncate">{step.title}</div>
+                    <div className="text-xs font-medium text-muted-foreground max-w-20">{step.title}</div>
                     {isOptional && <div className="text-xs text-muted-foreground/60">Optional</div>}
                     {hasErrors && (
                       <div className="text-xs text-destructive font-medium">

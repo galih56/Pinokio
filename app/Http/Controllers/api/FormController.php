@@ -6,17 +6,57 @@ use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Form\StoreFormRequest;
 use App\Http\Requests\Form\UpdateFormRequest;
+use App\Http\Requests\Form\GenerateLinkRequest;
+use App\Http\Requests\Form\UpdateFormLayoutRequest;
 use App\Http\Resources\FormResource;
+use App\Http\Resources\FormResponseResource;
 use Illuminate\Support\Facades\DB;
+use App\Services\Forms\FormResponseService;
 use App\Services\Forms\FormService;
+use App\Services\HashidService;
+use Maatwebsite\Excel\Facades\Excel;
 
 class FormController extends Controller
 {
     private FormService $formService;
+    private FormResponseService $formResponseService;
     
-    public function __construct(FormService $formService)
+    public function __construct(FormService $formService, FormResponseService $formResponseService)
     {
         $this->formService = $formService;
+        $this->formResponseService = $formResponseService;
+    }
+
+    public function getFormWithLayout($id){
+        $form = $this->formService->getFormWithLayout($id);
+
+        return ApiResponse::sendResponse(new FormResource($form),'', 'success', 200);
+    }
+
+    public function generateLink(GenerateLinkRequest $request, $id) {
+        
+        DB::beginTransaction();
+        try{
+            $data = $request->all();
+                
+            $form = $this->formService->getById($id);
+            $token = $this->formService->generateToken($form, $data);
+
+            DB::commit();
+            
+            if(empty($token)){
+                return ApiResponse::sendResponse(null,'Failed to generate link','error', 500);
+
+            }
+
+            $hashid = new HashIdService();
+            return ApiResponse::sendResponse([
+                'link' => env('APP_URL')."/forms/".$hashid->encode($form->id)."/fill"
+            ],'Link generated successfully','success', 201);
+
+        }catch(\Exception $ex){
+            return ApiResponse::rollback($ex);
+        }
     }
 
     /**
@@ -69,7 +109,7 @@ class FormController extends Controller
             $form = $this->formService->create($data);
 
             DB::commit();
-            return ApiResponse::sendResponse($form,'Form Created Successful','success', 201);
+            return ApiResponse::sendResponse($form,'Form Created Successfully','success', 201);
 
         }catch(\Exception $ex){
             return ApiResponse::rollback($ex);
@@ -86,7 +126,6 @@ class FormController extends Controller
         return ApiResponse::sendResponse(new FormResource($form),'', 'success', 200);
     }
 
-
     /**
      * Update the specified resource in storage.
      */
@@ -97,8 +136,101 @@ class FormController extends Controller
             $form = $this->formService->update($id, $request->all());
 
             DB::commit();
-            return ApiResponse::sendResponse( $form , 'Form Succesdsful','success',201);
+            return ApiResponse::sendResponse( $form , 'Form Update Successful','success',201);
 
+        }catch(\Exception $ex){
+            return ApiResponse::rollback($ex);
+        }
+    }
+
+
+    public function updateFormLayout($id, UpdateFormLayoutRequest $request)
+    {
+        DB::beginTransaction();
+        try{
+            $form = $this->formService->updateFormLayout($id, $request->all());
+
+            DB::commit();
+            return ApiResponse::sendResponse( $form , 'Form Update Successful','success',201);
+
+        }catch(\Exception $ex){
+            return ApiResponse::rollback($ex);
+        }
+    }
+    
+    public function getFormResponses(Request $request, $id)
+    {
+        $perPage = $request->query('per_page', 0);
+        $search = $request->query('search');
+        $dateFrom = $request->query('date_from');
+        $dateTo = $request->query('date_to');
+        $identifier = $request->query('identifier');
+
+        $filters = [];
+
+        if ($search) {
+            $searchFilters = [
+                'with:entries.formField:label:like' => $search,
+                'with:entries:value:like' => $search,
+                // 'with:form:title,description:like' => $search,
+                'with:submittedByUser:name,email:like' => $search,
+            ];
+            $filters[] = $searchFilters;
+        }
+
+        // Additional filters (AND conditions - same group)
+        $additionalFilters = [];
+        
+        if ($dateFrom) {
+            $additionalFilters['form_submissions:submitted_at:>='] = $dateFrom;
+        }
+
+        if ($dateTo) {
+            $additionalFilters['form_submissions:submitted_at:<='] = $dateTo;
+        }
+
+        if ($identifier) {
+            $additionalFilters['with:attempts:identifier:equal'] = $identifier;
+        }
+
+        if (!empty($additionalFilters)) {
+            $filters[] = $additionalFilters;
+        }
+
+        $data = $this->formResponseService->get($id, $filters, $perPage);
+
+        return ApiResponse::sendResponse(
+            FormResponseResource::collection($data),
+            null,
+            'success',
+            200
+        );
+    }
+
+
+    public function storeFormResponse($id, Request $request)
+    {
+        DB::beginTransaction();
+        try{
+            $form = $this->formResponseService->store($id, $request->all());
+
+            DB::commit();
+            return ApiResponse::sendResponse( $form , 'Form entry is stored','success',201);
+
+        }catch(\Exception $ex){
+            return ApiResponse::rollback($ex);
+        }
+    }
+
+    public function export($id){
+        
+        DB::beginTransaction();
+        try{
+            $form = $this->formService->getById($id);
+            $responses = $this->formResponseService->export($id);
+
+            DB::commit();
+            return Excel::download($responses, $form->title.'_form_responses.xlsx');
         }catch(\Exception $ex){
             return ApiResponse::rollback($ex);
         }
@@ -109,8 +241,9 @@ class FormController extends Controller
      */
     public function destroy($id)
     {
-        $this->formService->deleteForm($id);
+        $this->formService->delete($id);
         
-        return ApiResponse::sendResponse('Form Deleted Successful','',204);
+        return ApiResponse::sendResponse('Form Delete Successful','',204);
     }
 }
+

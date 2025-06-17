@@ -4,9 +4,8 @@ import * as React from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { HelmetProvider } from 'react-helmet-async';
 
-import { Notifications } from '@/components/ui/notifications';
-import { queryClient, queryConfig } from '@/lib/react-query';
-import { MainErrorFallback } from '@/components/layout/main-fallback';
+import { queryClient } from '@/lib/react-query';
+import { MainErrorFallback } from '@/components/layout/error-fallbacks';
 import { Spinner } from '@/components/ui/spinner';
 
 type AppProviderProps = {
@@ -26,7 +25,6 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         <HelmetProvider>
           <QueryClientProvider client={queryClient}>
             {import.meta.env.DEV && <ReactQueryDevtools />}
-            <Notifications />
             {children}
           </QueryClientProvider>
         </HelmetProvider>

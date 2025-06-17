@@ -2,31 +2,45 @@
 
 import type React from "react"
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Upload, Link, X, ImageIcon } from "lucide-react"
+import { PreviewableImage } from "./previewable-image"
 
 interface ImageUploadProps {
-  currentImage?: string
-  onImageChange: (imageUrl: string | undefined) => void
+  currentImage?: File | string
+  onImageChange: (imageFile: File | undefined) => void
   label?: string
 }
 
 export function ImageUpload({ currentImage, onImageChange, label = "Add Image" }: ImageUploadProps) {
   const [imageUrl, setImageUrl] = useState("")
   const [dragOver, setDragOver] = useState(false)
+  const [previewUrl, setPreviewUrl] = useState<string>("")
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Generate preview URL when currentImage changes
+  useEffect(() => {
+    if (currentImage instanceof File) {
+      const url = URL.createObjectURL(currentImage)
+      setPreviewUrl(url)
+      
+      // Cleanup previous URL to prevent memory leaks
+      return () => URL.revokeObjectURL(url)
+    } else if (typeof currentImage === "string") {
+      setPreviewUrl(currentImage)
+    } else {
+      setPreviewUrl("")
+    }
+  }, [currentImage])
 
   const handleFileUpload = (file: File) => {
     if (file && file.type.startsWith("image/")) {
-      // In a real app, you'd upload to a service like Cloudinary, AWS S3, etc.
-      // For demo purposes, we'll create a blob URL
-      const url = URL.createObjectURL(file)
-      onImageChange(url)
+      onImageChange(file)
     }
   }
 
@@ -46,15 +60,36 @@ export function ImageUpload({ currentImage, onImageChange, label = "Add Image" }
     }
   }
 
-  const handleUrlSubmit = () => {
+  const handleUrlSubmit = async () => {
     if (imageUrl.trim()) {
-      onImageChange(imageUrl.trim())
-      setImageUrl("")
+      try {
+        // Fetch the image from URL and convert to File
+        const response = await fetch(imageUrl.trim())
+        if (!response.ok) throw new Error('Failed to fetch image')
+        
+        const blob = await response.blob()
+        
+        // Extract filename from URL or use a default name
+        const urlPath = new URL(imageUrl.trim()).pathname
+        const filename = urlPath.split('/').pop() || 'image.jpg'
+        
+        // Create File object from blob
+        const file = new File([blob], filename, { type: blob.type })
+        
+        onImageChange(file)
+        setImageUrl("")
+      } catch (error) {
+        console.error('Error fetching image from URL:', error)
+        // You might want to show an error toast/message here
+      }
     }
   }
 
   const removeImage = () => {
     onImageChange(undefined)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
   }
 
   return (
@@ -64,15 +99,21 @@ export function ImageUpload({ currentImage, onImageChange, label = "Add Image" }
       {currentImage ? (
         <Card className="p-4">
           <div className="relative">
-            <img
-              src={currentImage || "/placeholder.svg"}
-              alt="Uploaded image"
-              className="w-full max-h-48 object-cover rounded-lg"
+            <PreviewableImage
+              image={previewUrl}
+              alt={"Uploaded image"}
+              className="w-full max-h-48 object-cover rounded-lg shadow-sm"
             />
             <Button variant="destructive" size="sm" className="absolute top-2 right-2" onClick={removeImage}>
               <X className="h-4 w-4" />
             </Button>
           </div>
+          {currentImage instanceof File && (
+            <div className="mt-2 text-sm text-gray-500">
+              <p>File: {currentImage.name}</p>
+              <p>Size: {(currentImage.size / 1024 / 1024).toFixed(2)} MB</p>
+            </div>
+          )}
         </Card>
       ) : (
         <Tabs defaultValue="upload" className="w-full">

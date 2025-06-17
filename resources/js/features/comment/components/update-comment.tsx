@@ -14,20 +14,18 @@ import {
 } from "@/components/ui/form";
 
 import { Button } from '@/components/ui/button';
-import { useNotifications } from '@/components/ui/notifications';
 import { Authorization, ROLES } from '@/lib/authorization';
 import { useComment } from '../api/get-comment';
 import {
   updateCommentInputSchema,
   useUpdateComment,
 } from '../api/update-comment';
-import { useIsFetching } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from "zod";
 import { DialogFooter } from '@/components/ui/dialog';
-import { CirclePicker } from 'react-color';
 import { ColorPickerPopover } from '@/components/ui/color-picker-popover';
+import { toast } from 'sonner';
 
 type UpdateCommentProps = {
   commentId: string | undefined;
@@ -36,7 +34,6 @@ type UpdateCommentProps = {
 };
 
 export const UpdateComment = ({ commentId , onSuccess, onError}: UpdateCommentProps) => {
-  const { addNotification } = useNotifications();
 
   if (!commentId) {
     return null;
@@ -68,11 +65,7 @@ export const UpdateComment = ({ commentId , onSuccess, onError}: UpdateCommentPr
   async function onSubmit(values: z.infer<typeof updateCommentInputSchema>) {
     const isValid = await form.trigger();
     if (!isValid) {
-      addNotification({
-        type: 'error',
-        title: 'Required fields are empty',
-        toast: true
-      });
+      toast.error('Required fields are empty');
       return;
     }
     updateCommentMutation.mutate({ data: values, commentId: comment?.id! });

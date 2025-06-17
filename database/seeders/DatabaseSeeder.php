@@ -1,5 +1,4 @@
 <?php
-
 namespace Database\Seeders;
 
 use App\Models\User;
@@ -14,8 +13,9 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call([
-            UserRoleSeeder::class,
-            AdminUserSeeder::class,
+            // UserRoleSeeder::class,
+            // AdminUserSeeder::class,
+            FieldTypeSeeder::class
         ]);
     }
 }

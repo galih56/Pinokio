@@ -4,9 +4,7 @@ import { decamelizeKeys } from "humps"
 
 import { api } from "@/lib/api-client"
 import type { MutationConfig } from "@/lib/react-query"
-import type { Form } from "@/types/api"
-
-import { getFormsQueryOptions } from "./get-forms"
+import { Form } from "@/types/form"
 
 export const createFormInputSchema = z
   .object({
@@ -15,48 +13,46 @@ export const createFormInputSchema = z
     provider: z.enum(["Pinokio", "Google Form"], { message: "Form provider is required." }),
     formCode: z.string().optional(),
     formUrl: z.string().url({ message: "Invalid URL." }).optional(),
-    accessType: z.enum(["public", "token", "identifier"], { message: "Access type is required." }),
     identifierLabel: z.string().optional(),
     identifierDescription: z.string().optional(),
     identifierType: z.enum(["email", "number", "text"]).optional(),
-
+    expiresAt: z.date().optional().nullable(),
     timeLimit: z.coerce.number().min(0, { message: "Time limit cannot be negative." }).optional(),
     allowMultipleAttempts: z.boolean().default(false),
     isActive: z.boolean().default(true),
     proctored: z.boolean().default(false),
+    requiresToken: z.boolean().default(false),
+    requiresIdentifier: z.boolean().default(false),
   })
   .refine(
     (data) => {
       if (data.provider === "Google Form" && (!data.formCode || !data.formUrl)) {
-        return false
+        return false;
       }
-      return true
+      return true;
     },
     {
-      message: "Google form must have both code and URL.",
+      message: "Google Form must have both a form code and URL.",
       path: ["formCode"],
     },
   )
   .refine(
     (data) => {
-      if (data.accessType === "identifier" && (!data.identifierLabel || !data.identifierType)) {
-        return false
+      if (data.requiresIdentifier && (!data.identifierLabel || !data.identifierType)) {
+        return false;
       }
-      return true
+      return true;
     },
     {
-      message: "Identifier label and type are required when access type is 'identifier'.",
+      message: "Identifier label and type are required when identifier access is enabled.",
       path: ["identifierLabel"],
     },
-  )
-
+  );
+  
 export type CreateFormInput = z.infer<typeof createFormInputSchema>
 
 export const createForm = (data: CreateFormInput): Promise<Form> => {
-  // Convert camelCase to snake_case before sending to API
-  const snakeCaseData = decamelizeKeys(data)
-
-  return api.post(`/forms`, snakeCaseData, {
+  return api.post(`/forms`, data, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -75,8 +71,9 @@ export const useCreateForm = ({ mutationConfig }: UseCreateFormOptions = {}) => 
   return useMutation({
     onSuccess: (...args: any) => {
       queryClient.invalidateQueries({
-        queryKey: getFormsQueryOptions().queryKey,
-      })
+        predicate: (query) => query.queryKey[0] === 'forms',
+        refetchType: 'active', // only refetch if used
+      });
       onSuccess?.(args)
     },
     ...restConfig,

@@ -37,13 +37,8 @@ export default function PublicFormLayout({
 }>) {
 
     return (
-        <main className="md:pt-0">
-            
-            <Card className="p-6 my-6 mx-12">
-                <div className="mt-4">
-                    {children}
-                </div>
-            </Card>
+        <main className="mt-6">
+            {children}
         </main>
     );
 }

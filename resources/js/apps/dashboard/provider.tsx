@@ -4,9 +4,8 @@ import * as React from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
 import { HelmetProvider } from 'react-helmet-async';
 
-import { Notifications } from '@/components/ui/notifications';
 import { queryClient, queryConfig } from '@/lib/react-query';
-import { MainErrorFallback } from '@/components/layout/main-fallback';
+import { MainErrorFallback } from '@/components/layout/error-fallbacks';
 import { Spinner } from '@/components/ui/spinner';
 
 type AppProviderProps = {
@@ -23,11 +22,14 @@ export const AppProvider = ({ children }: AppProviderProps) => {
         </div>
       }
     >
-      <ErrorBoundary FallbackComponent={MainErrorFallback}>
+      <ErrorBoundary FallbackComponent={MainErrorFallback}
+        onError={(error, info) => {
+          // Log to error reporting service
+          console.error("Application error:", error, info)
+        }}>
         <HelmetProvider>
           <QueryClientProvider client={queryClient}>
             {import.meta.env.DEV && <ReactQueryDevtools />}
-            <Notifications />
             {children}
           </QueryClientProvider>
         </HelmetProvider>

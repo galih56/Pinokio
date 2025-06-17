@@ -6,6 +6,7 @@ use App\Models\File;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use Exception;
 
 class FileService
 {
@@ -21,59 +22,159 @@ class FileService
      *
      * @param UploadedFile|array $files
      * @param string $directory
+     * @param mixed $uploader
      * @return File|array
+     * @throws Exception
      */
-    public function upload($files, string $directory = 'uploads', $uploader=null)
+    public function upload($files, string $directory = 'uploads', $uploader = null, $storeToFileTable = true)
     {
-        // If it's a single file, make it an array to unify the logic
-        if (!$files instanceof \Illuminate\Http\UploadedFile) {
-            $files = (array) $files; // Convert to array if it's not already an array
+        // Handle single file upload
+        if ($files instanceof UploadedFile) {
+            return $this->uploadSingleFile($files, $directory, $uploader, $storeToFileTable);
         }
 
+        // Handle multiple file uploads
+        if (is_array($files)) {
+            return $this->uploadMultipleFiles($files, $directory, $uploader, $storeToFileTable);
+        }
+
+        throw new Exception('Invalid file input provided');
+    }
+
+    /**
+     * Upload a single file
+     */
+    protected function uploadSingleFile(UploadedFile $file, string $directory, $uploader = null, $storeToFileTable=true): File | string
+    {
+        if (!$file->isValid()) {
+            throw new Exception('Invalid file upload: ' . $file->getErrorMessage());
+        }
+
+        try {
+            $filename = $this->generateUniqueFilename($file);
+            $path = $file->storeAs($directory, $filename, $this->disk);
+
+            if($storeToFileTable === false){
+                return $path;
+            }
+            return $this->createFileRecord($file, $path, $uploader);
+        } catch (Exception $e) {
+            throw new Exception('Failed to upload file: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Upload multiple files
+     */
+    protected function uploadMultipleFiles(array $files, string $directory, $uploader = null, $storeToFileTable=true): array
+    {
         $uploadedFiles = [];
+        $errors = [];
 
-        foreach ($files as $file) {
-            if ($file->isValid()) {
-                $filename = $this->generateUniqueFilename($file);
-                $path = $file->storeAs($directory, $filename, $this->disk);
+        foreach ($files as $index => $file) {
+            if (!$file instanceof UploadedFile) {
+                $errors[] = "File at index {$index} is not a valid upload";
+                continue;
+            }
 
-                // Create the File model
-                $newFile = [
-                    'path' => $path,
-                    'name' => $file->getClientOriginalName(),
-                    'mime_type' => $file->getMimeType(),
-                    'size' => $file->getSize(),
-                    'uploaded_at' => now(),
-                ];
-
-                if($uploader){
-                    $newFile['uploader_id'] = $uploader->id;
-                    $newFile['uploader_type'] = get_class($uploader);
-                }
-                
-                $newFile = File::create($newFile);
-
-                // Store the file model in the result array
-                $uploadedFiles[] = $newFile;
+            try {
+                $uploadedFiles[] = $this->uploadSingleFile($file, $directory, $uploader);
+            } catch (Exception $e) {
+                $errors[] = "File at index {$index}: " . $e->getMessage();
             }
         }
 
-        // If only one file was uploaded, return the single File model
-        if (count($uploadedFiles) === 1) {
-            return $uploadedFiles[0];
+        if (!empty($errors) && empty($uploadedFiles)) {
+            throw new Exception('All file uploads failed: ' . implode(', ', $errors));
         }
 
-        return $uploadedFiles; // Return an array of File models
+        return $uploadedFiles;
     }
+
+    /**
+     * Create file record in database
+     */
+    protected function createFileRecord(UploadedFile $file, string $path, $uploader = null): File
+    {
+        $fileData = [
+            'path' => $path,
+            'name' => $file->getClientOriginalName(),
+            'mime_type' => $file->getMimeType(),
+            'size' => $file->getSize(),
+            'uploaded_at' => now(),
+        ];
+
+        if ($uploader) {
+            $fileData['uploader_id'] = $uploader->id;
+            $fileData['uploader_type'] = get_class($uploader);
+        }
+
+        return File::create($fileData);
+    }
+
     /**
      * Generate a unique filename.
-     *
-     * @param UploadedFile $file
-     * @return string
      */
     protected function generateUniqueFilename(UploadedFile $file): string
     {
         $extension = $file->getClientOriginalExtension();
         return Str::random(20) . '.' . $extension;
+    }
+
+    /**
+     * Delete a file and its record
+     */
+    public function delete(File $file): bool
+    {
+        try {
+            // Delete physical file
+            if (Storage::disk($this->disk)->exists($file->path)) {
+                Storage::disk($this->disk)->delete($file->path);
+            }
+
+            // Delete database record
+            return $file->delete();
+        } catch (Exception $e) {
+            throw new Exception('Failed to delete file: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Get file URL
+     */
+    public function getUrl(File | string $file): string
+    {
+        if(is_string($file)) return Storage::disk($this->disk)->url($file);
+        return Storage::disk($this->disk)->url($file->path);
+    }
+
+    /**
+     * Validate file type and size
+     */
+    public function validateFile(UploadedFile $file, array $allowedMimes = [], int $maxSize = null): bool
+    {
+        if (!empty($allowedMimes) && !in_array($file->getMimeType(), $allowedMimes)) {
+            throw new Exception('File type not allowed. Allowed types: ' . implode(', ', $allowedMimes));
+        }
+
+        if ($maxSize && $file->getSize() > $maxSize) {
+            throw new Exception('File size exceeds maximum allowed size of ' . ($maxSize / 1024) . 'KB');
+        }
+
+        return true;
+    }
+
+    /**
+     * Upload image with validation
+     */
+    public function uploadImage($file, string $directory = 'images', $uploader = null, ?int $maxSize = 2048000, $storeToFileTable=true): File | string
+    {
+        $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/svg+xml', 'image/webp'];
+        
+        if ($file instanceof UploadedFile) {
+            $this->validateFile($file, $allowedMimes, $maxSize);
+        }
+
+        return $this->upload($file, $directory, $uploader, $storeToFileTable);
     }
 }

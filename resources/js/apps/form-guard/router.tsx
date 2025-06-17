@@ -1,15 +1,11 @@
 import { QueryClient } from '@tanstack/react-query';
 import { useMemo } from 'react';
-import { Navigate, Outlet, RouterProvider, createBrowserRouter, useLocation, useRouteError } from 'react-router-dom';
+import { Navigate, Outlet, RouterProvider, createBrowserRouter, useLocation, useParams, useRouteError } from 'react-router-dom';
 
 import { paths } from '@/apps/form-guard/paths';
 import { queryClient } from '@/lib/react-query';
 import { Layout } from './layout';
-
-const AppRootErrorBoundary = () => {
-  const error = useRouteError();
-  return <div>Something went wrong!</div>;
-};
+import { AppRootErrorBoundary } from '@/components/ui/app-root-error-boundary';
 
 export const createAppRouter = (queryClient: QueryClient) => {
   const routes =  createBrowserRouter([
@@ -18,35 +14,57 @@ export const createAppRouter = (queryClient: QueryClient) => {
       element: (
           <Layout>
             <Outlet />
-          </Layout>
+        </Layout>
       ),
       ErrorBoundary: AppRootErrorBoundary,
       children: [
         {
           path: paths.form.path,
           lazy: async () => {
-            const { FormRoute, formLoader } = await import(
-              '@/pages/app/form-guard/form'
+            const { formLayoutLoader } = await import(
+              '@/pages/app/form-guard/form-builder'
+            );
+            const { FormEntry } = await import(
+              '@/pages/app/form-guard/form-entry'
             );
             return {
-              Component: FormRoute,
-              loader: formLoader(queryClient),
+              Component: FormEntry,
+              loader: formLayoutLoader(queryClient),
             };
           },
           ErrorBoundary: AppRootErrorBoundary,
         },
         {
-          path: paths.forms.path,
+          path: paths.formResponse.path,
           lazy: async () => {
-            const { FormsRoute, formsLoader } = await import(
-              '@/pages/app/form-guard/forms'
+            const { formLayoutLoader } = await import(
+              '@/pages/app/form-guard/form-builder'
+            );
+            const { FormEntry } = await import(
+              '@/pages/app/form-guard/form-entry'
             );
             return {
-              Component: FormsRoute,
-              loader: formsLoader(queryClient),
+              Component: FormEntry,
+              loader: formLayoutLoader(queryClient),
             };
           },
           ErrorBoundary: AppRootErrorBoundary,
+        }, 
+        {
+          path: paths.thankYouPage.path,
+          lazy: async () => {
+            const { FormSubmittedRoute } = await import(
+              '@/pages/app/form-guard/form-submitted'
+            );
+            return {
+              Component: FormSubmittedRoute,
+            };
+          },
+          ErrorBoundary: AppRootErrorBoundary,
+        },
+        {
+          path: '/:id/*',
+          element: <CatchAllRedirect />,
         },
       ],
     },
@@ -55,11 +73,17 @@ export const createAppRouter = (queryClient: QueryClient) => {
       element: <Navigate to={paths.home.path} replace />,
     },
   ], {
-    basename : '/'
+    basename: '/form-guard',
   })
 
   
   return routes;
+};
+
+const CatchAllRedirect = () => {
+  const { id } = useParams();
+
+  return <Navigate to={`/form-guard/${id}/response`} replace />;
 };
 
 export const AppRouter = () => {

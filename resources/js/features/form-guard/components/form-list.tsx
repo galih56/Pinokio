@@ -1,69 +1,95 @@
-import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+"use client"
 
-import {  DataTable } from '@/components/ui/data-table';
-import { ColumnDef } from '@tanstack/react-table';
-
-import { Form } from "@/types/api"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuShortcut, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { useQueryClient } from "@tanstack/react-query"
+import { useNavigate, useSearchParams } from "react-router-dom"
+import { DataTable } from "@/components/ui/data-table"
+import type { ColumnDef } from "@tanstack/react-table"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
-import { MoreHorizontal } from "lucide-react"
-import { Link } from '@/components/ui/link';
-import { paths } from '@/apps/dashboard/paths';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Input } from '@/components/ui/input';
-import { useEffect, useState } from 'react';
-import { formatDate, formatDateTime, formatTime } from '@/lib/datetime';
-import { getFormQueryOptions } from '@/features/form-guard/api/get-form';
-import { useForms } from '@/features/form-guard/api/get-forms';
+import { LinkIcon, MoreHorizontal } from "lucide-react"
+import { Link } from "@/components/ui/link"
+import { paths } from "@/apps/dashboard/paths"
+import { Skeleton } from "@/components/ui/skeleton"
+import { Input } from "@/components/ui/input"
+import { useEffect, useState } from "react"
+import { formatDate, formatSecondsToDuration, formatTime } from "@/lib/datetime"
+import { getFormQueryOptions } from "@/features/form-guard/api/get-form"
+import { useForms } from "@/features/form-guard/api/get-forms"
+import { useGetURLDialog } from "./get-form-url/use-generate-url-dialog"
+import { GetURLDialog } from "./get-form-url/get-form-url-dialog"
+import { Form } from "@/types/form"
+import { toast } from "sonner"
 
 export type FormsListProps = {
-  onFormPrefetch?: (id: string) => void;
-};
+  onFormPrefetch?: (id: string) => void
+}
 
-export const FormsList = ({
-  onFormPrefetch,
-}: FormsListProps) => {
-  const navigate = useNavigate();
+export const FormsList = ({ onFormPrefetch }: FormsListProps) => {
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams();
   const currentPage = +(searchParams.get("page") || 1);
-  const search = searchParams.get('search') || '';
+  const search = searchParams.get("search") || "";
 
   const formsQuery = useForms({
     page: currentPage,
     search,
-  });
+  })
 
   const [searchTerm, setSearchTerm] = useState(search);
 
+  const {
+    isOpen,
+    selectedForm,
+    url,
+    isGenerating,
+    handleGetURL,
+    handleGetURLWithExpiry,
+    handleDialogClose,
+  } = useGetURLDialog()
+
   useEffect(() => {
-    // Sync the search term with query parameters
     const timeout = setTimeout(() => {
       setSearchParams((prev) => {
-        const params = new URLSearchParams(prev);
+        const params = new URLSearchParams(prev)
         if (searchTerm) {
-          params.set('search', searchTerm);
+          params.set("search", searchTerm)
         } else {
-          params.delete('search');
+          params.delete("search")
         }
-        return params;
-      });
-    }, 300); // Add debounce to avoid excessive API calls
+        return params
+      })
+    }, 300)
 
-    return () => clearTimeout(timeout);
-  }, [searchTerm, setSearchParams]);
+    return () => clearTimeout(timeout)
+  }, [searchTerm, setSearchParams])
 
-  const queryClient = useQueryClient();
+  const queryClient = useQueryClient()
+  const forms = formsQuery.data?.data || []
+  const meta = formsQuery.data?.meta
 
-  const forms = formsQuery.data?.data || [];
-  const meta = formsQuery.data?.meta;
 
+  const copyFormUrl = async (url? : string) => {
+    if (url) {
+      await navigator.clipboard.writeText(url)
+      toast.info("URL Copied", {
+        description: "Form URL has been copied to clipboard",
+      })
+    }
+  }
   
-  const columns: ColumnDef<Form>[] = [ 
+
+  const columns: ColumnDef<Form>[] = [
     {
       id: "actions",
       cell: ({ row }) => {
-          const form = row.original
+        const form = row.original
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -74,97 +100,146 @@ export const FormsList = ({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <Link
-                    onMouseEnter={() => {
-                      queryClient.prefetchQuery(getFormQueryOptions(form.id));
-                      onFormPrefetch?.(form.id);
-                    }}
-                    to={paths.form.getHref(form.id)}
-                  >
-                    <DropdownMenuItem>
-                      View
-                    </DropdownMenuItem> 
-                  </Link>
-                <DropdownMenuSeparator />
+              <Link
+                onMouseEnter={() => {
+                  queryClient.prefetchQuery(getFormQueryOptions(form.id))
+                  onFormPrefetch?.(form.id)
+                }}
+                to={paths.form.getHref(form.id)}
+              >
+                <DropdownMenuItem>View</DropdownMenuItem>
+              </Link>
+              <DropdownMenuItem onClick={() => {
+                  if(form.requiresToken){
+                    handleGetURL(form)
+                  } else {
+                    copyFormUrl(form.formUrl)
+                  }
+                }}>
+                <LinkIcon className="h-4 w-4 mr-2" />
+                Get the link
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
             </DropdownMenuContent>
           </DropdownMenu>
         )
       },
     },
-    
     {
       accessorKey: "title",
-      header : 'Title',
-      meta :{ cellClassName :  "max-w-[40vh]" },
-      cell : ({row}) => {
-        const form = row.original;
-
+      header: "Title",
+      meta: { cellClassName: "max-w-[40vh]" },
+      cell: ({ row }) => {
+        const form = row.original
         return (
           <div>
             <Link
-                onMouseEnter={() => {
-                  queryClient.prefetchQuery(getFormQueryOptions(form.id));
-                  onFormPrefetch?.(form.id);
-                }}
-                to={paths.form.getHref(form.id)}
-              >
-                <p>{form.title}</p>
+              onMouseEnter={() => {
+                queryClient.prefetchQuery(getFormQueryOptions(form.id))
+                onFormPrefetch?.(form.id)
+              }}
+              to={paths.form.getHref(form.id)}
+            >
+              <p>{form.title}</p>
             </Link>
-          </div> 
+          </div>
         )
-      }
+      },
+    },
+    {
+      accessorKey: "expiresAt",
+      header: "Due Date",
+      cell: ({ row }) => {
+        const form = row.original
+        if (!form.expiresAt) return "-"
+
+        return (
+          <span className="text-xs text-nowrap">
+            {formatDate(form.expiresAt)} <br />
+            {formatTime(form.expiresAt)}
+          </span>
+        )
+      },
+    },
+    {
+      accessorKey: "timeLimit",
+      header: "Time Limit",
+      meta: { cellClassName: "max-w-[40vh]" },
+      cell: ({ row }) => {
+        const form = row.original
+        return <>{formatSecondsToDuration(form.timeLimit)}</>
+      },
     },
     {
       accessorKey: "createdAt",
-      header : 'Created At',
-      cell : ({row}) => {
-        const form = row.original;
-        if(!form.createdAt) return '-';
-        
-        return <span className='text-xs text-nowrap'>{formatDate(form.createdAt)} <br/>{formatTime(form.createdAt)}</span>
-      }
+      header: "Created At",
+      cell: ({ row }) => {
+        const form = row.original
+        if (!form.createdAt) return "-"
+
+        return (
+          <span className="text-xs text-nowrap">
+            {formatDate(form.createdAt)}
+            <br />
+            {formatTime(form.createdAt)}
+          </span>
+        )
+      },
     },
   ]
+
   const onPageChange = (newPage: number) => {
-    queryClient.setQueryData(
-      ['forms', { page: newPage }],
-      formsQuery.data 
-    ); 
-    navigate(`?page=${newPage}`);
-    formsQuery.refetch();
-  };
+    queryClient.setQueryData(["forms", { page: newPage }], formsQuery.data)
+    navigate(`?page=${newPage}`)
+    formsQuery.refetch()
+  }
 
   return (
     <div className="flex flex-col">
       <div className="mb-4">
-          <Input
-            type="text"
-            placeholder="Search forms..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        <Input
+          type="text"
+          placeholder="Search forms..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+      </div>
 
-        {formsQuery.isPending ? 
-         <Skeleton className='w-full min-h-[60vh]'/> 
-         : forms.length > 0 ?
-          <DataTable
-            data={forms}
-            columns={columns}
-            pagination={
-              meta && {
-                totalPages: meta.totalPages,
-                perPage: meta.perPage,
-                totalCount: meta.totalCount,
-                currentPage: meta.currentPage,
-                rootUrl: import.meta.env.VITE_BASE_URL,
-              }
-            } 
-            onPaginationChange={onPageChange}
-          />: 
-          <div className="flex items-center justify-center w-full min-h-[60vh]">
-            <p className="text-gray-500">No forms found.</p>
-          </div>}
+      {formsQuery.isPending ? (
+        <Skeleton className="w-full min-h-[60vh]" />
+      ) : forms.length > 0 ? (
+        <DataTable
+          data={forms}
+          columns={columns}
+          pagination={
+            meta && {
+              totalPages: meta.totalPages,
+              perPage: meta.perPage,
+              totalCount: meta.totalCount,
+              currentPage: meta.currentPage,
+              rootUrl: import.meta.env.VITE_BASE_URL,
+            }
+          }
+          onPaginationChange={onPageChange}
+        />
+      ) : (
+        <div className="flex items-center justify-center w-full min-h-[60vh]">
+          <p className="text-gray-500">No forms found.</p>
+        </div>
+      )}
+
+      <GetURLDialog
+        isOpen={isOpen}
+        onOpenChange={handleDialogClose}
+        item={selectedForm}
+        onGenerateLink={handleGetURLWithExpiry}
+        url={url}
+        isGenerating={isGenerating}
+        title="Generate Form Link"
+        description="Generate a shareable link for this form with custom expiry settings"
+        itemTypeLabel="Form"
+        defaultExpiryDays={1}
+      />
     </div>
-  );
-};
+  )
+}

@@ -1,24 +1,21 @@
-"use client"
-
-import { Toaster } from "sonner";
+import { Notification } from './notification';
+import { useNotifications } from './notifications-store';
 
 export const Notifications = () => {
+  const { notifications, dismissNotification } = useNotifications();
+
   return (
-      <Toaster position='top-right' theme='system' gap={80}
-        toastOptions={{
-          classNames: {
-            title: "text-white",
-            description: "text-white", 
-            toast: "rounded-lg",
-            success: "border-none bg-green-500 text-white ",
-            error: "border-none bg-destructive text-white ",
-            warning: "border-none bg-yellow-500 text-white",
-            info: "border-none bg-blue-500 text-white",
-            actionButton: "bg-white text-black",
-          },
-          style: {
-            color: "white", // Fallback text color
-          },
-        }}/>
+    <div
+      aria-live="assertive"
+      className="pointer-events-none fixed inset-0 z-[9999] flex flex-col items-end space-y-4 px-4 py-6 sm:items-start sm:p-6"
+    >
+      {notifications.filter(item => !item).map((notification) => (
+        <Notification
+          key={notification.id}
+          notification={notification}
+          onDismiss={dismissNotification}
+        />
+      ))}
+    </div>
   );
 };

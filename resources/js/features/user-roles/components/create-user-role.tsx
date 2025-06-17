@@ -13,10 +13,10 @@ import {
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createUserRoleInputSchema, useCreateUserRole } from "../api/create-user-role";
-import { useNotifications } from "@/components/ui/notifications";
 import { useIsFetching } from "@tanstack/react-query";
 import { Textarea } from "@/components/ui/textarea";
 import { useSearchUserRoles } from "../api/search-user-roles";
+import { toast } from "sonner";
 
 type CreateUserRoleType = {
   onSuccess?: Function;
@@ -24,7 +24,6 @@ type CreateUserRoleType = {
 };
 
 export default function CreateUserRole({ onSuccess, onError }: CreateUserRoleType) {
-  const { addNotification } = useNotifications();
   const { data: userRoleCheck } = useSearchUserRoles({ search: "" });
   const createUserRoleMutation = useCreateUserRole({
     mutationConfig: {
@@ -52,11 +51,7 @@ export default function CreateUserRole({ onSuccess, onError }: CreateUserRoleTyp
   async function onSubmit(values: z.infer<typeof extendedCreateUserRoleInputSchema>) {
     const isValid = await form.trigger();
     if (!isValid) {
-      addNotification({
-        type: "error",
-        title: "Required fields are empty",
-        toast: true,
-      });
+      toast.error("Required fields are empty");
       return;
     }
     createUserRoleMutation.mutate(values);

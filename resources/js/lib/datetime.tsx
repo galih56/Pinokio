@@ -146,3 +146,16 @@ if (Array.isArray(data)) {
 }
 return data;
 };
+
+export function formatSecondsToDuration(secs : number) {
+  if (!secs || secs <= 0) return "-";
+  const hours = Math.floor(secs / 3600);
+  const minutes = Math.floor((secs % 3600) / 60);
+  const seconds = secs % 60;
+
+  let parts = [];
+  if (hours > 0) parts.push(`${hours} hr`);
+  if (minutes > 0) parts.push(`${minutes} min`);
+  if (hours === 0 && minutes === 0) parts.push(`${seconds} sec`);
+  return parts.join(" ");
+}

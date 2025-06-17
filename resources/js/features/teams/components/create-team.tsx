@@ -8,13 +8,13 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { createTeamInputSchema, useCreateTeam } from "../api/create-team"
-import { useNotifications } from "@/components/ui/notifications"
 import { useIsFetching } from "@tanstack/react-query"
 import { ColorPickerPopover } from "@/components/ui/color-picker-popover"
 import { Checkbox } from "@/components/ui/checkbox"
 import { MultiUserSelect } from "@/features/users/components/multi-users-select"
 import { UserSearch } from "@/features/users/components/user-search-input"
 import { Textarea } from "@/components/ui/textarea"
+import { toast } from "sonner"
 
 type CreateTeamType = {
   onSuccess?: Function
@@ -29,7 +29,6 @@ const extendedCreateTeamSchema = createTeamInputSchema.extend({
 })
 
 export default function CreateTeam({ onSuccess, onError }: CreateTeamType) {
-  const { addNotification } = useNotifications()
   const createTeamMutation = useCreateTeam({
     mutationConfig: {
       onSuccess: () => {
@@ -53,11 +52,7 @@ export default function CreateTeam({ onSuccess, onError }: CreateTeamType) {
   async function onSubmit(values: z.infer<typeof extendedCreateTeamSchema>) {
     const isValid = await form.trigger()
     if (!isValid) {
-      addNotification({
-        type: "error",
-        title: "Required fields are empty",
-        toast: true,
-      })
+      toast.error("Required fields are empty")
       return
     }
     createTeamMutation.mutate(values)

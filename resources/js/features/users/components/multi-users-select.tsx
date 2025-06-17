@@ -8,6 +8,7 @@ import { UserSearch } from "@/features/users/components/user-search-input"
 import { User } from "@/types/api"
 import { Badge } from "@/components/ui/badge"
 import { useFormContext } from "react-hook-form"
+import { PreviewableImage } from "@/features/form-guard/components/form-builder/previewable-image"
 
 interface MultiUserSelectProps {
   name: string
@@ -74,9 +75,9 @@ export function MultiUserSelect({
                 >
                   <div className="flex items-center gap-2">
                     {user.avatar ? (
-                      <img 
-                        src={user.avatar || "/placeholder.svg"} 
-                        alt={user.name} 
+                      <PreviewableImage
+                        image={user.avatar}
+                        alt={user.name}
                         className="h-6 w-6 rounded-full"
                       />
                     ) : (
