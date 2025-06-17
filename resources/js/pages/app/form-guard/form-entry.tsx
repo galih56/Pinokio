@@ -10,7 +10,6 @@ import { useGetFormLayout } from "@/features/form-guard/api/use-get-form-layout"
 import { toast } from "sonner"
 import { AxiosError } from "axios"
 import { Spinner } from "@/components/ui/spinner";
-import FormGuardWrapper from "@/features/form-guard/components/form-builder/form-guard-wrapper"
 
 
 export const FormEntry = () => {
@@ -58,21 +57,14 @@ export const FormEntry = () => {
         }}
         resetKeys={[form.sections, formId]} // Use form from the hook, not loader
       >
-      <FormGuardWrapper
-        showTimer={true}
-        maxTime={form.timeLimit}>
         <DynamicForm
           isPreview={false}
-          formHashId={formId}
-          sections={form.sections}
-          title={form.title}
-          description={form.description ?? ""}
+          formData={form}
           onSubmit={(data) => {
             console.info("Form submitted:", data);
             navigate(`/${formId}/thank-you`);
           }}
         />
-        </FormGuardWrapper>
       </ErrorBoundary>
     </div>
   );

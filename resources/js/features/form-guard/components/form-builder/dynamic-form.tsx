@@ -16,17 +16,15 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { CheckCircle2, Info } from "lucide-react"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import type { FormSection } from "@/types/form"
+import type { Form as FormData, FormSection } from "@/types/form"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 import { PreviewableImage } from "./previewable-image"
 import { useSubmitFormResponse } from "../../api/use-submit-form-response"
+import FormGuardWrapper from "../form-guard-wrapper/form-guard-wrapper"
 
 interface DynamicFormProps {
-  formHashId?: string // Use hash ID instead of regular ID
-  sections: FormSection[]
-  title: string
-  description: string
+  formData: FormData;
   onSubmit?: (data: any) => void
   isPreview?: boolean
 }
@@ -81,15 +79,13 @@ function createFormSchema(sections: FormSection[]) {
 }
 
 export function DynamicForm({
-  formHashId,
-  sections,
-  title,
-  description,
+  formData,
   onSubmit,
   isPreview = false,
 }: DynamicFormProps) {
+  const { id : formId, sections, title, description, timeLimit } = formData;
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0)
-  const [formProgress, setFormProgress] = useState(0)
+  const [formProgress, setFormProgress] = useState(0);
 
   const hasValidationErrors =
     !sections || sections.length === 0 || sections.flatMap((section) => section?.fields || []).length === 0
@@ -118,7 +114,7 @@ export function DynamicForm({
     mode: "onChange",
   })
 
-  const submitForm = useSubmitFormResponse({ formId: formHashId! })
+  const submitForm = useSubmitFormResponse({ formId: formId! })
 
   // Calculate form completion percentage
   const updateFormProgress = () => {
@@ -145,7 +141,7 @@ export function DynamicForm({
   }, [form.watch])
 
   const handleSubmit = async (data: any) => {
-    if (isPreview || !formHashId) {
+    if (isPreview || !formId) {
       toast.success("Form submitted successfully! (Preview mode)")
       onSubmit?.(data)
       return
@@ -190,235 +186,246 @@ export function DynamicForm({
   const currentSection = sections[currentSectionIndex]
   const isLastSection = currentSectionIndex === sections.length - 1
   const isFirstSection = currentSectionIndex === 0
-
+  
+  const onTimeExpired = () => {
+    handleSubmit(form.getValues())
+  } 
+  
   return (
     <div className="max-w-3xl mx-auto">
-      <Card className="shadow-md border-gray-200">
-        <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b">
-          <CardTitle className="text-2xl">{title}</CardTitle>
-          {description && <CardDescription className="text-base">{description}</CardDescription>}
+      <FormGuardWrapper
+        maxTime={30}
+        showTimer={true}
+        onTimeExpired={onTimeExpired}
+        onCopyPasteAttempt={() => console.log("USER COPY-PASTE")}
+      >
+        <Card className="shadow-md border-gray-200">
+          <CardHeader className="bg-gradient-to-r from-gray-50 to-gray-100 border-b">
+            <CardTitle className="text-2xl">{title}</CardTitle>
+            {description && <CardDescription className="text-base">{description}</CardDescription>}
 
-          {isPreview && (
-            <Alert className="mt-2 bg-blue-50 border-blue-200">
-              <Info className="h-4 w-4 text-blue-600" />
-              <AlertTitle className="text-blue-700">Preview Mode</AlertTitle>
-              <AlertDescription className="text-blue-600">
-                Form submissions will not be saved in preview mode
-              </AlertDescription>
-            </Alert>
-          )}
+            {isPreview && (
+              <Alert className="mt-2 bg-blue-50 border-blue-200">
+                <Info className="h-4 w-4 text-blue-600" />
+                <AlertTitle className="text-blue-700">Preview Mode</AlertTitle>
+                <AlertDescription className="text-blue-600">
+                  Form submissions will not be saved in preview mode
+                </AlertDescription>
+              </Alert>
+            )}
 
-          {sections.length > 1 && (
-            <div className="mt-4 space-y-2">
-              <div className="flex justify-between text-sm text-gray-500">
-                <span>Form Progress</span>
-                <span>{formProgress}% Complete</span>
+            {sections.length > 1 && (
+              <div className="mt-4 space-y-2">
+                <div className="flex justify-between text-sm text-gray-500">
+                  <span>Form Progress</span>
+                  <span>{formProgress}% Complete</span>
+                </div>
+                <Progress value={formProgress} className="h-2" />
+
+                <div className="flex gap-2 overflow-x-auto py-1 scrollbar-hide">
+                  {sections.map((section, index) => (
+                    <Badge
+                      key={section.id || index}
+                      variant={index === currentSectionIndex ? "default" : "outline"}
+                      className={`cursor-pointer whitespace-nowrap ${
+                        index === currentSectionIndex ? "bg-primary" : "bg-gray-100 hover:bg-gray-200 text-gray-700"
+                      }`}
+                      onClick={() => setCurrentSectionIndex(index)}
+                    >
+                      {index + 1}. {section.label}
+                    </Badge>
+                  ))}
+                </div>
               </div>
-              <Progress value={formProgress} className="h-2" />
+            )}
+          </CardHeader>
 
-              <div className="flex gap-2 overflow-x-auto py-1 scrollbar-hide">
-                {sections.map((section, index) => (
-                  <Badge
-                    key={section.id || index}
-                    variant={index === currentSectionIndex ? "default" : "outline"}
-                    className={`cursor-pointer whitespace-nowrap ${
-                      index === currentSectionIndex ? "bg-primary" : "bg-gray-100 hover:bg-gray-200 text-gray-700"
-                    }`}
-                    onClick={() => setCurrentSectionIndex(index)}
-                  >
-                    {index + 1}. {section.label}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-        </CardHeader>
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleSubmit)}>
-            <CardContent className="p-6">
-              <div key={currentSection.id || currentSectionIndex} className="space-y-6">
-                {/* Section Header */}
-                <div className="space-y-4">
-                  {currentSection.displayImage && (
-                    <div className="w-full">
-                      <PreviewableImage
-                        image={currentSection.displayImage}
-                        alt={currentSection.label}
-                        className="w-full max-h-64 object-cover rounded-lg shadow-sm"
-                      />
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleSubmit)}>
+              <CardContent className="p-6">
+                <div key={currentSection.id || currentSectionIndex} className="space-y-6">
+                  {/* Section Header */}
+                  <div className="space-y-4">
+                    {currentSection.displayImage && (
+                      <div className="w-full">
+                        <PreviewableImage
+                          image={currentSection.displayImage}
+                          alt={currentSection.label}
+                          className="w-full max-h-64 object-cover rounded-lg shadow-sm"
+                        />
+                      </div>
+                    )}
+                    <div className="space-y-2">
+                      <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
+                        <span className="flex items-center justify-center bg-primary text-white rounded-full h-7 w-7 text-sm">
+                          {currentSectionIndex + 1}
+                        </span>
+                        {currentSection.label}
+                      </h2>
+                      {currentSection.description && <p className="text-gray-600 pl-9">{currentSection.description}</p>}
                     </div>
-                  )}
-                  <div className="space-y-2">
-                    <h2 className="text-xl font-semibold text-gray-900 flex items-center gap-2">
-                      <span className="flex items-center justify-center bg-primary text-white rounded-full h-7 w-7 text-sm">
-                        {currentSectionIndex + 1}
-                      </span>
-                      {currentSection.label}
-                    </h2>
-                    {currentSection.description && <p className="text-gray-600 pl-9">{currentSection.description}</p>}
+                  </div>
+
+                  {/* Section Fields */}
+                  <div className="space-y-8">
+                    {currentSection.fields.map((field) => {
+                      return (
+                        <FormField
+                          key={field.id}
+                          control={form.control}
+                          name={field.id}
+                          render={({ field: formField }) => (
+                            <FormItem className="space-y-3 bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
+                              <div className="space-y-1">
+                                <FormLabel className="flex items-center gap-1 text-base font-medium">
+                                  {field.label}
+                                  {field.isRequired && <span className="text-red-500">*</span>}
+                                </FormLabel>
+                                {field.placeholder && (
+                                  <FormDescription className="text-sm text-gray-500">{field.placeholder}</FormDescription>
+                                )}
+                              </div>
+
+                              {field.displayImage && (
+                                <div className="w-full">
+                                  <PreviewableImage
+                                    image={field.displayImage}
+                                    alt={field.label}
+                                    className="w-full max-h-48 object-cover rounded-lg shadow-sm"
+                                  />
+                                </div>
+                              )}
+
+                              <FormControl>
+                                {field.type === "textarea" ? (
+                                  <Textarea
+                                    placeholder={field.placeholder}
+                                    rows={field.rows || 4}
+                                    className="resize-y"
+                                    {...formField}
+                                  />
+                                ) : field.type === "select" ? (
+                                  <Select onValueChange={formField.onChange} value={formField.value || ""}>
+                                    <SelectTrigger className="w-full">
+                                      <SelectValue placeholder={field.placeholder || "Select an option"} />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {field.options?.map((option, index) => (
+                                        <SelectItem key={index} value={option.value || option.label}>
+                                          {option.label}
+                                        </SelectItem>
+                                      ))}
+                                    </SelectContent>
+                                  </Select>
+                                ) : field.type === "radio" ? (
+                                  <RadioGroup
+                                    onValueChange={formField.onChange}
+                                    value={formField.value || ""}
+                                    className="space-y-3"
+                                  >
+                                    {field.options?.map((option, index) => (
+                                      <div
+                                        key={index}
+                                        className="flex items-center space-x-2 bg-gray-50 p-3 rounded-md border border-gray-100"
+                                      >
+                                        <RadioGroupItem
+                                          value={option.value || option.label}
+                                          id={`${field.id}-${index}`}
+                                        />
+                                        <Label htmlFor={`${field.id}-${index}`} className="flex-1 cursor-pointer">
+                                          {option.label}
+                                        </Label>
+                                      </div>
+                                    ))}
+                                  </RadioGroup>
+                                ) : field.type === "checkbox" ? (
+                                  <div className="space-y-3">
+                                    {field.options?.map((option, index) => (
+                                      <div
+                                        key={index}
+                                        className="flex items-center space-x-2 bg-gray-50 p-3 rounded-md border border-gray-100"
+                                      >
+                                        <Checkbox
+                                          id={`${field.id}-${index}`}
+                                          checked={formField.value?.includes(option.value || option.label)}
+                                          onCheckedChange={(checked) => {
+                                            const currentValue = formField.value || []
+                                            const optionValue = option.value || option.label
+                                            if (checked) {
+                                              formField.onChange([...currentValue, optionValue])
+                                            } else {
+                                              formField.onChange(currentValue.filter((v: string) => v !== optionValue))
+                                            }
+                                          }}
+                                        />
+                                        <Label htmlFor={`${field.id}-${index}`} className="flex-1 cursor-pointer">
+                                          {option.label}
+                                        </Label>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <Input
+                                    type={field.type}
+                                    placeholder={field.placeholder}
+                                    min={field.min}
+                                    max={field.max}
+                                    {...formField}
+                                    className="w-full"
+                                  />
+                                )}
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )
+                    })}
                   </div>
                 </div>
+              </CardContent>
 
-                {/* Section Fields */}
-                <div className="space-y-8">
-                  {currentSection.fields.map((field) => {
-                    return (
-                      <FormField
-                        key={field.id}
-                        control={form.control}
-                        name={field.id}
-                        render={({ field: formField }) => (
-                          <FormItem className="space-y-3 bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
-                            <div className="space-y-1">
-                              <FormLabel className="flex items-center gap-1 text-base font-medium">
-                                {field.label}
-                                {field.isRequired && <span className="text-red-500">*</span>}
-                              </FormLabel>
-                              {field.placeholder && (
-                                <FormDescription className="text-sm text-gray-500">{field.placeholder}</FormDescription>
-                              )}
-                            </div>
-
-                            {field.displayImage && (
-                              <div className="w-full">
-                                <PreviewableImage
-                                  image={field.displayImage}
-                                  alt={field.label}
-                                  className="w-full max-h-48 object-cover rounded-lg shadow-sm"
-                                />
-                              </div>
-                            )}
-
-                            <FormControl>
-                              {field.type === "textarea" ? (
-                                <Textarea
-                                  placeholder={field.placeholder}
-                                  rows={field.rows || 4}
-                                  className="resize-y"
-                                  {...formField}
-                                />
-                              ) : field.type === "select" ? (
-                                <Select onValueChange={formField.onChange} value={formField.value || ""}>
-                                  <SelectTrigger className="w-full">
-                                    <SelectValue placeholder={field.placeholder || "Select an option"} />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    {field.options?.map((option, index) => (
-                                      <SelectItem key={index} value={option.value || option.label}>
-                                        {option.label}
-                                      </SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              ) : field.type === "radio" ? (
-                                <RadioGroup
-                                  onValueChange={formField.onChange}
-                                  value={formField.value || ""}
-                                  className="space-y-3"
-                                >
-                                  {field.options?.map((option, index) => (
-                                    <div
-                                      key={index}
-                                      className="flex items-center space-x-2 bg-gray-50 p-3 rounded-md border border-gray-100"
-                                    >
-                                      <RadioGroupItem
-                                        value={option.value || option.label}
-                                        id={`${field.id}-${index}`}
-                                      />
-                                      <Label htmlFor={`${field.id}-${index}`} className="flex-1 cursor-pointer">
-                                        {option.label}
-                                      </Label>
-                                    </div>
-                                  ))}
-                                </RadioGroup>
-                              ) : field.type === "checkbox" ? (
-                                <div className="space-y-3">
-                                  {field.options?.map((option, index) => (
-                                    <div
-                                      key={index}
-                                      className="flex items-center space-x-2 bg-gray-50 p-3 rounded-md border border-gray-100"
-                                    >
-                                      <Checkbox
-                                        id={`${field.id}-${index}`}
-                                        checked={formField.value?.includes(option.value || option.label)}
-                                        onCheckedChange={(checked) => {
-                                          const currentValue = formField.value || []
-                                          const optionValue = option.value || option.label
-                                          if (checked) {
-                                            formField.onChange([...currentValue, optionValue])
-                                          } else {
-                                            formField.onChange(currentValue.filter((v: string) => v !== optionValue))
-                                          }
-                                        }}
-                                      />
-                                      <Label htmlFor={`${field.id}-${index}`} className="flex-1 cursor-pointer">
-                                        {option.label}
-                                      </Label>
-                                    </div>
-                                  ))}
-                                </div>
-                              ) : (
-                                <Input
-                                  type={field.type}
-                                  placeholder={field.placeholder}
-                                  min={field.min}
-                                  max={field.max}
-                                  {...formField}
-                                  className="w-full"
-                                />
-                              )}
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )
-                  })}
-                </div>
-              </div>
-            </CardContent>
-
-            <CardFooter className="flex flex-col sm:flex-row gap-3 justify-between p-6 bg-gray-50 border-t">
-              {sections.length > 1 && (
-                <div className="flex gap-3 w-full sm:w-auto">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={goToPreviousSection}
-                    disabled={isFirstSection}
-                    className={isFirstSection ? "opacity-50" : ""}
-                  >
-                    Previous
-                  </Button>
-
-                  {!isLastSection && (
-                    <Button type="button" onClick={goToNextSection}>
-                      Next
+              <CardFooter className="flex flex-col sm:flex-row gap-3 justify-between p-6 bg-gray-50 border-t">
+                {sections.length > 1 && (
+                  <div className="flex gap-3 w-full sm:w-auto">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={goToPreviousSection}
+                      disabled={isFirstSection}
+                      className={isFirstSection ? "opacity-50" : ""}
+                    >
+                      Previous
                     </Button>
-                  )}
-                </div>
-              )}
 
-              {isLastSection && (
-                <Button type="submit" className="w-full sm:w-auto" disabled={submitForm.isPending}>
-                  {submitForm.isPending ? (
-                    <>
-                      <span className="animate-pulse mr-2">●</span>
-                      Submitting...
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="mr-2 h-4 w-4" />
-                      Submit Form
-                    </>
-                  )}
-                </Button>
-              )}
-            </CardFooter>
-          </form>
-        </Form>
-      </Card>
+                    {!isLastSection && (
+                      <Button type="button" onClick={goToNextSection}>
+                        Next
+                      </Button>
+                    )}
+                  </div>
+                )}
+
+                {isLastSection && (
+                  <Button type="submit" className="w-full sm:w-auto" disabled={submitForm.isPending}>
+                    {submitForm.isPending ? (
+                      <>
+                        <span className="animate-pulse mr-2">●</span>
+                        Submitting...
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="mr-2 h-4 w-4" />
+                        Submit Form
+                      </>
+                    )}
+                  </Button>
+                )}
+              </CardFooter>
+            </form>
+          </Form>
+        </Card>
+      </FormGuardWrapper>
     </div>
   )
 }

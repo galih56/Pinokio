@@ -1,3 +1,6 @@
+## Validation for nullable/optional inputs
+must be returning better exception and http status
+
 ### Export to EXCEL/CSV 
 - [v] Install excel library
 - [v] Create Classes for data mapping

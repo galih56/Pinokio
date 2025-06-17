@@ -5,6 +5,7 @@ import { DynamicForm } from "./dynamic-form"
 import { useFormLayout } from "../../store/form-builder-store"
 import { ErrorBoundary } from "react-error-boundary"
 import { FormErrorFallback } from "./form-error-boundary"
+import { Form } from "@/types/form"
 
 export function FormPreview() {
   const { formTitle, formDescription, formSections } = useFormLayout()
@@ -25,9 +26,11 @@ export function FormPreview() {
             resetKeys={[formSections, formTitle]}
           >
             <DynamicForm
-              sections={formSections}
-              title={formTitle}
-              description={formDescription ?? ""}
+              formData={{
+                title : formTitle,
+                description : formDescription?? "",
+                sections : formSections
+              } as Form}
               onSubmit={(data) => {
                 console.log("Form submitted:", data)
               }}
