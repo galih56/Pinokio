@@ -10,6 +10,7 @@ import { useGetFormLayout } from "@/features/form-guard/api/use-get-form-layout"
 import { toast } from "sonner"
 import { AxiosError } from "axios"
 import { Spinner } from "@/components/ui/spinner";
+import FormGuardWrapper from "@/features/form-guard/components/form-builder/form-guard-wrapper"
 
 
 export const FormEntry = () => {
@@ -47,7 +48,7 @@ export const FormEntry = () => {
   if (!form || !form.sections) {
     return <div>Form data not available</div>;
   }
-
+  console.log(form.timeLimit)
   return (
     <div className="max-w-2xl mx-auto">
       <ErrorBoundary
@@ -57,6 +58,9 @@ export const FormEntry = () => {
         }}
         resetKeys={[form.sections, formId]} // Use form from the hook, not loader
       >
+      <FormGuardWrapper
+        showTimer={true}
+        maxTime={form.timeLimit}>
         <DynamicForm
           isPreview={false}
           formHashId={formId}
@@ -68,6 +72,7 @@ export const FormEntry = () => {
             navigate(`/${formId}/thank-you`);
           }}
         />
+        </FormGuardWrapper>
       </ErrorBoundary>
     </div>
   );
