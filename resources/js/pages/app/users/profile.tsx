@@ -1,4 +1,3 @@
-import { UpdateProfile } from '@/features/users/components/update-profile';
 import { useUser } from '@/lib/auth';
 
 type EntryProps = {
