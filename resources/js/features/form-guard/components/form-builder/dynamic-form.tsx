@@ -240,10 +240,10 @@ export function DynamicForm({
               <div key={currentSection.id || currentSectionIndex} className="space-y-6">
                 {/* Section Header */}
                 <div className="space-y-4">
-                  {currentSection.image && (
+                  {currentSection.displayImage && (
                     <div className="w-full">
                       <PreviewableImage
-                        image={currentSection.image}
+                        image={currentSection.displayImage}
                         alt={currentSection.label}
                         className="w-full max-h-64 object-cover rounded-lg shadow-sm"
                       />
@@ -280,10 +280,10 @@ export function DynamicForm({
                               )}
                             </div>
 
-                            {field.image && (
+                            {field.displayImage && (
                               <div className="w-full">
                                 <PreviewableImage
-                                  image={field.image}
+                                  image={field.displayImage}
                                   alt={field.label}
                                   className="w-full max-h-48 object-cover rounded-lg shadow-sm"
                                 />

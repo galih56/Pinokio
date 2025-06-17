@@ -108,8 +108,11 @@ export function FieldEditor({ field, onUpdate }: FieldEditorProps) {
       </div>
 
       <ImageUpload
-        currentImage={field.image}
-        onImageChange={(image) => onUpdate({ image: image })}
+        currentImage={(field.displayImage)}
+        onImageChange={(image) => onUpdate({ 
+          newImage: image, 
+          displayImage: image
+        })}
         label="Field Image"
       />
 

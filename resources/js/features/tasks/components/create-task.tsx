@@ -17,8 +17,6 @@ import {
 } from "@/components/ui/form"
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import DateTimePickerInput from "@/components/ui/date-picker/datetime-picker-input";
-import { Textarea } from "@/components/ui/textarea";
 import { FileInput, FileUploader, FileUploaderContent, FileUploaderItem } from "@/components/ui/file-upload";
 import { DropzoneOptions } from "react-dropzone";
 import RichTextEditor from "@/components/ui/text-editor";
@@ -28,6 +26,7 @@ import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import { Editor } from '@tiptap/react';
 import { toast } from "sonner";
+import { DateTimeInput } from "@/components/ui/date-picker/date-time-picker";
 
 // Editor extensions
 const extensions = [
@@ -159,7 +158,7 @@ export default function CreateTask({
                 <FormItem>
                   <FormLabel>Due Date</FormLabel>
                   <FormControl>
-                    <DateTimePickerInput
+                    <DateTimeInput
                       value={field.value || undefined}
                       onChange={field.onChange}
                       disabledDate={(date) => date < new Date()}

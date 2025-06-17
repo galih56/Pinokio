@@ -27,7 +27,8 @@ export interface FormSection {
   id: string;
   label: string;
   description?: string;
-  image?: string | File; 
+  displayImage?: string | File; 
+  newImage?: string | File; 
   order: number;
   fields: Array<FormField>;
 }
@@ -54,7 +55,8 @@ export interface FormField {
   name: string;
   placeholder?: string;
   isRequired: boolean;
-  image?: string | File; 
+  displayImage?: string | File; 
+  newImage?: string | File; 
   order: number;
   createdAt?: Date;
   updatedAt?: Date;
@@ -117,7 +119,7 @@ export interface FormResponse {
 
 export interface FormBuilderError {
   id: string
-  type: "section" | "field" | "form"
+  type: "section" | "field" | "form" | "option"
   message: string
   fieldId?: string
   sectionId?: string

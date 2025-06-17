@@ -14,7 +14,6 @@ import {
 } from "@/components/ui/form"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import DateTimePickerInput from "@/components/ui/date-picker/datetime-picker-input"
 import {
   FileInput,
   FileUploader,
@@ -27,6 +26,7 @@ import { createPublicIssueInputSchema, useCreatePublicIssue } from "../api/creat
 import RichTextEditor from "@/components/ui/text-editor"
 import useGuestIssuerStore from "@/store/useGuestIssuer"
 import { toast } from "sonner"
+import { DateTimeInput } from "@/components/ui/date-picker/date-time-picker"
 
 type CreateIssueType = {
   onSuccess?: () => void
@@ -130,7 +130,7 @@ export default function IssueTrackerForm({ onSuccess, onError }: CreateIssueType
             <FormItem>
               <FormLabel>Due Date</FormLabel>
               <FormControl>
-                <DateTimePickerInput
+                <DateTimeInput
                   value={field.value || undefined}
                   onChange={field.onChange}
                   disabledDate={(date) => date < new Date()}

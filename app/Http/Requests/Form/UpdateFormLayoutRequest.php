@@ -29,7 +29,7 @@ class UpdateFormLayoutRequest extends BaseRequest
             'sections.*.id' => ['required', 'string'],
             'sections.*.label' => ['required', 'string', 'max:255'],
             'sections.*.description' => ['nullable', 'string'],
-            'sections.*.image' =>  ['nullable', 'file', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
+            'sections.*.new_image' =>  ['nullable', 'file', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
 
             // Fields within sections
             'sections.*.fields' => ['required', 'array'],
@@ -63,7 +63,7 @@ class UpdateFormLayoutRequest extends BaseRequest
             'sections.*.fields.*.min' => ['nullable', 'integer', 'min:0'],
             'sections.*.fields.*.max' => ['nullable', 'integer', 'min:0'],
             'sections.*.fields.*.rows' => ['nullable', 'integer', 'min:1', 'max:20'],
-            'sections.*.fields.*.image' => ['nullable', 'file', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
+            'sections.*.fields.*.new_image' => ['nullable', 'file', 'mimes:jpeg,png,jpg,gif,webp', 'max:5120'],
             'sections.*.fields.*.defaultValue' => ['nullable', 'string'],
         ];
     }
@@ -136,9 +136,9 @@ class UpdateFormLayoutRequest extends BaseRequest
             'sections.*.fields.*.max.min' => 'Maximum value cannot be negative.',
             'sections.*.fields.*.rows.min' => 'Textarea must have at least 1 row.',
             'sections.*.fields.*.rows.max' => 'Textarea cannot have more than 20 rows.',
-            'sections.*.image.url' => 'Section image must be a valid URL.',
-            'sections.*.fields.*.image.file' => 'Image file type is invalid',
-            'sections.*.fields.*.image.max' => 'Image file size must less than 5MB',
+            'sections.*.new_image.url' => 'Section image must be a valid URL.',
+            'sections.*.fields.*.new_image.file' => 'Image file type is invalid',
+            'sections.*.fields.*.new_image.max' => 'Image file size must less than 5MB',
             'sections.*.fields.*.options.*.id.regex' => 'Option ID must start with "option_" followed by alphanumeric characters and underscores.',
             'sections.*.fields.*.options.*.label.regex' => 'Option label cannot be empty or contain only whitespace.',
             'sections.*.fields.*.options.*.id.required_with' => 'Option ID is required when options are provided.',

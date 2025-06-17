@@ -27,7 +27,7 @@ import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
-import { DateTimePickerInput } from "@/components/ui/date-picker/datetime-picker-input";
+import { DateTimeInput } from "@/components/ui/date-picker/date-time-picker";
 
 // Editor extensions
 const extensions = [
@@ -161,7 +161,7 @@ export default function CreateIssue({
                 <FormItem>
                   <FormLabel>Due Date</FormLabel>
                   <FormControl>
-                    <DateTimePickerInput
+                    <DateTimeInput
                       value={field.value || undefined}
                       onChange={field.onChange}
                       disabledDate={(date : Date) => date < new Date()}

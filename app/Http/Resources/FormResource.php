@@ -53,14 +53,14 @@ class FormResource extends JsonResource
                     'label' => $section->label,
                     'description' => $section->description,
                     'order' => $section->order,
-                    'image' => ($section->image_path ? app(FileService::class)->getUrl($section->image_path) : null),
+                    'display_image' => ($section->image_path ? app(FileService::class)->getUrl($section->image_path) : null),
                     'fields' => $section->fields->map(fn ($field) => [
                         'id' => $field->id,
                         'label' => $field->label,
                         'placeholder' => $field->placeholder,
                         'isRequired' => $field->is_required,
                         'order' => $field->order,
-                        'image' => ($field->image_path ? app(FileService::class)->getUrl($field->image_path) : null),
+                        'display_image' => ($field->image_path ? app(FileService::class)->getUrl($field->image_path) : null),
                         'type' => $field->fieldType->name,
                         'options' => $field->options->map(fn ($opt) => [
                             'id' => $opt->id,

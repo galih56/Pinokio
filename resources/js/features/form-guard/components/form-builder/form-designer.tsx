@@ -103,7 +103,6 @@ export function FormDesigner() {
     return formSections.find((s) => s.id === selectedSectionId) || null
   }
 
-  // Enhanced error helpers
   const getFieldOptionErrors = (fieldId: string) => {
     return errors.filter((error) => error.fieldId === fieldId && error.type === "option")
   }
@@ -261,7 +260,7 @@ export function FormDesigner() {
                                         {section.description}
                                       </span>
                                     )}
-                                    {section.image && <ImageIcon className="h-4 w-4 text-blue-500" />}
+                                    {section.displayImage && <ImageIcon className="h-4 w-4 text-blue-500" />}
                                     {sectionHasErrors && <AlertTriangle className="h-4 w-4 text-red-500" />}
                                   </div>
                                   <div className="text-sm text-gray-500">
@@ -370,7 +369,7 @@ export function FormDesigner() {
                                                     {field.isRequired && (
                                                       <span className="text-red-500 text-xs">*</span>
                                                     )}
-                                                    {field.image && <ImageIcon className="h-4 w-4 text-blue-500" />}
+                                                    {field.displayImage && <ImageIcon className="h-4 w-4 text-blue-500" />}
                                                     {(fieldHasErrors || hasOptionErrors) && (
                                                       <AlertTriangle className="h-4 w-4 text-red-500 flex-shrink-0" />
                                                     )}

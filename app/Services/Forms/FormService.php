@@ -102,10 +102,10 @@ class FormService
             foreach ($data['sections'] as $sectionData) {
                 // Handle section image upload
                 $sectionImagePath = null;
-                if (isset($sectionData['image']) && $sectionData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                if (isset($sectionData['new_image']) && $sectionData['image'] instanceof \Illuminate\Http\UploadedFile) {
                     try {
                         $sectionImagePath = app(FileService::class)->uploadImage(
-                            $sectionData['image'], 
+                            $sectionData['new_image'], 
                             $prefix_image_path."/".$sectionData['id'],
                             auth()->user(),
                             null,
@@ -116,9 +116,9 @@ class FormService
                         \Log::error('Section image upload failed: ' . $e->getMessage());
                         // You might want to throw the exception or handle it gracefully
                     }
-                } elseif (isset($sectionData['image']) && is_string($sectionData['image'])) {
+                } elseif (isset($sectionData['new_image']) && is_string($sectionData['new_image'])) {
                     // Keep existing URL if it's a string
-                    $sectionImagePath = $sectionData['image'];
+                    $sectionImagePath = $sectionData['new_image'];
                 }
                 $section = FormSection::updateOrCreate(
                     ['id' => $sectionData['id']], 
@@ -138,10 +138,10 @@ class FormService
                 foreach ($sectionData['fields'] as $fieldData) {
                     // Handle field image upload
                     $fieldImagePath = null;
-                    if (isset($fieldData['image']) && $fieldData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                    if (isset($fieldData['new_image']) && $fieldData['new_image'] instanceof \Illuminate\Http\UploadedFile) {
                         try {
                             $fieldImagePath = app(FileService::class)->uploadImage(
-                                $fieldData['image'],
+                                $fieldData['new_image'],
                                 $prefix_image_path."/".$sectionData['id'],
                                 auth()->user(),
                                 null,
@@ -152,9 +152,9 @@ class FormService
                             \Log::error('Field image upload failed: ' . $e->getMessage());
                             // You might want to throw the exception or handle it gracefully
                         }
-                    } elseif (isset($fieldData['image']) && is_string($fieldData['image'])) {
+                    } elseif (isset($fieldData['new_image']) && is_string($fieldData['new_image'])) {
                         // Keep existing URL if it's a string
-                        $fieldImagePath = $fieldData['image'];
+                        $fieldImagePath = $fieldData['new_image'];
                     }
 
                     $field = FormField::updateOrCreate(
