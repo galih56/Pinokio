@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils";
 import styles from "./time-indicator.module.css";
 import type React from "react"
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback } from "react";
 
 interface FormGuardWrapperProps {
   children: React.ReactNode
@@ -16,6 +16,8 @@ interface FormGuardWrapperProps {
   manualStart?: boolean
   warningThreshold?: number
   warningType?: "percentage" | "seconds"
+  startTrigger?: "load" | "interaction" | "fieldChange" | "manual" 
+  dragBoundary?: number // pixels from screen edge (default: 20)
 }
 
 const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
@@ -29,6 +31,8 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   manualStart = false,
   warningThreshold = 10,
   warningType = "seconds",
+  startTrigger = "load", 
+  dragBoundary = 20, // Default 20px from edges
 }) => {
   const [timeRemaining, setTimeRemaining] = useState(maxTime)
   const [isActive, setIsActive] = useState(false)
@@ -36,6 +40,7 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   const [isDragging, setIsDragging] = useState(false)
   const [isWarning, setIsWarning] = useState(false)
   const [isUrgent, setIsUrgent] = useState(false)
+  const [hasExpired, setHasExpired] = useState(false) 
 
   const timerId = useRef<number | null>(null)
   const startTime = useRef<number | null>(null)
@@ -43,6 +48,7 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   const scrollTimeout = useRef<number | null>(null)
   const timerRef = useRef<HTMLDivElement>(null)
   const dragStart = useRef<{ x: number; y: number } | null>(null)
+  const hasFieldChanged = useRef<boolean>(false) 
 
   // Calculate effective warning threshold to handle edge cases
   const getEffectiveWarningThreshold = useCallback(() => {
@@ -55,12 +61,13 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   }, [warningThreshold, warningType, maxTime])
 
   const startTimer = useCallback(() => {
-    if (startTime.current === null) {
+    if (startTime.current === null && !hasExpired) {
       const elapsed = maxTime - timeRemaining
       startTime.current = Date.now() - elapsed * 1000
+      setHasExpired(false) // Reset expired flag when starting
     }
     setIsActive(true)
-  }, [timeRemaining, maxTime])
+  }, [timeRemaining, maxTime, hasExpired])
 
   const stopTimer = useCallback(() => {
     setIsActive(false)
@@ -73,22 +80,35 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   const resetTimer = useCallback(() => {
     stopTimer()
     setTimeRemaining(maxTime)
+    setHasExpired(false) // Reset expired flag
     startTime.current = null
   }, [stopTimer, maxTime])
 
-  const clampToViewport = (x: number, y: number) => {
-    const timerWidth = 200
-    const timerHeight = 80
-    const margin = 10
+  // Improved clampToViewport with stricter boundaries
+  const clampToViewport = useCallback(
+    (x: number, y: number) => {
+      if (!timerRef.current) return { x: 0, y: 0 }
 
-    const maxX = window.innerWidth - timerWidth - margin
-    const maxY = window.innerHeight - timerHeight - margin
+      const timerRect = timerRef.current.getBoundingClientRect()
+      const timerWidth = timerRect.width || 200 // Fallback width
+      const timerHeight = timerRect.height || 80 // Fallback height
 
-    return {
-      x: Math.max(-window.innerWidth + timerWidth + margin, Math.min(maxX - 20, x)),
-      y: Math.max(-margin, Math.min(maxY - 20, y)),
-    }
-  }
+      const viewportWidth = window.innerWidth
+      const viewportHeight = window.innerHeight
+
+      // Calculate boundaries with dragBoundary margin
+      const minX = -(viewportWidth - timerWidth - dragBoundary)
+      const maxX = viewportWidth - timerWidth - dragBoundary - 20 // 20 is the initial right offset
+      const minY = -dragBoundary
+      const maxY = viewportHeight - timerHeight - dragBoundary - 20 // 20 is the initial top offset
+
+      return {
+        x: Math.max(minX, Math.min(maxX, x)),
+        y: Math.max(minY, Math.min(maxY, y)),
+      }
+    },
+    [dragBoundary],
+  )
 
   const getTimerStyle = (): React.CSSProperties => {
     if (timerPosition === "floating") {
@@ -143,9 +163,9 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
         clearTimeout(scrollTimeout.current)
       }
     }
-  }, [timerPosition])
+  }, [timerPosition, clampToViewport])
 
-  // Handle drag functionality
+  // Handle drag functionality with improved boundary checking
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
       if (timerPosition !== "floating") return
@@ -168,15 +188,20 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
         x: e.clientX - dragStart.current.x,
         y: e.clientY - dragStart.current.y,
       }
+
+      // Apply clamping immediately during drag
       setTimerOffset(clampToViewport(newOffset.x, newOffset.y))
     },
-    [isDragging],
+    [isDragging, clampToViewport],
   )
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false)
     dragStart.current = null
-  }, [])
+
+    // Final clamp on mouse up to ensure position is valid
+    setTimerOffset((prev) => clampToViewport(prev.x, prev.y))
+  }, [clampToViewport])
 
   useEffect(() => {
     if (isDragging) {
@@ -193,6 +218,7 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   // Reset timer when maxTime changes
   useEffect(() => {
     setTimeRemaining(maxTime)
+    setHasExpired(false)
   }, [maxTime])
 
   // Copy/paste prevention
@@ -224,28 +250,57 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
     }
   }, [onCopyPasteAttempt, stopTimer])
 
-  // Auto-start timer on interaction
+  // Handle field change detection for startTrigger
   useEffect(() => {
-    if (manualStart) {
-      return
-    }
+    if (startTrigger !== "fieldChange") return
 
-    const handleInteraction = () => {
-      if (!isActive) {
-        startTimer()
+    const handleFieldChange = (e: Event) => {
+      const target = e.target as HTMLElement
+      if (target.matches("input, textarea, select")) {
+        if (!hasFieldChanged.current) {
+          hasFieldChanged.current = true
+          if (!isActive && !hasExpired) {
+            startTimer()
+          }
+        }
       }
     }
 
-    document.addEventListener("mousedown", handleInteraction)
-    document.addEventListener("keydown", handleInteraction)
+    document.addEventListener("input", handleFieldChange)
+    document.addEventListener("change", handleFieldChange)
 
     return () => {
-      document.removeEventListener("mousedown", handleInteraction)
-      document.removeEventListener("keydown", handleInteraction)
+      document.removeEventListener("input", handleFieldChange)
+      document.removeEventListener("change", handleFieldChange)
     }
-  }, [isActive, manualStart, startTimer])
+  }, [startTrigger, isActive, hasExpired, startTimer])
 
-  // Timer logic
+  // Handle different start triggers
+  useEffect(() => {
+    if (startTrigger === "load" && !isActive && !hasExpired) {
+      // Start immediately on load
+      startTimer()
+      return
+    }
+
+    if (startTrigger === "interaction") {
+      const handleInteraction = () => {
+        if (!isActive && !hasExpired) {
+          startTimer()
+        }
+      }
+
+      document.addEventListener("mousedown", handleInteraction)
+      document.addEventListener("keydown", handleInteraction)
+
+      return () => {
+        document.removeEventListener("mousedown", handleInteraction)
+        document.removeEventListener("keydown", handleInteraction)
+      }
+    }
+  }, [startTrigger, isActive, hasExpired, startTimer])
+
+  // Timer logic with improved expiration handling
   useEffect(() => {
     if (isActive) {
       timerId.current = window.setInterval(() => {
@@ -265,11 +320,17 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
 
             onTimerUpdate?.(remaining)
           } else {
+            // Timer expired
             setTimeRemaining(0)
             setIsWarning(false)
             setIsUrgent(false)
             stopTimer()
-            onTimeExpired?.()
+
+            // Only call onTimeExpired once
+            if (!hasExpired) {
+              setHasExpired(true)
+              onTimeExpired?.()
+            }
           }
         }
       }, 1000)
@@ -283,7 +344,7 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
         window.clearInterval(timerId.current)
       }
     }
-  }, [isActive, maxTime, onTimerUpdate, onTimeExpired, stopTimer, getEffectiveWarningThreshold])
+  }, [isActive, maxTime, onTimerUpdate, onTimeExpired, stopTimer, getEffectiveWarningThreshold, hasExpired])
 
   const formatTime = (timeInSeconds: number): string => {
     const minutes = Math.floor(timeInSeconds / 60)
@@ -325,6 +386,16 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
     )
   }
 
+  // Expose start/stop/reset functions for manual control
+  const timerControls = {
+    start: startTimer,
+    stop: stopTimer,
+    reset: resetTimer,
+    isActive,
+    timeRemaining,
+    hasExpired,
+  }
+
   return (
     <div className="relative">
       {showTimer && timerPosition === "top-right" && (
@@ -347,7 +418,7 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
             </div>
             {timeRemaining === 0 && <span className="text-xs font-bold">Time's Up!</span>}
             {isWarning && timeRemaining > 0 && <span className={cn("text-xs font-bold", styles.bounceIcon)}>⚠️</span>}
-            {manualStart && !isActive && timeRemaining > 0 && (
+            {(startTrigger === "manual" || manualStart) && !isActive && timeRemaining > 0 && !hasExpired && (
               <button
                 onClick={startTimer}
                 className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors"
@@ -357,7 +428,7 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
             )}
           </div>
           <div className="text-xs opacity-75 mt-1 text-center">
-            {isWarning ? (isUrgent ? "URGENT!" : "Time running out!") : "Drag to move"}
+            {hasExpired ? "Expired" : isWarning ? (isUrgent ? "URGENT!" : "Time running out!") : "Drag to move"}
           </div>
         </div>
       )}
@@ -366,7 +437,7 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
         <div className={getTimerClasses("inline-block rounded-md px-2 py-1 text-sm font-medium shadow-sm mr-2 border")}>
           {formatTime(timeRemaining)}
           {timeRemaining === 0 && <span className="ml-1 text-xs">Time's Up!</span>}
-          {manualStart && !isActive && timeRemaining > 0 && (
+          {(startTrigger === "manual" || manualStart) && !isActive && timeRemaining > 0 && !hasExpired && (
             <button onClick={startTimer} className="ml-2 px-2 py-1 bg-blue-500 text-white rounded-md text-xs">
               Start
             </button>

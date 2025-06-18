@@ -94,19 +94,22 @@ Route::group([
         Route::get('/{id}', [FormController::class, 'show']);
         Route::put('/{id}', [FormController::class, 'update']);
         Route::patch('/{id}', [FormController::class, 'update']);
+        Route::get('/{id}/layout', [FormController::class, 'getFormWithLayout']);
         Route::post('/{id}/layout', [FormController::class, 'updateFormLayout']);
+        Route::get('/{id}/responses', [FormController::class, 'getFormResponses']);
+        Route::get('/{id}/responses/export', [FormController::class, 'export']);
         Route::delete('/{id}', [FormController::class, 'destroy']);
     });
-    Route::group([
-        'middleware' => [
-            'decode_id',
-        ]
-    ], function () {
-        Route::get('/{id}/responses', [FormController::class, 'getFormResponses']);
-        Route::get('/{id}/layout', [FormController::class, 'getFormWithLayout']);
-        Route::post('/{id}/responses', [FormController::class, 'storeFormResponse']);
-        Route::get('/{id}/responses/export', [FormController::class, 'export']);
-    });
+});
+
+Route::group([
+    "prefix" => "form-guard",
+    'middleware' => [
+        'decode_id',
+    ]
+], function () {
+    Route::get('/{id}/layout', [FormController::class, 'getFormWithLayout']);
+    Route::post('/{id}/responses', [FormController::class, 'storeFormResponse']);
 });
 
 Route::group([

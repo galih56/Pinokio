@@ -9,6 +9,10 @@ must be returning better exception and http status
 
 ### Add time limit and auto-submit
 
+### seperate authenticated user with public respondant
+- [] UI specific for authenticated users
+- [] seperate form layout detail endpoints
+
 ### Progress Card for proctered form (assessment test or similar usage)
 
 ### Integrate With Google Spreadsheet

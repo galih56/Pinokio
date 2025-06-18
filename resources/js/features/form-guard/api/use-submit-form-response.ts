@@ -14,7 +14,7 @@ export const submitFormResponse = async ({
   formId: string
   data: SubmitFormResponseInput
 }): Promise<{ id: string; submittedAt: string }> => {
-    return api.post(`/forms/${formId}/responses`, data, {
+    return api.post(`/form-guard/${formId}/responses`, data, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
