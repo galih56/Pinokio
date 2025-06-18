@@ -53,6 +53,7 @@ class FormResource extends JsonResource
                     'label' => $section->label,
                     'description' => $section->description,
                     'order' => $section->order,
+                    'image_path' => $section->image_path,
                     'display_image' => ($section->image_path ? app(FileService::class)->getUrl($section->image_path) : null),
                     'fields' => $section->fields->map(fn ($field) => [
                         'id' => $field->id,

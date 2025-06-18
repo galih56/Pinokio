@@ -58,6 +58,7 @@ export const FormEntry = () => {
         resetKeys={[form.sections, formId]} // Use form from the hook, not loader
       >
         <DynamicForm
+          showTimer={true}
           isPreview={false}
           formData={form}
           onSubmit={(data) => {

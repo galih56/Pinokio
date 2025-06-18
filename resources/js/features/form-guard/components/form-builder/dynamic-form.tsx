@@ -24,6 +24,7 @@ import { useSubmitFormResponse } from "../../api/use-submit-form-response"
 import FormGuardWrapper from "../form-guard-wrapper/form-guard-wrapper"
 
 interface DynamicFormProps {
+  showTimer: boolean;
   formData: FormData;
   onSubmit?: (data: any) => void
   isPreview?: boolean
@@ -79,6 +80,7 @@ function createFormSchema(sections: FormSection[]) {
 }
 
 export function DynamicForm({
+  showTimer = true,
   formData,
   onSubmit,
   isPreview = false,
@@ -194,8 +196,9 @@ export function DynamicForm({
   return (
     <div className="max-w-3xl mx-auto">
       <FormGuardWrapper
+        showTimer={showTimer}
+        timerPosition={"floating"}
         maxTime={30}
-        showTimer={true}
         onTimeExpired={onTimeExpired}
         onCopyPasteAttempt={() => console.log("USER COPY-PASTE")}
       >

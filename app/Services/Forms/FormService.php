@@ -102,7 +102,7 @@ class FormService
             foreach ($data['sections'] as $sectionData) {
                 // Handle section image upload
                 $sectionImagePath = null;
-                if (isset($sectionData['new_image']) && $sectionData['image'] instanceof \Illuminate\Http\UploadedFile) {
+                if (isset($sectionData['new_image']) && $sectionData['new_image'] instanceof \Illuminate\Http\UploadedFile) {
                     try {
                         $sectionImagePath = app(FileService::class)->uploadImage(
                             $sectionData['new_image'], 

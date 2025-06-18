@@ -26,6 +26,7 @@ export function FormPreview() {
             resetKeys={[formSections, formTitle]}
           >
             <DynamicForm
+              showTimer={true}
               formData={{
                 title : formTitle,
                 description : formDescription?? "",
