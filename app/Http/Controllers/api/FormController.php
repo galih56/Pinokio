@@ -5,7 +5,7 @@ use App\Helpers\ApiResponse;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Form\StoreFormRequest;
-use App\Http\Requests\Form\StoreFormResponseRequest;
+use App\Http\Requests\Form\StoreFormSubmissionRequest;
 use App\Http\Requests\Form\UpdateFormRequest;
 use App\Http\Requests\Form\GenerateLinkRequest;
 use App\Http\Requests\Form\UpdateFormLayoutRequest;
@@ -209,7 +209,7 @@ class FormController extends Controller
     }
 
 
-    public function storeFormResponse($id, StoreFormResponseRequest $request)
+    public function storeFormResponse($id, StoreFormSubmissionRequest $request)
     {
         DB::beginTransaction();
         try{

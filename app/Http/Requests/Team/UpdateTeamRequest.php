@@ -4,10 +4,10 @@ namespace App\Http\Requests\Team;
 
 use App\Models\TeamRole;
 use App\Services\HashIdService;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use App\Http\Requests\BaseRequest;
 
-class UpdateTeamRequest extends FormRequest
+class UpdateTeamRequest extends BaseRequest
 {
     public function __construct(protected HashIdService $hashidService)
     {

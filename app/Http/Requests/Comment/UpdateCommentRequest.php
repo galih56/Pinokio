@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Comment;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\BaseRequest;
 
-class UpdateCommentRequest extends FormRequest
+class UpdateCommentRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.

@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Task;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\BaseRequest;
 
-class UpdateTaskRequest extends FormRequest
+class UpdateTaskRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.

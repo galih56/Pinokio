@@ -3,12 +3,19 @@
 namespace App\Http\Requests\Form;
 
 use App\Services\Forms\FormService;
+use App\Http\Requests\BaseRequest;
+use Illuminate\Validation\Rule;
 
-class StoreFormSubmissionRequest extends FormRequest
+class StoreFormSubmissionRequest extends BaseRequest
 {
+    public function authorize(): bool
+    {
+        return true;
+    }
+
     public function rules(): array
     {
-        $form = app(FormService::class)->getFormWithLayout($this->route('form_id'));
+        $form = app(FormService::class)->getFormWithLayout($this->route('id'));
         
         $rules = [];
 

@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests\Team;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\BaseRequest;
 
-class GetTeamRequest extends FormRequest
+class GetTeamRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.

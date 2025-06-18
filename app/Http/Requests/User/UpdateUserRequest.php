@@ -4,9 +4,9 @@ namespace App\Http\Requests\User;
 
 use App\Models\UserRole;
 use App\Services\HashIdService;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\BaseRequest;
 
-class UpdateUserRequest extends FormRequest
+class UpdateUserRequest extends BaseRequest
 {
     /**
      * Determine if the user is authorized to make this request.

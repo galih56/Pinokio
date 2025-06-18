@@ -4,9 +4,9 @@ namespace App\Http\Requests\UserRole;
 
 use App\Models\UserRole;
 use App\Services\HashIdService;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Http\Requests\BaseRequest;
 
-class UpdateUserRoleRequest extends FormRequest
+class UpdateUserRoleRequest extends BaseRequest
 {
     public function authorize(): bool
     {

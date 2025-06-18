@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\Team;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Services\HashIdService;
+use App\Http\Requests\BaseRequest;
 
-class StoreTeamRequest extends FormRequest
+class StoreTeamRequest extends BaseRequest
 {
     public function __construct(protected HashIdService $hashidService)
     {

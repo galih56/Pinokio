@@ -2,10 +2,10 @@
 
 namespace App\Http\Requests\UserRole;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Services\HashIdService;
+use App\Http\Requests\BaseRequest;
 
-class StoreUserRoleRequest extends FormRequest
+class StoreUserRoleRequest extends BaseRequest
 {
     public function authorize(): bool
     {

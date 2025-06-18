@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Issue;
 
-use Illuminate\Foundation\Http\FormRequest;
 use App\Services\HashidService;
 use App\Http\Requests\BaseRequest;
 
