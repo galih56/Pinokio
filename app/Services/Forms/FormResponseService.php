@@ -172,9 +172,7 @@ class FormResponseService
         });
     }
 
-
-
-    private function processFieldValue($field, $value, $formId, $submissionId = null)
+private function processFieldValue($field, $value, $formId, $submissionId = null)
     {
         switch ($field->fieldType->name) {
             case 'checkbox':
@@ -185,14 +183,15 @@ class FormResponseService
             case 'radio':
                 // Validate that the value exists in options
                 $validOptions = $field->options->pluck('value')->toArray();
-                if (!in_array($value, $validOptions)) {
-                    throw new \Exception("Invalid option selected for field '{$field->label}'");
+                if (!empty($value) && !in_array($value, $validOptions)) {
+                    \Log::error('Value doesn\'t match one of the options : ' . $value. " | ".json_encode( $validOptions));
+                    return null;
                 }
                 return $value;
                 
             case 'file':
                 // Handle file upload
-                if ($value instanceof \Illuminate\Http\UploadedFile) {
+                if (!empty($value) && $value instanceof \Illuminate\Http\UploadedFile) {
                     $encrypted_form_id = app(HashIdService::class)->encode($formId);
                     $prefix_path = "form_responses/$encrypted_form_id/$submissionId";
                     
@@ -206,22 +205,24 @@ class FormResponseService
                         );
                     } catch (\Exception $e) {
                         \Log::error('Form response file upload failed: ' . $e->getMessage());
-                        throw new \Exception("Failed to upload file for field '{$field->label}'");
+                        return null;
                     }
                 }
                 return $value;
                 
             case 'number':
                 // Validate numeric value
-                if (!is_numeric($value)) {
-                    throw new \Exception("Field '{$field->label}' must be a number");
+                if (!empty($value) && !is_numeric($value)) {
+                    \Log::error("Field '{$field->label}' must be a number");
+                    return null;
                 }
                 return (float) $value;
                 
             case 'email':
                 // Validate email format
-                if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
-                    throw new \Exception("Field '{$field->label}' must be a valid email address");
+                if (!empty($value) && !filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                    \Log::error("Field '{$field->label}' must be a valid email address");
+                    return null;
                 }
                 return $value;
                 
@@ -230,7 +231,8 @@ class FormResponseService
                 try {
                     return \Carbon\Carbon::parse($value)->format('Y-m-d');
                 } catch (\Exception $e) {
-                    throw new \Exception("Field '{$field->label}' must be a valid date");
+                    \Log::error("Field '{$field->label}' must be a valid date");
+                    return null;
                 }
                 
             case 'datetime':
@@ -238,12 +240,14 @@ class FormResponseService
                 try {
                     return \Carbon\Carbon::parse($value)->format('Y-m-d H:i:s');
                 } catch (\Exception $e) {
-                    throw new \Exception("Field '{$field->label}' must be a valid datetime");
+                    \Log::error("Field '{$field->label}' must be a valid datetime");
+                    return null;
                 }
-                
             default:
                 return $value;
         }
     }
+
+
 }
 

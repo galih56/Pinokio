@@ -198,7 +198,7 @@ export function DynamicForm({
       <FormGuardWrapper
         showTimer={showTimer}
         timerPosition={"floating"}
-        maxTime={30}
+        maxTime={timeLimit}
         onTimeExpired={onTimeExpired}
         onCopyPasteAttempt={() => console.log("USER COPY-PASTE")}
       >

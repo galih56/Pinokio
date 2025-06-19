@@ -8,31 +8,45 @@ import { useState, useEffect, useRef, useCallback } from "react";
 interface FormGuardWrapperProps {
   children: React.ReactNode
   onTimerUpdate?: (seconds: number) => void
-  onTimeExpired?: () => void
+  onTimeExpired?: () => Promise<void> | void 
   onCopyPasteAttempt?: (type: "copy" | "cut" | "paste") => void
+  onServerError?: (error: Error, retryCount: number) => void
+  onRetrySuccess?: () => void
   showTimer?: boolean
   timerPosition?: "top-right" | "inline" | "floating"
   maxTime?: number
   manualStart?: boolean
   warningThreshold?: number
   warningType?: "percentage" | "seconds"
-  startTrigger?: "load" | "interaction" | "fieldChange" | "manual" 
-  dragBoundary?: number // pixels from screen edge (default: 20)
+  startTrigger?: "load" | "interaction" | "fieldChange" | "manual"
+  dragBoundary?: number
+  retryAttempts?: number // How many times to retry server call
+  retryDelay?: number // Delay between retries in ms
+  gracePeriod?: number // Extra time given when server fails (seconds)
+  fallbackAction?: () => void // What to do if all retries fail
 }
+
+type TimerState = "active" | "expired" | "retrying" | "failed" | "grace-period"
 
 const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   children,
   onTimerUpdate,
   onCopyPasteAttempt,
   onTimeExpired,
+  onServerError,
+  onRetrySuccess,
   showTimer = false,
   timerPosition = "top-right",
   maxTime = 60,
   manualStart = false,
   warningThreshold = 10,
   warningType = "seconds",
-  startTrigger = "load", 
-  dragBoundary = 20, // Default 20px from edges
+  startTrigger = "interaction",
+  dragBoundary = 20,
+  retryAttempts = 3,
+  retryDelay = 2000,
+  gracePeriod = 30,
+  fallbackAction,
 }) => {
   const [timeRemaining, setTimeRemaining] = useState(maxTime)
   const [isActive, setIsActive] = useState(false)
@@ -40,7 +54,9 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   const [isDragging, setIsDragging] = useState(false)
   const [isWarning, setIsWarning] = useState(false)
   const [isUrgent, setIsUrgent] = useState(false)
-  const [hasExpired, setHasExpired] = useState(false) 
+  const [timerState, setTimerState] = useState<TimerState>("active")
+  const [retryCount, setRetryCount] = useState(0)
+  const [gracePeriodRemaining, setGracePeriodRemaining] = useState(0)
 
   const timerId = useRef<number | null>(null)
   const startTime = useRef<number | null>(null)
@@ -48,9 +64,11 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   const scrollTimeout = useRef<number | null>(null)
   const timerRef = useRef<HTMLDivElement>(null)
   const dragStart = useRef<{ x: number; y: number } | null>(null)
-  const hasFieldChanged = useRef<boolean>(false) 
+  const hasFieldChanged = useRef<boolean>(false)
+  const retryTimeoutId = useRef<number | null>(null)
+  const gracePeriodTimeoutId = useRef<number | null>(null)
 
-  // Calculate effective warning threshold to handle edge cases
+  // Calculate effective warning threshold
   const getEffectiveWarningThreshold = useCallback(() => {
     if (warningType === "percentage") {
       const thresholdInSeconds = Math.ceil((warningThreshold / 100) * maxTime)
@@ -61,13 +79,13 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   }, [warningThreshold, warningType, maxTime])
 
   const startTimer = useCallback(() => {
-    if (startTime.current === null && !hasExpired) {
+    if (startTime.current === null && timerState === "active") {
       const elapsed = maxTime - timeRemaining
       startTime.current = Date.now() - elapsed * 1000
-      setHasExpired(false) // Reset expired flag when starting
+      setTimerState("active")
     }
     setIsActive(true)
-  }, [timeRemaining, maxTime, hasExpired])
+  }, [timeRemaining, maxTime, timerState])
 
   const stopTimer = useCallback(() => {
     setIsActive(false)
@@ -80,27 +98,102 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   const resetTimer = useCallback(() => {
     stopTimer()
     setTimeRemaining(maxTime)
-    setHasExpired(false) // Reset expired flag
+    setTimerState("active")
+    setRetryCount(0)
+    setGracePeriodRemaining(0)
     startTime.current = null
+
+    // Clear any pending timeouts
+    if (retryTimeoutId.current) {
+      clearTimeout(retryTimeoutId.current)
+      retryTimeoutId.current = null
+    }
+    if (gracePeriodTimeoutId.current) {
+      clearTimeout(gracePeriodTimeoutId.current)
+      gracePeriodTimeoutId.current = null
+    }
   }, [stopTimer, maxTime])
 
-  // Improved clampToViewport with stricter boundaries
+  // Handle server call with retry logic
+  const handleServerCall = useCallback(async () => {
+    if (!onTimeExpired) return
+
+    try {
+      setTimerState("retrying")
+      await onTimeExpired()
+
+      // Success
+      setTimerState("expired")
+      onRetrySuccess?.()
+    } catch (error) {
+      const currentRetry = retryCount + 1
+      setRetryCount(currentRetry)
+
+      onServerError?.(error as Error, currentRetry)
+
+      if (currentRetry < retryAttempts) {
+        // Schedule retry
+        retryTimeoutId.current = window.setTimeout(() => {
+          handleServerCall()
+        }, retryDelay)
+      } else {
+        // All retries failed
+        if (gracePeriod > 0) {
+          // Enter grace period
+          setTimerState("grace-period")
+          setGracePeriodRemaining(gracePeriod)
+
+          // Start grace period countdown
+          const graceStartTime = Date.now()
+          const graceInterval = setInterval(() => {
+            const elapsed = Math.floor((Date.now() - graceStartTime) / 1000)
+            const remaining = gracePeriod - elapsed
+
+            if (remaining > 0) {
+              setGracePeriodRemaining(remaining)
+            } else {
+              clearInterval(graceInterval)
+              setTimerState("failed")
+              fallbackAction?.()
+            }
+          }, 1000)
+
+          gracePeriodTimeoutId.current = window.setTimeout(() => {
+            clearInterval(graceInterval)
+            setTimerState("failed")
+            fallbackAction?.()
+          }, gracePeriod * 1000)
+        } else {
+          // No grace period, fail immediately
+          setTimerState("failed")
+          fallbackAction?.()
+        }
+      }
+    }
+  }, [onTimeExpired, retryCount, retryAttempts, retryDelay, gracePeriod, onServerError, onRetrySuccess, fallbackAction])
+
+  // Manual retry function
+  const manualRetry = useCallback(() => {
+    setRetryCount(0)
+    handleServerCall()
+  }, [handleServerCall])
+
+  // Improved clampToViewport
   const clampToViewport = useCallback(
     (x: number, y: number) => {
       if (!timerRef.current) return { x: 0, y: 0 }
 
       const timerRect = timerRef.current.getBoundingClientRect()
-      const timerWidth = timerRect.width || 200 // Fallback width
-      const timerHeight = timerRect.height || 80 // Fallback height
+      const timerWidth = timerRect.width || 200
+      const timerHeight = timerRect.height || 80
 
       const viewportWidth = window.innerWidth
       const viewportHeight = window.innerHeight
 
-      // Calculate boundaries with dragBoundary margin
       const minX = -(viewportWidth - timerWidth - dragBoundary)
-      const maxX = viewportWidth - timerWidth - dragBoundary - 20 // 20 is the initial right offset
+      const maxX = viewportWidth - timerWidth - dragBoundary - 20
       const minY = -dragBoundary
-      const maxY = viewportHeight - timerHeight - dragBoundary - 20 // 20 is the initial top offset
+      const maxY = viewportHeight - timerHeight - dragBoundary - 20
 
       return {
         x: Math.max(minX, Math.min(maxX, x)),
@@ -165,7 +258,7 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
     }
   }, [timerPosition, clampToViewport])
 
-  // Handle drag functionality with improved boundary checking
+  // Handle drag functionality
   const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
       if (timerPosition !== "floating") return
@@ -189,7 +282,6 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
         y: e.clientY - dragStart.current.y,
       }
 
-      // Apply clamping immediately during drag
       setTimerOffset(clampToViewport(newOffset.x, newOffset.y))
     },
     [isDragging, clampToViewport],
@@ -198,8 +290,6 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   const handleMouseUp = useCallback(() => {
     setIsDragging(false)
     dragStart.current = null
-
-    // Final clamp on mouse up to ensure position is valid
     setTimerOffset((prev) => clampToViewport(prev.x, prev.y))
   }, [clampToViewport])
 
@@ -218,7 +308,7 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   // Reset timer when maxTime changes
   useEffect(() => {
     setTimeRemaining(maxTime)
-    setHasExpired(false)
+    setTimerState("active")
   }, [maxTime])
 
   // Copy/paste prevention
@@ -250,7 +340,7 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
     }
   }, [onCopyPasteAttempt, stopTimer])
 
-  // Handle field change detection for startTrigger
+  // Handle field change detection
   useEffect(() => {
     if (startTrigger !== "fieldChange") return
 
@@ -259,7 +349,7 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
       if (target.matches("input, textarea, select")) {
         if (!hasFieldChanged.current) {
           hasFieldChanged.current = true
-          if (!isActive && !hasExpired) {
+          if (!isActive && timerState === "active") {
             startTimer()
           }
         }
@@ -273,19 +363,18 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
       document.removeEventListener("input", handleFieldChange)
       document.removeEventListener("change", handleFieldChange)
     }
-  }, [startTrigger, isActive, hasExpired, startTimer])
+  }, [startTrigger, isActive, timerState, startTimer])
 
   // Handle different start triggers
   useEffect(() => {
-    if (startTrigger === "load" && !isActive && !hasExpired) {
-      // Start immediately on load
+    if (startTrigger === "load" && !isActive && timerState === "active") {
       startTimer()
       return
     }
 
     if (startTrigger === "interaction") {
       const handleInteraction = () => {
-        if (!isActive && !hasExpired) {
+        if (!isActive && timerState === "active") {
           startTimer()
         }
       }
@@ -298,11 +387,11 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
         document.removeEventListener("keydown", handleInteraction)
       }
     }
-  }, [startTrigger, isActive, hasExpired, startTimer])
+  }, [startTrigger, isActive, timerState, startTimer])
 
-  // Timer logic with improved expiration handling
+  // Main timer logic
   useEffect(() => {
-    if (isActive) {
+    if (isActive && timerState === "active") {
       timerId.current = window.setInterval(() => {
         if (startTime.current !== null) {
           const elapsed = Math.floor((Date.now() - startTime.current) / 1000)
@@ -326,11 +415,8 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
             setIsUrgent(false)
             stopTimer()
 
-            // Only call onTimeExpired once
-            if (!hasExpired) {
-              setHasExpired(true)
-              onTimeExpired?.()
-            }
+            // Attempt server call with retry logic
+            handleServerCall()
           }
         }
       }, 1000)
@@ -344,7 +430,7 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
         window.clearInterval(timerId.current)
       }
     }
-  }, [isActive, maxTime, onTimerUpdate, onTimeExpired, stopTimer, getEffectiveWarningThreshold, hasExpired])
+  }, [isActive, timerState, maxTime, onTimerUpdate, stopTimer, getEffectiveWarningThreshold, handleServerCall])
 
   const formatTime = (timeInSeconds: number): string => {
     const minutes = Math.floor(timeInSeconds / 60)
@@ -354,9 +440,15 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
     return `${minutes}:${remainingSeconds}`
   }
 
-  // Get timer classes using cn function
+  // Get timer classes based on state
   const getTimerClasses = (baseClasses: string) => {
-    if (isWarning) {
+    if (timerState === "retrying") {
+      return cn(baseClasses, "bg-yellow-500 text-white border-yellow-600")
+    } else if (timerState === "grace-period") {
+      return cn(baseClasses, "bg-orange-500 text-white border-orange-600")
+    } else if (timerState === "failed") {
+      return cn(baseClasses, "bg-red-600 text-white border-red-700")
+    } else if (isWarning) {
       return cn(baseClasses, styles.warningState)
     } else {
       const percentage = (timeRemaining / maxTime) * 100
@@ -367,7 +459,13 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   }
 
   const getDotClasses = () => {
-    if (isWarning) {
+    if (timerState === "retrying") {
+      return "w-2 h-2 rounded-full bg-yellow-200 animate-spin"
+    } else if (timerState === "grace-period") {
+      return "w-2 h-2 rounded-full bg-orange-200 animate-pulse"
+    } else if (timerState === "failed") {
+      return "w-2 h-2 rounded-full bg-red-200"
+    } else if (isWarning) {
       return cn("w-2 h-2 rounded-full", styles.warningDot)
     } else if (timeRemaining > 0) {
       return cn("w-2 h-2 rounded-full", styles.pulsingDot)
@@ -380,20 +478,28 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
     return cn(
       styles.floatingTimer,
       isDragging ? styles.dragging : styles.notDragging,
-      isWarning && styles.warningState,
-      !isWarning && styles.normalState,
+      timerState === "retrying" && "bg-yellow-500 text-white border-yellow-600",
+      timerState === "grace-period" && "bg-orange-500 text-white border-orange-600",
+      timerState === "failed" && "bg-red-600 text-white border-red-700",
+      timerState === "active" && isWarning && styles.warningState,
+      timerState === "active" && !isWarning && styles.normalState,
       isUrgent ? styles.urgentBreathingAnimation : isWarning ? styles.breathingAnimation : "",
     )
   }
 
-  // Expose start/stop/reset functions for manual control
-  const timerControls = {
-    start: startTimer,
-    stop: stopTimer,
-    reset: resetTimer,
-    isActive,
-    timeRemaining,
-    hasExpired,
+  const getStatusText = () => {
+    switch (timerState) {
+      case "retrying":
+        return `Retrying... (${retryCount}/${retryAttempts})`
+      case "grace-period":
+        return `Grace period: ${formatTime(gracePeriodRemaining)}`
+      case "failed":
+        return "Connection failed"
+      case "expired":
+        return "Time's up!"
+      default:
+        return isWarning ? (isUrgent ? "URGENT!" : "Time running out!") : "Drag to move"
+    }
   }
 
   return (
@@ -404,8 +510,8 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
             "absolute top-2 right-2 rounded-md px-2 py-1 text-sm font-medium shadow-md z-10 border",
           )}
         >
-          {formatTime(timeRemaining)}
-          {timeRemaining === 0 && <span className="ml-1 text-xs">Time's Up!</span>}
+          {timerState === "grace-period" ? formatTime(gracePeriodRemaining) : formatTime(timeRemaining)}
+          {timerState === "expired" && <span className="ml-1 text-xs">Time's Up!</span>}
         </div>
       )}
 
@@ -414,11 +520,23 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-1">
               <div className={getDotClasses()} />
-              {formatTime(timeRemaining)}
+              {timerState === "grace-period" ? formatTime(gracePeriodRemaining) : formatTime(timeRemaining)}
             </div>
-            {timeRemaining === 0 && <span className="text-xs font-bold">Time's Up!</span>}
-            {isWarning && timeRemaining > 0 && <span className={cn("text-xs font-bold", styles.bounceIcon)}>⚠️</span>}
-            {(startTrigger === "manual" || manualStart) && !isActive && timeRemaining > 0 && !hasExpired && (
+            {timerState === "expired" && <span className="text-xs font-bold">Time's Up!</span>}
+            {timerState === "retrying" && <span className="text-xs font-bold">🔄</span>}
+            {timerState === "grace-period" && <span className="text-xs font-bold">⏳</span>}
+            {timerState === "failed" && (
+              <button
+                onClick={manualRetry}
+                className="px-2 py-1 bg-white text-red-600 rounded text-xs hover:bg-gray-100 transition-colors"
+              >
+                Retry
+              </button>
+            )}
+            {isWarning && timerState === "active" && (
+              <span className={cn("text-xs font-bold", styles.bounceIcon)}>⚠️</span>
+            )}
+            {(startTrigger === "manual" || manualStart) && !isActive && timerState === "active" && (
               <button
                 onClick={startTimer}
                 className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition-colors"
@@ -427,17 +545,15 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
               </button>
             )}
           </div>
-          <div className="text-xs opacity-75 mt-1 text-center">
-            {hasExpired ? "Expired" : isWarning ? (isUrgent ? "URGENT!" : "Time running out!") : "Drag to move"}
-          </div>
+          <div className="text-xs opacity-75 mt-1 text-center">{getStatusText()}</div>
         </div>
       )}
 
       {showTimer && timerPosition === "inline" && (
         <div className={getTimerClasses("inline-block rounded-md px-2 py-1 text-sm font-medium shadow-sm mr-2 border")}>
-          {formatTime(timeRemaining)}
-          {timeRemaining === 0 && <span className="ml-1 text-xs">Time's Up!</span>}
-          {(startTrigger === "manual" || manualStart) && !isActive && timeRemaining > 0 && !hasExpired && (
+          {timerState === "grace-period" ? formatTime(gracePeriodRemaining) : formatTime(timeRemaining)}
+          {timerState === "expired" && <span className="ml-1 text-xs">Time's Up!</span>}
+          {(startTrigger === "manual" || manualStart) && !isActive && timerState === "active" && (
             <button onClick={startTimer} className="ml-2 px-2 py-1 bg-blue-500 text-white rounded-md text-xs">
               Start
             </button>
