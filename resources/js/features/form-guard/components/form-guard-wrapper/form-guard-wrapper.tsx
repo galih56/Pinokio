@@ -39,13 +39,13 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   timerPosition = "top-right",
   maxTime = 60,
   manualStart = false,
-  warningThreshold = 10,
+  warningThreshold = 30,
   warningType = "seconds",
   startTrigger = "interaction",
   dragBoundary = 20,
   retryAttempts = 3,
   retryDelay = 2000,
-  gracePeriod = 30,
+  gracePeriod = 60, // seconds
   fallbackAction,
 }) => {
   const [timeRemaining, setTimeRemaining] = useState(maxTime)

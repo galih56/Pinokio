@@ -322,6 +322,10 @@ class FormService
         return FieldType::where('name', $type)->value('id')
             ?? throw new \RuntimeException("Invalid field type: {$type}");
     }
-
+    
+    public function generateId($prefix = '', $length = 8)
+    {
+        return $prefix . bin2hex(random_bytes($length / 2));
+    }
 
 }

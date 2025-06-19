@@ -1,0 +1,597 @@
+{
+    "data" : [
+        {
+            "title": "TESTING PINOKIO",
+            "description": null,
+            "sections": [
+                {
+                    "id": "section_1",
+                    "label": "Section 1",
+                    "order": 0,
+                    "fields": [
+                        {
+                            "id": "field_1",
+                            "type": "text",
+                            "label": "Text Field",
+                            "placeholder": "",
+                            "is_required": false
+                        },
+                        {
+                            "id": "field_2",
+                            "type": "email",
+                            "label": "Email Field",
+                            "placeholder": "",
+                            "is_required": false
+                        },
+                        {
+                            "id": "field_3",
+                            "type": "select",
+                            "label": "Select Field",
+                            "placeholder": "",
+                            "is_required": false,
+                            "options": [
+                                { "id": "option_1", "label": "Option 1", "value": "option_1" },
+                                { "id": "option_2", "label": "Option 2", "value": "option_2" },
+                                { "id": "option_3", "label": "Option 3", "value": "option_3" }
+                            ]
+                        },
+                        {
+                            "id": "field_4",
+                            "type": "radio",
+                            "label": "Radio Field",
+                            "placeholder": "",
+                            "is_required": false,
+                            "options": [
+                                { "id": "option_4", "label": "Option 1", "value": "option_4" },
+                                { "id": "option_5", "label": "Option 2", "value": "option_5" },
+                                { "id": "option_6", "label": "Option 3", "value": "option_6" },
+                                { "id": "option_7", "label": "Option 4", "value": "option_7" }
+                            ]
+                        },
+                        {
+                            "id": "field_5",
+                            "type": "select",
+                            "label": "Select Field",
+                            "placeholder": "",
+                            "is_required": false,
+                            "options": [
+                                { "id": "option_8", "label": "Option 1", "value": "option_8" },
+                                { "id": "option_9", "label": "Option 2", "value": "option_9" }
+                            ]
+                        },
+                        {
+                            "id": "field_6",
+                            "type": "textarea",
+                            "label": "Textarea Field",
+                            "placeholder": "",
+                            "is_required": false
+                        }
+                    ]
+                },
+                {
+                "id": "section_2",
+                "label": "Section 2",
+                "order": 1,
+                "fields": [
+                    { "id": "field_7", "type": "number", "label": "Number Field", "placeholder": "", "is_required": false },
+                    { "id": "field_8", "type": "tel", "label": "Tel Field", "placeholder": "", "is_required": false },
+                    {
+                        "id": "field_9",
+                        "type": "checkbox",
+                        "label": "Checkbox Field",
+                        "placeholder": "",
+                        "is_required": false,
+                        "options": [
+                            { "id": "option_10", "label": "Option 1", "value": "option_10" },
+                            { "id": "option_11", "label": "Option 2", "value": "option_11" }
+                        ]
+                    },
+                    {
+                        "id": "field_10",
+                        "type": "tel",
+                        "label": "Tel Field",
+                        "placeholder": "",
+                        "is_required": false
+                    },
+                    {
+                        "id": "field_11",
+                        "type": "url",
+                        "label": "Url Field",
+                        "placeholder": "",
+                        "is_required": false
+                    }
+                ]
+                }
+            ]
+        },
+        {
+            "title": "Asesmen Kognitif",
+            "description" : null,
+            "sections" : [
+                {
+                    "id": "section_1",
+                    "label": "Section 1",
+                    "order": 0,
+                    "fields": [
+                        {
+                            "id": "field_ktp",
+                            "type": "text",
+                            "label": "KTP",
+                            "placeholder": "KTP",
+                            "is_required": true
+                        },
+                        {
+                            "id": "field_full_name",
+                            "type": "number",
+                            "label": "Nama Lengkap (sesuai KTP)",
+                            "placeholder": "KTP",
+                            "is_required": true
+                        },
+                        {
+                            "id": "field_job_position",
+                            "type": "text",
+                            "label": "Posisi yang dilamar",
+                            "placeholder": "KTP",
+                            "is_required": true
+                        },
+                        {
+                            "id": "field_Bulan lalu pada awal tahun ini adalah…",
+                            "type": "radio",
+                            "label": "Bulan lalu pada awal tahun ini adalah…",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_4", "label": "Januari", "value": "Januari" },
+                                { "id": "option_5", "label": "Maret", "value": "Maret" },
+                                { "id": "option_6", "label": "Juli", "value": "Juli" },
+                                { "id": "option_7", "label": "Desember", "value": "Desember" },
+                                { "id": "option_7", "label": "Oktober", "value": "Oktober" }
+                            ]
+                        },
+                        {
+                            "id": "field_Menangkap adalah lawan kata dari...",
+                            "type": "radio",
+                            "label": "Menangkap adalah lawan kata dari...",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_4", "label": "Meletakkan", "value": "Meletakkan" },
+                                { "id": "option_5", "label": "Membebaskan", "value": "Membebaskan" },
+                                { "id": "option_6", "label": "Beresiko", "value": "Beresiko" },
+                                { "id": "option_7", "label": "Berusaha", "value": "Berusaha" },
+                                { "id": "option_7", "label": "Turun tingkat", "value": "Turun tingkat" }
+                            ]
+                        },
+                        {
+                            "id": "field_Sebagian besar hal dibawah ini serupa satu sama lain. Manakah salah satu diantaranya yang kurang serupa dengan yang lain?",
+                            "type": "radio",
+                            "label": "Sebagian besar hal dibawah ini serupa satu sama lain. Manakah salah satu diantaranya yang kurang serupa dengan yang lain?",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_4", "label": "Januari", "value": "Januari" },
+                                { "id": "option_5", "label": "Agustus", "value": "Agustus" },
+                                { "id": "option_6", "label": "Rabu", "value": "Rabu" },
+                                { "id": "option_7", "label": "Oktober", "value": "Oktober" },
+                                { "id": "option_7", "label": "Desember", "value": "Desember" }
+                            ]
+                        },
+                        {
+                            "id": "field_Jawablah dengan menuliskan YA atau TIDAK. Apakah RSVP berarti \"jawablah yang tidak perlu\"?",
+                            "type": "radio",
+                            "label": "Jawablah dengan menuliskan YA atau TIDAK. Apakah RSVP berarti \"jawablah yang tidak perlu\"?",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_4", "label": "YA", "value": "YA" },
+                                { "id": "option_5", "label": "TIDAK", "value": "TIDAK" }
+                            ]
+                        },
+                        {
+                            "id": "field_Dalam kelompok kata berikut, manakah kata yang berbeda dari kata yang lain?",
+                            "type": "radio",
+                            "label": "Dalam kelompok kata berikut, manakah kata yang berbeda dari kata yang lain?",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_1", "label": "Pasukan", "value": "Pasukan" },
+                                { "id": "option_2", "label": "Liga", "value": "Liga" },
+                                { "id": "option_3", "label": "Berpartisipasi", "value": "Berpartisipasi" },
+                                { "id": "option_4", "label": "Pak", "value": "Pak" },
+                                { "id": "option_5", "label": "Kelompok", "value": "Kelompok" }
+                            ]
+                        },
+                        {
+                            "id": "field_\"BIASA\" adalah lawan kata dari..",
+                            "type": "radio",
+                            "label": "\"BIASA\" adalah lawan kata dari..",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_1", "label": "Jarang", "value": "Jarang" },
+                                { "id": "option_2", "label": "Terbiasa", "value": "Terbiasa" },
+                                { "id": "option_3", "label": "Tetap", "value": "Tetap" },
+                                { "id": "option_4", "label": "Berhenti", "value": "Berhenti" },
+                                { "id": "option_5", "label": "Selalu", "value": "Selalu" }
+                            ]
+                        },
+                        {
+                            "id": "field_Gambar manakah yang terbuat dari dua gambar di dalam tanda kurung?",
+                            "type": "radio",
+                            "label": "Gambar manakah yang terbuat dari dua gambar di dalam tanda kurung?",
+                            "placeholder": "",
+                            "new_image" : "/form_presets/images/2_gambar_di_dalam_kurung.jpg",
+                            "options": [
+                                { "id": "option_1", "label": "1", "value": "1" },
+                                { "id": "option_2", "label": "2", "value": "2" },
+                                { "id": "option_3", "label": "3", "value": "3" },
+                                { "id": "option_4", "label": "4", "value": "4" },
+                                { "id": "option_5", "label": "5", "value": "5" }
+                            ]
+                        },
+                        {
+                            "id": "field_Perhatikan urutan angka berikut. Angka berapa yang selanjutnya muncul? \n 8     4     2      1     0.5     0.25 ?",
+                            "type": "text",
+                            "label": "Perhatikan urutan angka berikut. Angka berapa yang selanjutnya muncul? \n 8     4     2      1     0.5     0.25 ?",
+                            "placeholder": ""
+                        },
+                        {
+                            "id": "field_\"Klien dan Pelanggan\". Apakah kata-kata ini:",
+                            "type": "radio",
+                            "label": "\"Klien dan Pelanggan\". Apakah kata-kata ini:",
+                            "placeholder": "", 
+                            "options": [
+                                { "id": "option_1", "label": "Memiliki arti yang sama", "value": "Memiliki arti yang sama" },
+                                { "id": "option_2", "label": "Memiliki arti berlawanan", "value": "Memiliki arti berlawanan" },
+                                { "id": "option_3", "label": "Tidak memiliki arti sama atau berlainan", "value": "Tidak memiliki arti sama atau berlainan" }
+                            ]
+                        },
+                        {
+                            "id": "field_Manakah kata berikut ini yang berhubungan dengan aroma gigi saat mengunyah?:",
+                            "type": "radio",
+                            "label": "Manakah kata berikut ini yang berhubungan dengan aroma gigi saat mengunyah?:",
+                            "placeholder": "", 
+                            "options": [
+                                { "id": "option_1", "label": "Manis", "value": "Manis" },
+                                { "id": "option_2", "label": "Bau tak sedap", "value": "Bau tak sedap" },
+                                { "id": "option_3", "label": "Bau wangi", "value": "Bau wangi" },
+                                { "id": "option_4", "label": "Hidung", "value": "Hidung" },
+                                { "id": "option_5", "label": "Bersih", "value": "Bersih" }
+                            ]
+                        },
+                        {
+                            "id": "field_ \"Musim Gugur\" adalah lawan kata dari..",
+                            "type": "radio",
+                            "label": "\"Musim Gugur\" adalah lawan kata dari..",
+                            "placeholder": "", 
+                            "options": [
+                                { "id": "option_1", "label": "Liburan", "value": "Liburan" },
+                                { "id": "option_2", "label": "Musim panas", "value": "Musim panas" },
+                                { "id": "option_3", "label": "Musim semi", "value": "Musim semi" },
+                                { "id": "option_4", "label": "Musim dingin", "value": "Musim dingin" },
+                                { "id": "option_5", "label": "Musim gugur", "value": "Musim gugur" }
+                            ]
+                        },
+                        {
+                            "id": "field_Sebuah pesawat terbang 300 kaki dalam 1/2 detik. Pada kecepatan yang sama berapa kaki ia terbang dalam 10 detik?",
+                            "type": "text",
+                            "label": "Sebuah pesawat terbang 300 kaki dalam 1/2 detik. Pada kecepatan yang sama berapa kaki ia terbang dalam 10 detik?",
+                            "placeholder": "" 
+                        },
+                        {
+                            "id": "field_Anggaplah dua pernyataan pertama adalah benar. \"Anak-anak lelaki ini adalah anak yang normal\", \"Semua anak normal sifatnya aktif\", \"Anak-anak lelaki ini aktif\". Apakah pernyataan yang terakhir ini?",
+                            "type": "radio",
+                            "label": "Anggaplah dua pernyataan pertama adalah benar. \"Anak-anak lelaki ini adalah anak yang normal\", \"Semua anak normal sifatnya aktif\", \"Anak-anak lelaki ini aktif\". Apakah pernyataan yang terakhir ini?",
+                            "placeholder": "", 
+                            "options": [
+                                { "id": "option_1", "label": "Benar", "value": "Benar" },
+                                { "id": "option_2", "label": "Salah", "value": "Salah" },
+                                { "id": "option_3", "label": "Tidak tahu", "value": "Tidak tahu" }
+                            ]
+                        },
+                        {
+                            "id": "field_JAUH adalah lawan kata dari...",
+                            "type": "radio",
+                            "label": "JAUH adalah lawan kata dari...",
+                            "placeholder": "", 
+                            "options": [
+                                { "id": "option_1", "label": "Terpencil", "value": "Terpencil" },
+                                { "id": "option_2", "label": "Dekat", "value": "Dekat" },
+                                { "id": "option_2", "label": "Terburu-buru", "value": "Terburu-buru" },
+                                { "id": "option_2", "label": "Pasti", "value": "Pasti" },
+                                { "id": "option_3", "label": "Jauh", "value": "Jauh" }
+                            ]
+                        },
+                        {
+                            "id": "field_3 permen lemon seharga 10 rupiah. Berapa harga 1/2 lusin?",
+                            "type": "text",
+                            "label": "3 permen lemon seharga 10 rupiah. Berapa harga 1/2 lusin?",
+                            "placeholder": "" 
+                        },
+                        {
+                            "id": "field_Berapa banyak duplikasi yang sama dari lima pasangan angka dibawah ini?",
+                            "type": "text",
+                            "label": "Berapa banyak duplikasi yang sama dari lima pasangan angka dibawah ini?",
+                            "placeholder": "",
+                            "new_image" : "/form_presets/images/duplikasi_angka.jpg"
+                        },
+                        {
+                            "id": "field_Misalkan anda menyusun kata-kata berikut sehingga menjadi pernyataan yang benar. Lalu tuliskan huruf terakhir dari kata terakhir sebagai jawaban. \"Selalu sebuah kata kerja kalimat suatu memiliki\"...",
+                            "type": "text",
+                            "label": "Misalkan anda menyusun kata-kata berikut sehingga menjadi pernyataan yang benar. Lalu tuliskan huruf terakhir dari kata terakhir sebagai jawaban. \"Selalu sebuah kata kerja kalimat suatu memiliki\"...",
+                            "placeholder": "" 
+                        },
+                        {
+                            "id": "field_Anak lelaki berumur 5 tahun dan saudara perempuannya dua kali lebih tua. Ketika anak lelaki itu berumur 8 tahun, berapa umur saudara perempuannya?",
+                            "type": "text",
+                            "label": "Anak lelaki berumur 5 tahun dan saudara perempuannya dua kali lebih tua. Ketika anak lelaki itu berumur 8 tahun, berapa umur saudara perempuannya?",
+                            "placeholder": "" 
+                        },
+                        {
+                            "id": "field_IT'S ITS \n Apakah kata-kata ini :",
+                            "type": "radio",
+                            "label": "IT'S ITS \n Apakah kata-kata ini :",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_1", "label": "Memiliki arti yang sama", "value": "Memiliki arti yang sama" },
+                                { "id": "option_2", "label": "Memiliki arti berlawanan", "value": "Memiliki arti berlawanan" },
+                                { "id": "option_3", "label": "Tidak memiliki arti sama atau berlainan", "value": "Tidak memiliki arti sama atau berlainan" }
+                            ]
+                        },
+                        {
+                            "id": "field_Anggaplah dua pernyataan pertama adalah benar.",
+                            "type": "radio",
+                            "label": "Anggaplah dua pernyataan pertama adalah benar. \n 1. \"John seusia dengan Sally. \n 2. Sally lebih muda dari Bill. \n 3. John lebih muda dari Bill\". \n Apakah pernyataan terakhir :",
+                            "placeholder": "", 
+                            "options": [
+                                { "id": "option_1", "label": "Benar", "value": "Benar" },
+                                { "id": "option_2", "label": "Salah", "value": "Salah" },
+                                { "id": "option_2", "label": "Tidak tahu", "value": "Tidak tahu" }
+                            ]
+                        },
+                        {
+                            "id": "field_Seorang dealer membeli beberapa barrel seharga 4000 rupiah. Ia menjual dengan harga 5000 rupiah, mendapat untung 50 rupiah setiap barrel. Berapa banyak barrel yang dijual?",
+                            "type": "text",
+                            "label": "Seorang dealer membeli beberapa barrel seharga 4000 rupiah. Ia menjual dengan harga 5000 rupiah, mendapat untung 50 rupiah setiap barrel. Berapa banyak barrel yang dijual?",
+                            "placeholder": "" 
+                        },
+                        {
+                            "id": "field_Misalkan anda menyusun kata-kata berikut sehingga menjadi kalimat lengkap. \"telur menghasilkan semua ayam\" ",
+                            "type": "radio",
+                            "label": "Misalkan anda menyusun kata-kata berikut sehingga menjadi kalimat lengkap. \"telur menghasilkan semua ayam\" ",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_1", "label": "Benar", "value": "Benar" },
+                                { "id": "option_2", "label": "Salah", "value": "Salah" },
+                                { "id": "option_2", "label": "Tidak tahu", "value": "Tidak tahu" }
+                            ]
+                        },
+                        {
+                            "id": "field_Dua dari peribahasa berikut ini memiliki arti sama. Manakah itu?",
+                            "type": "checkbox",
+                            "label": "Dua dari peribahasa berikut ini memiliki arti sama. Manakah itu?",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_1", "label": "Semakin banyak memiliki sapi, akan memiliki satu anak sapi yang buruk.", "value": "Semakin banyak memiliki sapi, akan memiliki satu anak sapi yang buruk." },
+                                { "id": "option_2", "label": "Anak seperti ayahnya", "value": "Anak seperti ayahnya" },
+                                { "id": "option_3", "label": "Bila tertinggal sama jauhnya dengan satu mil", "value": "Bila tertinggal sama jauhnya dengan satu mil" },
+                                { "id": "option_4", "label": "Seorang dikenal dari persahabatan yang dijalin", "value": "Seorang dikenal dari persahabatan yang dijalin" },
+                                { "id": "option_5", "label": "Mereka adalah benih dari mangkuk yang sama", "value": "Mereka adalah benih dari mangkuk yang sama" }
+                            ]
+                        },
+                        {
+                            "id": "field_Sebuah jam terlambat 1 menit 18 detik dalam 39 hari. Berapa detik ia terlambat dalam sehari?",
+                            "type": "number",
+                            "label": "Sebuah jam terlambat 1 menit 18 detik dalam 39 hari. Berapa detik ia terlambat dalam sehari?",
+                            "placeholder": "" 
+                        },
+                        {
+                            "id": "field_CANVASS   CANVAS \n Apakah kata-kata ini :",
+                            "type": "radio",
+                            "label": "CANVASS   CANVAS \n Apakah kata-kata ini :",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_1", "label": "Memiliki arti yang sama", "value": "Memiliki arti yang sama" },
+                                { "id": "option_2", "label": "Memiliki arti berlawanan", "value": "Memiliki arti berlawanan" },
+                                { "id": "option_3", "label": "Tidak memiliki arti sama atau berlainan", "value": "Tidak memiliki arti sama atau berlainan" }
+                            ]
+                        },
+                        {
+                            "id": "field_Anggaplah dua pernyataan pertama adalah benar. \"Semua siswa mengikuti ujian\", \"Beberapa orang di ruangan ini adalah siswa\", \"Beberapa orang di ruangan ini mengikuti ujian\". \n Jadi, pernyataan terakhir adalah...",
+                            "type": "radio",
+                            "label": "Anggaplah dua pernyataan pertama adalah benar. \"Semua siswa mengikuti ujian\", \"Beberapa orang di ruangan ini adalah siswa\", \"Beberapa orang di ruangan ini mengikuti ujian\". \n Jadi, pernyataan terakhir adalah...",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_1", "label": "Benar", "value": "Benar" },
+                                { "id": "option_2", "label": "Salah", "value": "Salah" },
+                                { "id": "option_3", "label": "Tidak tahu", "value": "Tidak tahu" }
+                            ]
+                        },
+                        {
+                            "id": "field_Dalam 30 hari seorang menabung 1 dolar. Berapa rata-rata tabungannya setiap hari?",
+                            "type": "text",
+                            "label": "Dalam 30 hari seorang menabung 1 dolar. Berapa rata-rata tabungannya setiap hari?",
+                            "placeholder": "" 
+                        },
+                        {
+                            "id": "field_INGENIOUS    INGENUOUS  \n Apakah kata-kata ini :",
+                            "type": "radio",
+                            "label": "INGENIOUS    INGENUOUS  \n Apakah kata-kata ini :",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_1", "label": "Memiliki arti yang sama", "value": "Memiliki arti yang sama" },
+                                { "id": "option_2", "label": "Memiliki arti berlawanan", "value": "Memiliki arti berlawanan" },
+                                { "id": "option_3", "label": "Tidak memiliki arti sama atau berlainan", "value": "Tidak memiliki arti sama atau berlainan" }
+                            ]
+                        },
+                        {
+                            "id": "field_Dua orang menangkap 36 ikan. X menangkap 5 kali lebih banyak daripada Y. Berapa ikan yang ditangkap Y?",
+                            "type": "text",
+                            "label": "Dua orang menangkap 36 ikan. X menangkap 5 kali lebih banyak daripada Y. Berapa ikan yang ditangkap Y?",
+                            "placeholder": "" 
+                        },
+                        {
+                            "id": "field_Sebuah kotak segi empat, yang terisi penuh, memuat 800 kubik kaki gandum. Jika satu kotak lebarnya 8 kaki dan panjangnya 10 kaki, berapa kedalaman kotak itu?",
+                            "type": "text",
+                            "label": "Sebuah kotak segi empat, yang terisi penuh, memuat 800 kubik kaki gandum. Jika satu kotak lebarnya 8 kaki dan panjangnya 10 kaki, berapa kedalaman kotak itu?",
+                            "placeholder": "" 
+                        },
+                        {
+                            "id": "field_ Satu angka dari rangkaian berikut tidak cocok dengan pola angka yang lainnya. Angka berapakah itu? 1/2 1/4 1/6 1/8 1/9 1/12",
+                            "type": "text",
+                            "label": " Satu angka dari rangkaian berikut tidak cocok dengan pola angka yang lainnya. Angka berapakah itu? 1/2 1/4 1/6 1/8 1/9 1/12",
+                            "placeholder": "" 
+                        },
+                        {
+                            "id": "field_ Jawablah pertanyaan ini dengan menulis YA atau TIDAK. Apakah P.M. berarti \"post merediem\"?",
+                            "type": "text",
+                            "label": " Jawablah pertanyaan ini dengan menulis YA atau TIDAK. Apakah P.M. berarti \"post merediem\"?",
+                            "placeholder": "" 
+                        },
+                        {
+                            "id": "field_DAPAT DIPERCAYA    GAMPANG PERCAYA. Apakah kata-kata ini...",
+                            "type": "radio",
+                            "label": "DAPAT DIPERCAYA    GAMPANG PERCAYA. Apakah kata-kata ini...",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_1", "label": "Memiliki arti yang sama", "value": "Memiliki arti yang sama" },
+                                { "id": "option_2", "label": "Memiliki arti berlawanan", "value": "Memiliki arti berlawanan" },
+                                { "id": "option_3", "label": "Tidak memiliki arti sama atau berlainan", "value": "Tidak memiliki arti sama atau berlainan" }
+                            ]
+                        },
+                        {
+                            "id": "field_ Sebuah rok membutuhkan 2 1/4 meter kain. Berapa banyak potong yang dihasilkan dari 45 meter kain?",
+                            "type": "text",
+                            "label": " Sebuah rok membutuhkan 2 1/4 meter kain. Berapa banyak potong yang dihasilkan dari 45 meter kain?",
+                            "placeholder": "" 
+                        },
+                        {
+                            "id": "field_ Sebuah jam menunjuk tepat pada pukul 12 siang hari pada hari Senin. Pada pukul 2 siang, hari Rabu, jam itu terlambat 26 detik. Pada rata-rata yang sama, berapa banyak jam itu terlambat dalam 1/2 jam?",
+                            "type": "text",
+                            "label": " Sebuah jam menunjuk tepat pada pukul 12 siang hari pada hari Senin. Pada pukul 2 siang, hari Rabu, jam itu terlambat 26 detik. Pada rata-rata yang sama, berapa banyak jam itu terlambat dalam 1/2 jam?",
+                            "placeholder": "" 
+                        },
+                        {
+                            "id": "field_ Tim bisbol kami kalah 9 permainan dalam musim ini. Ini merupakan 3/8 bagian dari semua pertandingan mereka. Berapa banyak pertandingan yang mereka mainkan dalam musim kompetisi saat ini?",
+                            "type": "text",
+                            "label": " Tim bisbol kami kalah 9 permainan dalam musim ini. Ini merupakan 3/8 bagian dari semua pertandingan mereka. Berapa banyak pertandingan yang mereka mainkan dalam musim kompetisi saat ini?",
+                            "placeholder": "" 
+                        },
+                        {
+                            "id": "field_Apakah angka selanjutnya dari seri ini?   1   .5   .25   .125?",
+                            "type": "text",
+                            "label": "Apakah angka selanjutnya dari seri ini?   1   .5   .25   .125?",
+                            "placeholder": "" 
+                        },
+                        {
+                            "id": "field_Bentuk geometris ini dapat dibagi oleh suatu garis lurus menjadi dua bagian yang dapat disatukan dengan suatu cara hingga membentuk bujur sangkar yang sempurna. Gambarlah garis yang menghubungkan dua dari angka-angka yang ada (dalam pikiran anda). Lalu tuliskan angka tersebut sebagai jawaban",
+                            "type": "text",
+                            "label": "Bentuk geometris ini dapat dibagi oleh suatu garis lurus menjadi dua bagian yang dapat disatukan dengan suatu cara hingga membentuk bujur sangkar yang sempurna. Gambarlah garis yang menghubungkan dua dari angka-angka yang ada (dalam pikiran anda). Lalu tuliskan angka tersebut sebagai jawaban",
+                            "placeholder": "",
+                            "new_image": "/form_presets/images/bentuk_geometri.jpg"
+                        },
+                        {
+                            "id": "field_\"Sebuah sapu yang baru menyapu dengan bersih. Sepatu yang sudah lama sifatnya makin lunak\". \n Apakah arti dari kalimat berikut :",
+                            "type": "radio",
+                            "label": "\"Sebuah sapu yang baru menyapu dengan bersih. Sepatu yang sudah lama sifatnya makin lunak\". \n Apakah arti dari kalimat berikut :",
+                            "placeholder": "",
+                            
+                            "options": [
+                                { "id": "option_1", "label": "Sama", "value": "Sama" },
+                                { "id": "option_2", "label": "Berlawanan", "value": "Berlawanan" },
+                                { "id": "option_3", "label": "Tidak memiliki arti sama atau berlawanan", "value": "Tidak memiliki arti sama atau berlawanan" }
+                            ]
+                        },
+                        {
+                            "id": "field_Berapa duplikasi dari pasangan kata berikut ini?",
+                            "type": "number",
+                            "label": "Berapa duplikasi dari pasangan kata berikut ini?",
+                            "placeholder": "",
+                            "new_image": "/form_presets/images/duplikasi_angka_1.jpg"
+                        },
+                        {
+                            "id": "field_Dua dari peribahasa berikut ini memiliki arti sama. Manakah itu?",
+                            "type": "checkbox",
+                            "label": "Dua dari peribahasa berikut ini memiliki arti sama. Manakah itu?",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_1", "label": "Anda tidak dapat membuat dompet sutra dari kuping babi betina.", "value": "Anda tidak dapat membuat dompet sutra dari kuping babi betina." },
+                                { "id": "option_2", "label": "Orang yang mencuri telur akan mencuri sapi.", "value": "Orang yang mencuri telur akan mencuri sapi." },
+                                { "id": "option_3", "label": "Batu yang berguling tidak akan mengumpulkan lumut", "value": "Batu yang berguling tidak akan mengumpulkan lumut" },
+                                { "id": "option_4", "label": "Anda tidak mungkin menghancurkan kapal yang sudah rusak.", "value": "Anda tidak mungkin menghancurkan kapal yang sudah rusak." },
+                                { "id": "option_5", "label": "Ini ketidakmungkinan yang terjadi", "value": "Ini ketidakmungkinan yang terjadi" }
+                            ]
+                        },
+                        {
+                            "id": "field_Gambar geometris ini dapat dibagi dengan garis lurus menjadi dua bagian yang dapat disatukan untuk membentuk sebuah bujur sangkar yang sempurna. Gambarlah suatu garis dengan menghubungkan dua angka (dalam pikiran anda). Lalu tulislah angka itu sebagai jawaban.",
+                            "type": "text",
+                            "label": "Gambar geometris ini dapat dibagi dengan garis lurus menjadi dua bagian yang dapat disatukan untuk membentuk sebuah bujur sangkar yang sempurna. Gambarlah suatu garis dengan menghubungkan dua angka (dalam pikiran anda). Lalu tulislah angka itu sebagai jawaban.",
+                            "placeholder": "",
+                            "new_image": "/form_presets/images/bentuk_geometri_1.jpg"
+                        },
+                        {
+                            "id": "field_Dalam kelompok angka berikut ini, manakah angka yang terkecil? 10   1   .999   .33   11",
+                            "type": "text",
+                            "label": "Dalam kelompok angka berikut ini, manakah angka yang terkecil? 10   1   .999   .33   11",
+                            "placeholder": ""
+                        },
+                        {
+                            "id": "field_\"Tidak ada orang jujur meminta maaf atas kejujurannya\", \"Kejujuran dihormati dan lapar pujian\". Apakah makna dari kalimat berikut :",
+                            "type": "radio",
+                            "label": "\"Tidak ada orang jujur meminta maaf atas kejujurannya\", \"Kejujuran dihormati dan lapar pujian\". Apakah makna dari kalimat berikut :",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_1", "label": "Sama", "value": "Sama" },
+                                { "id": "option_2", "label": "Berlawanan", "value": "Berlawanan" },
+                                { "id": "option_3", "label": "Tidak memiliki arti sama atau berlawanan", "value": "Tidak memiliki arti sama atau berlawanan" }
+                            ]
+                        },
+                        {
+                            "id": "field_Dengan harga 1.80 dolar, seorang grosir membeli satu kardus buah yang berisi 12 lusin. Ia tahu dua lusin akan busuk sebelum dia menjualnya. Dengan harga berapa per lusin dia harus menjual jeruk itu untuk mendapat 1/3 dari harga seluruhnya?",
+                            "type": "text",
+                            "label": "Dengan harga 1.80 dolar, seorang grosir membeli satu kardus buah yang berisi 12 lusin. Ia tahu dua lusin akan busuk sebelum dia menjualnya. Dengan harga berapa per lusin dia harus menjual jeruk itu untuk mendapat 1/3 dari harga seluruhnya?",
+                            "placeholder": ""
+                        },
+                        {
+                            "id": "field_Dalam rangkaian kata berikut ini, manakah kata yang berbeda dari yang lainnya?",
+                            "type": "radio",
+                            "label": "Dalam rangkaian kata berikut ini, manakah kata yang berbeda dari yang lainnya?",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_1", "label": "Koloni", "value": "Koloni" },
+                                { "id": "option_2", "label": "Perkawanan", "value": "Perkawanan" },
+                                { "id": "option_2", "label": "Kawanan", "value": "Kawanan" },
+                                { "id": "option_2", "label": "Kru", "value": "Kru" },
+                                { "id": "option_3", "label": "Konstelasi", "value": "Konstelasi" }
+                            ]
+                        },
+                        {
+                            "id": "field_Anggaplah dua pernyataan ini benar.  \"Orang besar dibodohi\", \"Saya dibodohi\", \"Saya adalah orang besar\". Apakah pernyataan terakhir :",
+                            "type": "radio",
+                            "label": "Anggaplah dua pernyataan ini benar.  \"Orang besar dibodohi\", \"Saya dibodohi\", \"Saya adalah orang besar\". Apakah pernyataan terakhir :",
+                            "placeholder": "",
+                            "options": [
+                                { "id": "option_1", "label": "Benar", "value": "Benar" },
+                                { "id": "option_2", "label": "Salah", "value": "Salah" },
+                                { "id": "option_2", "label": "Tidak Tahu", "value": "Tidak Tahu" }
+                            ]
+                        },
+                        {
+                            "id": "field_Tiga orang membetuk kemitraan dan setuju membagi keuntungan secara rata. X menginvestasi 4500 dolar. Y sebesar 3500 dolar dan Z sebesar 2000 dolar. Jika keuntungan mencapai 1500 dolar, lebih kurang berapa yang akan diperoleh X dibanding jika keuntungan dibagi berdasarkan besarnya inventasi?",
+                            "type": "text",
+                            "label": "Tiga orang membetuk kemitraan dan setuju membagi keuntungan secara rata. X menginvestasi 4500 dolar. Y sebesar 3500 dolar dan Z sebesar 2000 dolar. Jika keuntungan mencapai 1500 dolar, lebih kurang berapa yang akan diperoleh X dibanding jika keuntungan dibagi berdasarkan besarnya inventasi?",
+                            "placeholder": ""
+                        },
+                        {
+                            "id": "field_Empat (4) dari lima (5) bagian ini dapat gabungkan untuk membuat segitiga. Manakah keempat gambar ini?",
+                            "type": "text",
+                            "label": "Empat (4) dari lima (5) bagian ini dapat gabungkan untuk membuat segitiga. Manakah keempat gambar ini?",
+                            "placeholder": "",
+                            "new_image": "/form_presets/images/2_segitiga.jpg"
+                        },
+                        {
+                            "id": "field_Untuk mencetak sebuah artikel berisi 30.000 kata, sbeuah percetakan memutuskan untuk memakai dua ukuran jenis. Dengan menggunakan tipe yang lebih besar, sebuah halaman tercetak akan memuat 1.200 kata. Dengan tipe yang lebih kecil, sebuah halaman memuat 1.500 kata. Artikel ini masuk dalam 22 halaman di majalah. Berapa banyak halaman yang dibutuhkan untuk tipe yang lebih kecil?",
+                            "type": "text",
+                            "label": "Untuk mencetak sebuah artikel berisi 30.000 kata, sbeuah percetakan memutuskan untuk memakai dua ukuran jenis. Dengan menggunakan tipe yang lebih besar, sebuah halaman tercetak akan memuat 1.200 kata. Dengan tipe yang lebih kecil, sebuah halaman memuat 1.500 kata. Artikel ini masuk dalam 22 halaman di majalah. Berapa banyak halaman yang dibutuhkan untuk tipe yang lebih kecil?",
+                            "placeholder": ""
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
