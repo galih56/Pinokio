@@ -8,6 +8,10 @@ class HashIdService
 {
     protected $hashids;
 
+    /*
+        I need to build this service class just because the encode returns an array. 
+        So i need to do 1 extra step to get the actual id from that array
+    */
     public function __construct()
     {
         $this->hashids = new Hashids(env('HASHID_SALT'), 15);
