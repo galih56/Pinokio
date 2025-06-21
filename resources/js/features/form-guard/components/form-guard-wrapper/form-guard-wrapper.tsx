@@ -1,14 +1,14 @@
 "use client"
 
-import { cn } from "@/lib/utils";
-import styles from "./time-indicator.module.css";
 import type React from "react"
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react"
+import styles from "./time-indicator.module.css";
+import { cn } from "@/lib/utils"
 
 interface FormGuardWrapperProps {
   children: React.ReactNode
   onTimerUpdate?: (seconds: number) => void
-  onTimeExpired?: () => Promise<void> | void 
+  onTimeExpired?: () => Promise<void> | void
   onCopyPasteAttempt?: (type: "copy" | "cut" | "paste") => void
   onServerError?: (error: Error, retryCount: number) => void
   onRetrySuccess?: () => void
@@ -39,13 +39,13 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   timerPosition = "top-right",
   maxTime = 60,
   manualStart = false,
-  warningThreshold = 30,
+  warningThreshold = 10,
   warningType = "seconds",
   startTrigger = "interaction",
   dragBoundary = 20,
   retryAttempts = 3,
   retryDelay = 2000,
-  gracePeriod = 60, // seconds
+  gracePeriod = 30,
   fallbackAction,
 }) => {
   const [timeRemaining, setTimeRemaining] = useState(maxTime)
@@ -67,8 +67,10 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   const hasFieldChanged = useRef<boolean>(false)
   const retryTimeoutId = useRef<number | null>(null)
   const gracePeriodTimeoutId = useRef<number | null>(null)
+  const gracePeriodStartTime = useRef<number | null>(null)
+  const lastUpdateTime = useRef<number>(Date.now())
+  const hasExpiredRef = useRef<boolean>(false)
 
-  // Calculate effective warning threshold
   const getEffectiveWarningThreshold = useCallback(() => {
     if (warningType === "percentage") {
       const thresholdInSeconds = Math.ceil((warningThreshold / 100) * maxTime)
@@ -78,11 +80,85 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
     }
   }, [warningThreshold, warningType, maxTime])
 
+  // Calculate current time remaining based on actual elapsed time
+  const calculateTimeRemaining = useCallback(() => {
+    if (!startTime.current || !isActive || timerState !== "active") {
+      return timeRemaining
+    }
+
+    const now = Date.now()
+    const elapsed = Math.floor((now - startTime.current) / 1000)
+    const remaining = Math.max(0, maxTime - elapsed)
+
+    return remaining
+  }, [isActive, timerState, maxTime, timeRemaining])
+
+  // Calculate grace period remaining
+  const calculateGracePeriodRemaining = useCallback(() => {
+    if (!gracePeriodStartTime.current || timerState !== "grace-period") {
+      return gracePeriodRemaining
+    }
+
+    const now = Date.now()
+    const elapsed = Math.floor((now - gracePeriodStartTime.current) / 1000)
+    const remaining = Math.max(0, gracePeriod - elapsed)
+
+    return remaining
+  }, [timerState, gracePeriod, gracePeriodRemaining])
+
+  // Update timer display and check for expiry
+  const updateTimer = useCallback(() => {
+    const now = Date.now()
+    lastUpdateTime.current = now
+
+    if (timerState === "active" && isActive && startTime.current) {
+      const remaining = calculateTimeRemaining()
+      setTimeRemaining(remaining)
+
+      const effectiveThreshold = getEffectiveWarningThreshold()
+      const shouldWarn = remaining <= effectiveThreshold
+      const shouldBeUrgent = remaining <= Math.min(5, effectiveThreshold / 2)
+
+      setIsWarning(shouldWarn)
+      setIsUrgent(shouldBeUrgent && shouldWarn)
+
+      onTimerUpdate?.(remaining)
+
+      // Check for expiry
+      if (remaining <= 0 && !hasExpiredRef.current) {
+        hasExpiredRef.current = true
+        setTimeRemaining(0)
+        setIsWarning(false)
+        setIsUrgent(false)
+        stopTimer()
+        handleServerCall()
+      }
+    } else if (timerState === "grace-period" && gracePeriodStartTime.current) {
+      const remaining = calculateGracePeriodRemaining()
+      setGracePeriodRemaining(remaining)
+
+      // Check for grace period expiry
+      if (remaining <= 0) {
+        setTimerState("failed")
+        fallbackAction?.()
+      }
+    }
+  }, [
+    timerState,
+    isActive,
+    calculateTimeRemaining,
+    calculateGracePeriodRemaining,
+    getEffectiveWarningThreshold,
+    onTimerUpdate,
+    fallbackAction,
+  ])
+
   const startTimer = useCallback(() => {
     if (startTime.current === null && timerState === "active") {
       const elapsed = maxTime - timeRemaining
       startTime.current = Date.now() - elapsed * 1000
       setTimerState("active")
+      hasExpiredRef.current = false
     }
     setIsActive(true)
   }, [timeRemaining, maxTime, timerState])
@@ -102,6 +178,8 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
     setRetryCount(0)
     setGracePeriodRemaining(0)
     startTime.current = null
+    gracePeriodStartTime.current = null
+    hasExpiredRef.current = false
 
     // Clear any pending timeouts
     if (retryTimeoutId.current) {
@@ -141,25 +219,10 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
         if (gracePeriod > 0) {
           // Enter grace period
           setTimerState("grace-period")
+          gracePeriodStartTime.current = Date.now()
           setGracePeriodRemaining(gracePeriod)
 
-          // Start grace period countdown
-          const graceStartTime = Date.now()
-          const graceInterval = setInterval(() => {
-            const elapsed = Math.floor((Date.now() - graceStartTime) / 1000)
-            const remaining = gracePeriod - elapsed
-
-            if (remaining > 0) {
-              setGracePeriodRemaining(remaining)
-            } else {
-              clearInterval(graceInterval)
-              setTimerState("failed")
-              fallbackAction?.()
-            }
-          }, 1000)
-
           gracePeriodTimeoutId.current = window.setTimeout(() => {
-            clearInterval(graceInterval)
             setTimerState("failed")
             fallbackAction?.()
           }, gracePeriod * 1000)
@@ -177,6 +240,43 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
     setRetryCount(0)
     handleServerCall()
   }, [handleServerCall])
+
+  // Handle visibility change (tab switching)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // Tab became visible - recalculate time immediately
+        console.log("Tab became visible, recalculating time...")
+        updateTimer()
+      }
+    }
+
+    document.addEventListener("visibilitychange", handleVisibilityChange)
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange)
+    }
+  }, [updateTimer])
+
+  // Handle page focus/blur for additional reliability
+  useEffect(() => {
+    const handleFocus = () => {
+      console.log("Window focused, recalculating time...")
+      updateTimer()
+    }
+
+    const handleBlur = () => {
+      console.log("Window blurred")
+    }
+
+    window.addEventListener("focus", handleFocus)
+    window.addEventListener("blur", handleBlur)
+
+    return () => {
+      window.removeEventListener("focus", handleFocus)
+      window.removeEventListener("blur", handleBlur)
+    }
+  }, [updateTimer])
 
   // Improved clampToViewport
   const clampToViewport = useCallback(
@@ -309,6 +409,7 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
   useEffect(() => {
     setTimeRemaining(maxTime)
     setTimerState("active")
+    hasExpiredRef.current = false
   }, [maxTime])
 
   // Copy/paste prevention
@@ -389,37 +490,16 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
     }
   }, [startTrigger, isActive, timerState, startTimer])
 
-  // Main timer logic
+  // Main timer logic - now more reliable with tab switching
   useEffect(() => {
-    if (isActive && timerState === "active") {
+    if (isActive && (timerState === "active" || timerState === "grace-period")) {
+      // Use a shorter interval for more responsive updates
       timerId.current = window.setInterval(() => {
-        if (startTime.current !== null) {
-          const elapsed = Math.floor((Date.now() - startTime.current) / 1000)
-          const remaining = maxTime - elapsed
+        updateTimer()
+      }, 100) // Update every 100ms for smoother display
 
-          if (remaining >= 0) {
-            setTimeRemaining(remaining)
-
-            const effectiveThreshold = getEffectiveWarningThreshold()
-            const shouldWarn = remaining <= effectiveThreshold
-            const shouldBeUrgent = remaining <= Math.min(5, effectiveThreshold / 2)
-
-            setIsWarning(shouldWarn)
-            setIsUrgent(shouldBeUrgent && shouldWarn)
-
-            onTimerUpdate?.(remaining)
-          } else {
-            // Timer expired
-            setTimeRemaining(0)
-            setIsWarning(false)
-            setIsUrgent(false)
-            stopTimer()
-
-            // Attempt server call with retry logic
-            handleServerCall()
-          }
-        }
-      }, 1000)
+      // Also update immediately
+      updateTimer()
     } else if (!isActive && timerId.current) {
       window.clearInterval(timerId.current)
       timerId.current = null
@@ -430,7 +510,7 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
         window.clearInterval(timerId.current)
       }
     }
-  }, [isActive, timerState, maxTime, onTimerUpdate, stopTimer, getEffectiveWarningThreshold, handleServerCall])
+  }, [isActive, timerState, updateTimer])
 
   const formatTime = (timeInSeconds: number): string => {
     const minutes = Math.floor(timeInSeconds / 60)
@@ -545,7 +625,6 @@ const FormGuardWrapper: React.FC<FormGuardWrapperProps> = ({
               </button>
             )}
           </div>
-          <div className="text-xs opacity-75 mt-1 text-center">{getStatusText()}</div>
         </div>
       )}
 
