@@ -14,7 +14,6 @@ class Form extends Model
         'type',
         'form_code',
         'form_url',
-        'access_type',
         'identifier_label',
         'identifier_description',
         'identifier_type',

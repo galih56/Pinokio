@@ -102,7 +102,7 @@ export function ImageUpload({ currentImage, onImageChange, label = "Add Image" }
             <PreviewableImage
               image={previewUrl}
               alt={"Uploaded image"}
-              className="w-full max-h-48 object-cover rounded-lg shadow-sm"
+              className="w-full rounded-lg shadow-sm"
             />
             <Button variant="destructive" size="sm" className="absolute top-2 right-2" onClick={removeImage}>
               <X className="h-4 w-4" />

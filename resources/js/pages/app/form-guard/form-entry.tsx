@@ -1,22 +1,41 @@
 "use client"
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DynamicForm } from "@/features/form-guard/components/form-builder/dynamic-form"
-import { useLoaderData, useNavigate } from "react-router-dom"
-import { LoaderData } from "./form-builder"
+import { LoaderFunctionArgs, useLoaderData, useNavigate } from "react-router-dom"
 import { ErrorBoundary } from "react-error-boundary"
 import { FormErrorFallback } from "@/features/form-guard/components/form-builder/form-error-boundary"
-import { useGetFormLayout } from "@/features/form-guard/api/use-get-form-layout"
 import { toast } from "sonner"
 import { AxiosError } from "axios"
 import { Spinner } from "@/components/ui/spinner";
+import { getPublicFormLayoutQueryOptions, useGetPublicFormLayout } from "@/features/form-guard/api/get-public-form-layout"
+import { QueryClient } from "@tanstack/react-query"
+
+type LoaderData = {
+  formId: string;
+  form: any;
+};
+
+export const formLayoutLoader =
+  (queryClient: QueryClient) =>
+  async ({ params }: LoaderFunctionArgs) => {
+    const formId = params.id;
+    console.log(formId)
+    const formQuery = getPublicFormLayoutQueryOptions(formId);
+
+    const form = await queryClient.ensureQueryData(formQuery)
+
+    return {
+      formId,
+      form,
+    };
+};
 
 
 export const FormEntry = () => {
   const { formId } = useLoaderData() as { formId: string }; 
   const navigate = useNavigate();
 
-  const { data, isPending, error} = useGetFormLayout({
+  const { data, isPending, error} = useGetPublicFormLayout({
     formId,
     queryConfig: {
       enabled: !!formId,
@@ -47,7 +66,7 @@ export const FormEntry = () => {
   if (!form || !form.sections) {
     return <div>Form data not available</div>;
   }
-  console.log(form.timeLimit)
+  
   return (
     <div className="max-w-2xl mx-auto">
       <ErrorBoundary

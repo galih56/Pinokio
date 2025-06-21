@@ -2,6 +2,7 @@
 
 namespace App\Services\Forms;
 
+use App\Exceptions\FormExpiredException;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +20,7 @@ use App\Models\Forms\FormEntry;
 
 use Illuminate\Support\Str;
 use App\Services\FileService;
-use App\Services\HashIdService;
+use Vinkla\Hashids\Facades\Hashids;
 
 class FormService
 {
@@ -87,7 +88,7 @@ class FormService
     public function updateFormLayout(int $id, array $data)
     {
         $model = $this->model->find($id);
-        $encrypted_form_id = app(HashIdService::class)->encode($model->id);
+        $encrypted_form_id = Hashids::encode($model->id);
         $prefix_image_path = "forms/$encrypted_form_id";
 
         DB::transaction(function () use ($data, $model, $prefix_image_path) {
@@ -165,7 +166,7 @@ class FormService
                             'placeholder' => $fieldData['placeholder'] ?? null,
                             'is_required' => $fieldData['is_required'] ?? false,
                             'order' => $fieldOrder++,
-                            'field_type_id' => $this->resolveFieldTypeId($fieldData['type']),
+                            'field_type_id' => FieldType::resolveFieldType($fieldData['type']),
                             'min' => $fieldData['min'] ?? null,
                             'max' => $fieldData['max'] ?? null,
                             'rows' => $fieldData['rows'] ?? null,
@@ -217,10 +218,30 @@ class FormService
     /**
      * Delete a form.
      */
-    public function delete(int $id): bool
+    public function delete(int $id)
     {
-        $model = $this->model->find($id);
-        return $model->delete();
+        DB::transaction(function () use ($id) {
+            $form = Form::with([
+                'sections.fields.options',
+                'sections.fields',
+                'sections'
+            ])->findOrFail($id);
+
+            // Delete options
+            foreach ($form->sections as $section) {
+                foreach ($section->fields as $field) {
+                    $field->options()->delete();
+                }
+                // Delete fields
+                $section->fields()->delete();
+            }
+
+            // Delete sections
+            $form->sections()->delete();
+
+            // Finally, delete the form
+            $form->delete();
+        });
     }
 
     public function getFormWithLayout(int $id){
@@ -315,12 +336,6 @@ class FormService
         }
 
         return $matches[1];
-    }
-    
-    protected function resolveFieldTypeId(string $type): int
-    {
-        return FieldType::where('name', $type)->value('id')
-            ?? throw new \RuntimeException("Invalid field type: {$type}");
     }
     
     public function generateId($prefix = '', $length = 8)

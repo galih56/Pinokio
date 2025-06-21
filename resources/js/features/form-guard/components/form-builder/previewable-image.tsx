@@ -1,3 +1,4 @@
+import { useImagePreviewerStore } from "@/components/ui/image-previewer"
 import { useEffect, useState } from "react"
 
 interface ImageSource {
@@ -13,7 +14,8 @@ interface PreviewableImageProps {
 }
 
 export const PreviewableImage = ({ image, alt, className }: PreviewableImageProps) => {
-  const [displayUrl, setDisplayUrl] = useState<string>("")
+  const [displayUrl, setDisplayUrl] = useState<string>("");
+  const { setSelectedImage } = useImagePreviewerStore()
   
   useEffect(() => {
     if (!image) {
@@ -55,6 +57,7 @@ export const PreviewableImage = ({ image, alt, className }: PreviewableImageProp
       src={displayUrl}
       alt={alt}
       className={className}
+      onClick={() => setSelectedImage(displayUrl)}
       onError={(e) => {
         e.currentTarget.src = "/assets/images/placeholder.svg"
       }}

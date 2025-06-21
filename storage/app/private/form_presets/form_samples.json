@@ -3,6 +3,10 @@
         {
             "title": "TESTING PINOKIO",
             "description": null,
+            "proctored" : false,
+            "time_limit" : null,
+            "expires_at" : null,
+            "requires_token" : true,
             "sections": [
                 {
                     "id": "section_1",
@@ -107,10 +111,14 @@
         {
             "title": "Asesmen Kognitif",
             "description" : null,
+            "proctored" : true,
+            "time_limit" : 900,
+            "expires_at" : null,
+            "requires_token" : true,
             "sections" : [
                 {
                     "id": "section_1",
-                    "label": "Section 1",
+                    "label": "Data Diri",
                     "order": 0,
                     "fields": [
                         {
@@ -133,7 +141,15 @@
                             "label": "Posisi yang dilamar",
                             "placeholder": "KTP",
                             "is_required": true
-                        },
+                        }
+                    ]
+                },
+                {
+                    "id" : "section_1",
+                    "label" : "Assessment",
+                    "order" : 1,
+                    "fields" : [
+                        
                         {
                             "id": "field_Bulan lalu pada awal tahun ini adalah…",
                             "type": "radio",

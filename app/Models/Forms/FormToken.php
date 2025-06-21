@@ -8,6 +8,10 @@ class FormToken extends Model
 {
     use HasFactory;
 
+    public $timestamps = true;
+
+    const UPDATED_AT = null; 
+
     protected $fillable = [
         'form_id',
         'token',

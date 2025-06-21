@@ -7,6 +7,16 @@ import { queryClient } from '@/lib/react-query';
 import { Layout } from './layout';
 import { AppRootErrorBoundary } from '@/components/ui/app-root-error-boundary';
 
+const lazyFormEntry = async () => {
+    const { formLayoutLoader, FormEntry } = await import(
+        '@/pages/app/form-guard/form-entry'
+    );
+    return {
+        Component: FormEntry,
+        loader: formLayoutLoader(queryClient),
+    };
+};
+
 export const createAppRouter = (queryClient: QueryClient) => {
   const routes =  createBrowserRouter([
     {
@@ -20,34 +30,12 @@ export const createAppRouter = (queryClient: QueryClient) => {
       children: [
         {
           path: paths.form.path,
-          lazy: async () => {
-            const { formLayoutLoader } = await import(
-              '@/pages/app/form-guard/form-builder'
-            );
-            const { FormEntry } = await import(
-              '@/pages/app/form-guard/form-entry'
-            );
-            return {
-              Component: FormEntry,
-              loader: formLayoutLoader(queryClient),
-            };
-          },
+          lazy: lazyFormEntry,
           ErrorBoundary: AppRootErrorBoundary,
         },
         {
           path: paths.formResponse.path,
-          lazy: async () => {
-            const { formLayoutLoader } = await import(
-              '@/pages/app/form-guard/form-builder'
-            );
-            const { FormEntry } = await import(
-              '@/pages/app/form-guard/form-entry'
-            );
-            return {
-              Component: FormEntry,
-              loader: formLayoutLoader(queryClient),
-            };
-          },
+          lazy: lazyFormEntry,
           ErrorBoundary: AppRootErrorBoundary,
         }, 
         {

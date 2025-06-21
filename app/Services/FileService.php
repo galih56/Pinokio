@@ -177,4 +177,50 @@ class FileService
 
         return $this->upload($file, $directory, $uploader, $storeToFileTable);
     }
+    
+    /**
+     * Copy a static file between disks (default local/private to local/private)
+     *
+     * @param string $sourcePath   Path relative to source disk root
+     * @param string $targetPath   Path relative to target disk root (including folder and filename)
+     * @param string $sourceDisk   Source disk (default: local)
+     * @param string $targetDisk   Target disk (default: local)
+     * @param bool $overwrite      If true, will overwrite existing file
+     * @return string              Path of copied file (relative to target disk root)
+     * @throws Exception           If source file does not exist
+     */
+    public function copyFile(
+        string $sourcePath,
+        string $targetPath,
+        string $sourceDisk = 'local',
+        string $targetDisk = 'local',
+        bool $overwrite = false
+    ): string
+    {
+        // Normalize paths
+        $sourcePath = ltrim($sourcePath, '/');
+        $targetPath = ltrim($targetPath, '/');
+
+        // Check source exists
+        if (!Storage::disk($sourceDisk)->exists($sourcePath)) {
+            throw new Exception("Source file not found: disk=$sourceDisk path=$sourcePath");
+        }
+
+        // If target exists and overwrite = false → skip
+        if (!$overwrite && Storage::disk($targetDisk)->exists($targetPath)) {
+            return $targetPath;
+        }
+
+        // Make sure target folder exists
+        Storage::disk($targetDisk)->makeDirectory(dirname($targetPath));
+
+        // Copy file
+        Storage::disk($targetDisk)->put(
+            $targetPath,
+            Storage::disk($sourceDisk)->get($sourcePath)
+        );
+
+        return $targetPath;
+    }
+
 }

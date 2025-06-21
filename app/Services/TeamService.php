@@ -6,13 +6,9 @@ use App\Models\Team;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Facades\DB;
-use Exception;
 use App\Helpers\QueryProcessor;
 use App\Helpers\ColorGenerator;
 use Auth;
-use App\Services\HashidService;
 
 class TeamService
 {

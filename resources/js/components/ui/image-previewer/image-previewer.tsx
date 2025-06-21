@@ -25,7 +25,7 @@ const ImagePreviewer: React.FC = () => {
                     />
                 </div>
                 <button
-                    className="absolute top-2 right-1 p-2 text-gray-700 bg-slate-200 rounded-full"
+                    className="absolute top-2 right-1 p-1 text-gray-700 bg-slate-200 rounded-full"
                     onClick={closePreviewer}
                     style={{ zIndex: 9999 }}
                 >

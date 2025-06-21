@@ -15,4 +15,10 @@ class FieldType extends Model
     {
         return $this->hasMany(FormField::class);
     }
+    
+    static public function resolveFieldType(string $type): int
+    {
+        return self::where('name', $type)->value('id')
+            ?? throw new \RuntimeException("Invalid field type: {$type}");
+    }
 }

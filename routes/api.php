@@ -71,12 +71,22 @@ Route::group([
     Route::group([
         'middleware' => ['decode_id', 'auth:sanctum']
     ], function () {
+        Route::put('/{id}/status', [IssueController::class, 'updateIssueStatus']);
         Route::get('/{id}', [IssueController::class, 'show']);
         Route::put('/{id}', [IssueController::class, 'update']);
-        Route::put('/{id}/status', [IssueController::class, 'updateIssueStatus']);
         Route::patch('/{id}', [IssueController::class, 'update']);
         Route::delete('/{id}', [IssueController::class, 'destroy']);
     });
+});
+
+Route::group([
+    "prefix" => "form-guard",
+    'middleware' => [
+        'decode_id',
+    ]
+], function () {
+    Route::get('/{id}', [FormController::class, 'getFormWithLayout']);
+    Route::post('/{id}/responses', [FormController::class, 'storeFormResponse']);
 });
 
 Route::group([
@@ -91,25 +101,15 @@ Route::group([
     ], function () {
         Route::post('/', [FormController::class, 'store']);
         Route::post('/{id}/generate-link', [FormController::class, 'generateLink']);
-        Route::get('/{id}', [FormController::class, 'show']);
-        Route::put('/{id}', [FormController::class, 'update']);
-        Route::patch('/{id}', [FormController::class, 'update']);
         Route::get('/{id}/layout', [FormController::class, 'getFormWithLayout']);
         Route::post('/{id}/layout', [FormController::class, 'updateFormLayout']);
         Route::get('/{id}/responses', [FormController::class, 'getFormResponses']);
         Route::get('/{id}/responses/export', [FormController::class, 'export']);
+        Route::get('/{id}', [FormController::class, 'show']);
+        Route::put('/{id}', [FormController::class, 'update']);
+        Route::patch('/{id}', [FormController::class, 'update']);
         Route::delete('/{id}', [FormController::class, 'destroy']);
     });
-});
-
-Route::group([
-    "prefix" => "form-guard",
-    'middleware' => [
-        'decode_id',
-    ]
-], function () {
-    Route::get('/{id}/layout', [FormController::class, 'getFormWithLayout']);
-    Route::post('/{id}/responses', [FormController::class, 'storeFormResponse']);
 });
 
 Route::group([

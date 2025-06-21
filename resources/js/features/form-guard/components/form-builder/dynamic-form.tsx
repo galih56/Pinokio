@@ -20,7 +20,7 @@ import type { Form as FormData, FormSection } from "@/types/form"
 import { useMemo, useState } from "react"
 import { toast } from "sonner"
 import { PreviewableImage } from "./previewable-image"
-import { useSubmitFormResponse } from "../../api/use-submit-form-response"
+import { useSubmitFormResponse } from "../../api/submit-form-response"
 import FormGuardWrapper from "../form-guard-wrapper/form-guard-wrapper"
 
 interface DynamicFormProps {
@@ -254,7 +254,7 @@ export function DynamicForm({
                         <PreviewableImage
                           image={currentSection.displayImage}
                           alt={currentSection.label}
-                          className="w-full max-h-64 object-cover rounded-lg shadow-sm"
+                          className="w-full rounded-lg shadow-sm"
                         />
                       </div>
                     )}
@@ -285,7 +285,7 @@ export function DynamicForm({
                                   {field.isRequired && <span className="text-red-500">*</span>}
                                 </FormLabel>
                                 {field.placeholder && (
-                                  <FormDescription className="text-sm text-gray-500">{field.placeholder}</FormDescription>
+                                  <FormDescription className="text-sm text-gray-500">{!!field.placeholder ? field.placeholder : "Type here..."}</FormDescription>
                                 )}
                               </div>
 
@@ -294,7 +294,7 @@ export function DynamicForm({
                                   <PreviewableImage
                                     image={field.displayImage}
                                     alt={field.label}
-                                    className="w-full max-h-48 object-cover rounded-lg shadow-sm"
+                                    className="w-full rounded-lg shadow-sm"
                                   />
                                 </div>
                               )}
@@ -302,7 +302,7 @@ export function DynamicForm({
                               <FormControl>
                                 {field.type === "textarea" ? (
                                   <Textarea
-                                    placeholder={field.placeholder}
+                                    placeholder={!!field.placeholder ? field.placeholder : "Type here..."}
                                     rows={field.rows || 4}
                                     className="resize-y"
                                     {...formField}
@@ -370,7 +370,7 @@ export function DynamicForm({
                                 ) : (
                                   <Input
                                     type={field.type}
-                                    placeholder={field.placeholder}
+                                    placeholder={!!field.placeholder ? field.placeholder : "Type here..."}
                                     min={field.min}
                                     max={field.max}
                                     {...formField}

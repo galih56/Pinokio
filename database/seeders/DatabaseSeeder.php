@@ -15,7 +15,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             // UserRoleSeeder::class,
             // AdminUserSeeder::class,
-            FieldTypeSeeder::class
+            // FieldTypeSeeder::class, 
+            FormSamplesSeeder::class
         ]);
     }
 }

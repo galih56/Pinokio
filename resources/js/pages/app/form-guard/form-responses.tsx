@@ -5,9 +5,9 @@ import { useParams, LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
 import { NotFoundRoute } from '@/pages/not-found';
 import { RouteErrorFallback } from '@/components/layout/error-fallbacks';
 import { FormResponses } from '@/features/form-guard/components/form-builder/form-responses';
-import { getFormResponsesQueryOptions } from '@/features/form-guard/api/use-get-form-responses';
+import { getFormResponsesQueryOptions } from '@/features/form-guard/api/get-form-responses';
 import { useBreadcrumbSync } from '@/components/layout/breadcrumbs/breadcrumbs-store';
-import { getFormLayoutQueryOptions } from '@/features/form-guard/api/use-get-form-layout';
+import { getFormLayoutQueryOptions } from '@/features/form-guard/api/get-form-layout';
 
 type LoaderData = {
   formId: string;

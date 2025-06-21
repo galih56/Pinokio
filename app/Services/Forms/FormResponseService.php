@@ -9,9 +9,9 @@ use App\Models\Forms\FormEntry;
 use App\Models\Forms\FormSubmission;
 use App\Models\Forms\FormToken;
 use App\Services\FileService;
-use App\Services\HashIdService;
 use App\Exports\FormResponseExport;
 use DB;
+use Vinkla\Hashids\Facades\Hashids;
 
 class FormResponseService
 {
@@ -192,11 +192,11 @@ private function processFieldValue($field, $value, $formId, $submissionId = null
             case 'file':
                 // Handle file upload
                 if (!empty($value) && $value instanceof \Illuminate\Http\UploadedFile) {
-                    $encrypted_form_id = app(HashIdService::class)->encode($formId);
+                    $encrypted_form_id = Hashids::encode($formId);
                     $prefix_path = "form_responses/$encrypted_form_id/$submissionId";
                     
                     try {
-                        return app(FileService::class)->uploadFile(
+                        return app(FileService::class)->upload(
                             $value,
                             $prefix_path,
                             auth()->user(),

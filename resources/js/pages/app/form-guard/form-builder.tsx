@@ -4,7 +4,7 @@ import { useParams, LoaderFunctionArgs, useLoaderData } from 'react-router-dom';
 
 import { NotFoundRoute } from '@/pages/not-found';
 import { RouteErrorFallback } from '@/components/layout/error-fallbacks';
-import { getFormLayoutQueryOptions } from '@/features/form-guard/api/use-get-form-layout';
+import { getFormLayoutQueryOptions } from '@/features/form-guard/api/get-form-layout';
 import { FormBuilder } from '@/features/form-guard/components/form-builder/form-builder';
 import { useBreadcrumbSync } from '@/components/layout/breadcrumbs/breadcrumbs-store';
 
